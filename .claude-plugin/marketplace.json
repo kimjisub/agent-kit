@@ -1,0 +1,17 @@
+{
+  "name": "kimjisub-agent-skills",
+  "owner": { "name": "Jisub Kim" },
+  "metadata": {
+    "description": "실무에서 다듬어 온 에이전트 스킬 모음",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "evidence-report",
+      "description": "실제로 띄워 찍은 화면과 저장된 값을 증거로 하나의 질문에 답하는 HTML 보고서 한 장을 만든다. 모바일, A4 인쇄, 문서 안 결정 복사를 지원한다.",
+      "source": "./",
+      "strict": false,
+      "skills": ["./skills/evidence-report"]
+    }
+  ]
+}

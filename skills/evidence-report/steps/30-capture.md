@@ -1,0 +1,228 @@
+# 제품을 조작해 찍기
+
+**로드 시점 - Step 3(찍기) 와 Step 4(표시) 에서.** 축을 세우는 준비는 [axes](../variants/axes.md) 에 있다.
+여기는 그 다음, 실제로 화면을 띄우고 누르고 찍고 표시하는 동안 막히는 것들이다.
+
+## 개발 서버 띄우기
+
+`next dev` 를 비롯한 여러 개발 서버는 stdin 을 읽는다. `< /dev/null` 을 주면
+즉시 EOF 를 받고 **오류 없이 정상 종료** 한다. 로그 끝에 에러가 없는데 서버가
+죽어 있다면 대개 이것이다.
+
+```bash
+nohup sh -c 'tail -f /dev/null | exec pnpm exec next dev -p 3210' > /tmp/before-fe.log 2>&1 &
+```
+
+NestJS 처럼 stdin 을 읽지 않는 서버는 이 문제가 없다. 한쪽만 죽어 있다면
+그 차이를 의심한다.
+
+## 데이터 존재 확인
+
+**보여줄 기능에 필요한 데이터가 없으면 빈 화면이 찍힌다.** 캡처를 다 끝낸 뒤에
+알면 스택을 다시 세워야 한다. 화면을 열어보는 것보다 API 나 DB 로 직접 세는 편이 빠르다.
+
+```bash
+TOKEN=$(curl -s -X POST http://localhost:3199/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"...","password":"..."}' | python3 -c "import json,sys; print(json.load(sys.stdin)['accessToken'])")
+
+curl -s -H "Authorization: Bearer $TOKEN" "http://localhost:3199/<엔드포인트>" | head -c 300
+```
+
+시계열 비교 기능이라면 **비교 대상 기간에도 데이터가 있어야 한다.** 전년 동기를
+겹쳐 보이려면 작년 같은 달 데이터가 필요하다. 데이터가 있는 구간을 먼저 찾고
+그 구간을 조회 기간으로 잡아 캡처한다.
+
+```bash
+curl -s -H "Authorization: Bearer $TOKEN" "<...>&start=2024-01-01T00:00:00Z&end=2026-12-31T00:00:00Z" \
+ | python3 -c "
+import json,sys,collections
+rows=json.load(sys.stdin)['data']
+print(dict(sorted(collections.Counter(r['_time'][:7] for r in rows).items())))"
+```
+
+**빈 상태 자체가 보여줄 것일 때도 있다.** 아직 아무도 신청하지 않은 화면이
+어떻게 보이는지가 논점이면 그 상태를 일부러 만든다. 다만 문서에 "데이터가 없어
+비어 있는 화면입니다" 라고 적어 두지 않으면 만들다 만 것으로 읽힌다.
+
+## 브라우저 조작
+
+기본 수단은 `scripts/shot.mjs` 다. 촬영 목록 파일 하나를 받아 Playwright 로 화면을 열고, 표시를 그리고, 찍는다.
+Playwright 는 보고서 작업 폴더에 한 번 넣는다.
+
+```bash
+npm i -D playwright
+npx playwright install chromium   # 건너뛰면 설치된 Chrome 으로 띄운다
+```
+
+다른 브라우저 도구를 쓰는 환경이면 그 도구로 열고 찍되, 표시는 `scripts/mark.js` 를 페이지에 넣어 그린다.
+페이지에서 JS 를 실행할 수 있으면 어느 도구든 된다(헤더 주석에 예가 있다). 아래 예의 `agent-browser` 는
+그런 CLI 도구의 한 예이고, 명령 형태는 도구마다 다르니 `--help` 로 확인한다.
+
+### 세션 격리
+
+`shot.mjs` 는 실행마다 새 브라우저 컨텍스트를 띄우므로 다른 작업과 탭이 섞이지 않는다. `cdp` 로 이미 떠 있는
+Chrome 에 붙을 때만 그 창의 탭과 쿠키를 함께 쓴다.
+
+여러 세션이 브라우저 데몬 하나를 공유하는 도구라면 엉뚱한 탭이 찍힌다. 세션 이름을 따로 준다. 도구에 따라
+명령 인자로 주는 플래그가 동작하지 않는 경우가 있으니 환경변수 쪽이 안전하다.
+
+```bash
+export AGENT_BROWSER_SESSION="report-before"
+```
+
+### 로그인 상태 만들기
+
+**판정 전에 로그인 상태를 반드시 확인한다.** 로그인해야 보이는 요소를 로그아웃
+상태에서 찍고 "없다" 고 적는 실수가 실제로 나온다. 캡처 스크립트 맨 앞에서 로그인을
+한 번 하고, 화면마다 로그인 상태가 유지되는지 확인한다.
+
+`shot.mjs` 에는 두 길이 있다. 로그인 상태를 파일로 한 번 만들어 `config.storageState` 로 주거나,
+이미 로그인된 Chrome 에 `config.cdp` 로 붙는다.
+
+```bash
+npx playwright codegen --save-storage=auth.json http://localhost:5173/login   # 창에서 로그인하고 닫으면 auth.json 이 남는다
+# 또는 원격 디버깅을 켠 Chrome 을 따로 띄워 한 번 로그인해 두고 cdp: 'http://127.0.0.1:9222' 로 붙는다.
+# Chrome 은 기본 프로필에서 원격 디버깅을 막으니 --user-data-dir 를 따로 준다
+```
+
+`auth.json` 에는 세션 쿠키가 들어 있다. 보고서 폴더에 두더라도 건네는 파일에 섞이지 않게 하고 git 에 올리지 않는다.
+
+토큰을 직접 넣을 수 있으면 로그인 화면을 매번 통과시키지 않는다. 미들웨어가
+쿠키를 읽는 경우가 있으므로 localStorage 와 쿠키에 모두 넣는다.
+
+```bash
+agent-browser open "http://localhost:3210/login"; sleep 4
+agent-browser eval "localStorage.setItem('auth_token','$TOKEN');
+                    document.cookie='auth_token=$TOKEN; path=/'; 'ok'"
+```
+
+개발용 로그인 우회가 있는 프로젝트라면 그것을 쓴다. 없고 Google 같은 외부 로그인뿐이면,
+사용자의 브라우저 프로필에 이미 로그인된 계정으로 그 흐름을 끝까지 누른다. 이때 동의 화면의
+"허용"을 누르거나 로그인 세션이 생긴 것은 **찍으면서 바꾼 것**이라 문서의 찍은 조건과 보고에 적는다.
+계정마다 보이는 것이 다르면 **어느 계정으로 찍었는지 문서에 적는다.**
+
+### 합성 이벤트가 안 먹히는 컴포넌트
+
+Radix, Headless UI 같은 라이브러리의 팝오버, 드롭다운, 탭은 `dispatchEvent` 로
+만든 합성 이벤트에 반응하지 않는다. pointerdown 을 포함해 순서대로 보내도
+열리지 않는다. 자동화 도구의 **실제 click** 을 써야 한다.
+
+셀렉터가 복잡하면 먼저 `id` 를 부여한다.
+
+```bash
+agent-browser eval "(() => {
+  const b=[...document.querySelectorAll('button')].find(x=>/최근 7일/.test(x.textContent));
+  if(!b) return 'none'; b.id='dateBtn'; return 'ok';
+})()"
+agent-browser click "#dateBtn"
+```
+
+### 제어 입력 채우기
+
+React 제어 컴포넌트는 값을 직접 대입해도 onChange 가 돌지 않는다. 자동화
+도구의 `fill` 이나 실제 키 입력을 쓴다.
+
+```bash
+agent-browser fill "#dt0" "2026-03-01 00:00:00"
+```
+
+### 뷰포트
+
+화면 아래가 잘리면 다시 찍어야 하니 넉넉하게 잡는다. 사이드 패널이 본문을
+가리는 화면이라면 폭을 늘려 둘 다 담는다. 모바일 화면이 논점이면 실제 기기 폭으로
+따로 찍는다.
+
+```bash
+agent-browser set viewport 1560 1700   # 목록, 분석 화면
+agent-browser set viewport 1960 1700   # 우측 패널이 열리는 화면
+agent-browser set viewport 390 844     # 모바일
+```
+
+명령 형태가 도구마다 다르니 `--help` 로 확인한다.
+
+### 화면 일부만 찍기
+
+문서에 실을 것이 화면 한 구석이면 전체를 찍어 크롭하는 것보다 셀렉터로 그 요소만
+찍는 편이 낫다. 크롭 좌표를 실측하는 단계가 통째로 없어진다. 촬영 목록 항목에 `el` 을 준다.
+
+```js
+{ url: 'http://localhost:5173/venue', name: 'map', el: '.seat-map', marks: [{ text: 'A-12' }] },
+```
+
+다만 **요소만 찍으면 그것이 화면 어디에 있는지가 사라진다.** 위치가 논점이면
+전체를 찍는다.
+
+### 캡처 스크립트를 한 벌로
+
+같은 촬영 목록에 접속 정보만 바꿔 돌리면 조작 순서가 어긋나지 않는다. 전후 비교면 주소를 환경변수로 받는다.
+
+```bash
+# shots.mjs 안에서 const BASE = process.env.BASE; 로 받아 url 앞에 붙인다
+BASE=http://localhost:3210 node scripts/shot.mjs shots.mjs images/raw/before
+BASE=http://localhost:3211 node scripts/shot.mjs shots.mjs images/raw/after
+```
+
+렌더링 대기 시간을 넉넉히 준다. 차트가 들어간 화면은 10초 이상 필요한 경우가 있다.
+
+## 화면 안에서 그리는 표시
+
+브라우저로 찍는 화면이면 좌표를 재지 않는다. 찍기 직전에 표시할 요소를 글자나 셀렉터로 찾아
+빨간 테두리와 번호를 **화면에 직접 그리고** 찍는다. 요소가 어디 있든 테두리가 그 요소에 붙으니
+한 열씩 밀리는 일이 없고, 화면을 다시 찍어도 표시가 따라온다.
+
+```bash
+# 촬영 목록 파일을 만들고 넘긴다. 형식은 shot.mjs 헤더 주석에 있다
+cat > shots.mjs <<'JS'
+export const config = { viewport: { width: 1560, height: 1700 }, storageState: 'auth.json' };
+export default [
+  { url: 'http://localhost:5173/list?q=테스트', name: 'list', marks: [{ sel: '[data-status="PAID"]', up: 1, above: true }] },
+  { url: 'http://localhost:5173/detail/1', name: 'detail', full: true, maxH: 1800,
+    marks: [{ text: '취소됨', up: 1 }, { text: '결제 수단', nth: 1, n: 2 }] },
+];
+JS
+node scripts/shot.mjs shots.mjs images/raw
+python3 scripts/stitch.py images/raw images --crop crops.json
+```
+
+- **표시 결과 줄을 읽는다.** `NOT FOUND` 가 찍힌 번호는 그려지지 않았다. 글자가 자식 요소 안에
+  쪼개져 있거나(배지의 점 + 글자), 그 폭에서 열이 숨겨졌거나, 아직 안 그려졌다
+- **작은 요소는 `above`** 로 배지를 위에 단다. 왼쪽 배지가 막대의 첫 칸 같은 내용을 가린다
+- **같은 사실이 두 곳이면 같은 번호** 를 두 요소에 준다(`n: 2` 두 번). 캡션에서 번호 하나로 가리킨다
+- **나란히 놓을 두 장은 같은 폭과 같은 잘라 내기** 로 맞춘다. `crops.json` 에 이름별로 적는다
+- 화면이 브라우저가 아니면(데스크톱 앱, 받은 이미지) 그때만 `grid_overlay.py` 로 좌표를 읽고
+  `annotate.py` 로 그린다. 두 스크립트의 헤더에 쓰는 법이 있다
+
+### 긴 화면
+
+브라우저 도구의 전체 페이지 캡처는 고정 머리줄을 조각마다 겹쳐 찍거나, 창을 못 내려 같은 화면을
+반복해 찍는 일이 잦다. `full: true` 는 창을 한 화면씩 내리며 찍고, 고정 머리줄과 사이드바를 풀어 조각마다 반복되지 않게 한다. 이은 결과는 반드시 열어
+이음매를 본다. 고정 요소가 남아 있으면 같은 목차가 조각마다 다시 나온다 - 그 화면은 `maxH` 를
+줄여 논점 구간만 찍거나 잘라 낸다.
+
+앱이 문서 대신 안쪽 상자를 스크롤하면 창을 내려도 안 움직인다. `document.scrollingElement.scrollHeight`
+가 창 높이와 같으면 그 경우다. 그 상자를 찾아 `scrollTop` 을 내리는 쪽으로 바꾼다.
+
+## 증거로 남기는 화면 값
+
+사진은 "이렇게 보인다"까지만 말한다. **왜 그렇게 보이는지는 저장된 값과 화면 값을 나란히
+둘 때 말해진다.** 찍는 김에 둘을 읽어 둔다.
+
+- **저장된 값** - 읽기 쿼리나 API 로 그 레코드의 칸을 읽는다. 쓰기는 하지 않는다
+- **화면 값** - 화면 요소의 `data-*` 속성, `aria-label`(화면 낭독기가 읽는 글), 실제 글자. `aria-label` 이
+  "결제 완료"라고 말하면 그것이 화면의 판정이다
+
+```js
+// shot.mjs 의 before 안에서, 또는 쓰는 도구의 eval 로
+console.log(await page.evaluate(() => [...document.querySelectorAll('[data-status]')].map(e => e.textContent.trim() + ':' + e.dataset.status)));
+```
+
+**보여 줄 사례가 데이터에 있는지 찍기 전에 쿼리로 찾는다.** 점검에서 나온 발견마다 "이 조건을
+만족하는 레코드가 있나"를 세고, 있으면 그 레코드로 찍는다. 없으면 데이터를 만들지 않는다 -
+개발 DB 를 바꾸는 일이라 사용자 확인이 먼저다. 그 항목은 "(코드 근거)"로 남긴다.
+
+## 정리
+
+캡처가 끝나면 띄웠던 스택을 내리고 worktree 를 제거한다. **다만 문서를 다 만들
+때까지는 남겨 둔다.** 상태축이라 개발 DB를 바꿨다면 바꾼 값을 되돌리고, 무엇을
+되돌렸는지 사용자에게 알린다.

@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{제목}}</title>
+<style>
+  /* 토큰. 원장처럼 잉크와 종이 두 톤이 바탕이고, 색은 판정(심각·중요·좋음)과 전후 표시에만 쓴다 */
+  :root { --fg:#17181c; --ink2:#3a3d45; --mute:#6a6f7b; --line:#e6e7eb; --line2:#d6d8de; --bg:#f4f4f2; --card:#fff; --nav-bg:#fafaf8;
+          --accent:#2448c8; --accent-bg:#eef2fd; --red:#b8382e; --red-bg:#fbeeec; --amber:#93580a; --amber-bg:#fcf3e3;
+          --green:#22694a; --green-bg:#e8f4ed; --shadow:0 1px 2px rgba(16,18,24,.04), 0 4px 16px rgba(16,18,24,.04); }
+  * { box-sizing:border-box; }
+  html { -webkit-text-size-adjust:100%; scroll-padding-top:24px; }
+  body { margin:0; font:15.5px/1.7 "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", system-ui, sans-serif;
+         color:var(--fg); background:var(--bg); word-break:keep-all; overflow-wrap:break-word; -webkit-font-smoothing:antialiased;
+         font-feature-settings:"tnum" 0; letter-spacing:-.005em; }
+  main { max-width:1040px; margin:0 auto; padding:56px 40px 120px; }
+  h1 { font-size:30px; line-height:1.3; letter-spacing:-.02em; margin:0 0 12px; font-weight:800; }
+  h2 { font-size:22px; line-height:1.35; letter-spacing:-.015em; margin:72px 0 8px; padding-top:20px; border-top:1px solid var(--line2);
+       display:flex; align-items:baseline; gap:12px; }
+  h2 .n { flex:none; min-width:30px; font-size:14px; font-weight:700; color:var(--mute); font-variant-numeric:tabular-nums; }
+  h3 { font-size:16.5px; line-height:1.45; margin:0; font-weight:700; }
+  h3 .n { color:var(--mute); font-weight:700; margin-right:8px; font-variant-numeric:tabular-nums; }
+  h2, h3 { scroll-margin-top:24px; }
+  p { margin:0 0 12px; }
+  img { max-width:100%; }
+  a { color:var(--accent); }
+  .meta { color:var(--mute); font-size:13px; margin-bottom:28px; display:flex; flex-wrap:wrap; gap:6px 14px; }
+  .lead { font-size:17px; line-height:1.75; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px 26px;
+          box-shadow:var(--shadow); }
+  .lead b { color:var(--red); }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:10px; margin:16px 0 20px; }
+  .stat { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px; }
+  .stat .n { font-size:26px; font-weight:800; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+  .stat .l { color:var(--mute); font-size:12.5px; }
+  .sub { color:var(--mute); font-size:14px; margin:0 0 20px 42px; }
+  .note { font-size:13px; color:var(--mute); }
+  .rc { font-weight:700; color:var(--accent); white-space:nowrap; font-size:13px; }
+
+  /* 표. 좁은 화면에서는 .tw 안에서 가로로 밀린다 */
+  .tw { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--line); border-radius:12px; background:var(--card); margin:12px 0; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  .tw table { border:0; }
+  th, td { text-align:left; padding:10px 14px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr:last-child td { border-bottom:0; }
+  th { background:#f6f6f4; font-weight:600; font-size:12.5px; color:var(--mute); white-space:nowrap; }
+  td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+
+  /* 항목 목록. 라벨이 왼쪽, 내용이 오른쪽 */
+  .items { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:0 22px; margin:12px 0; }
+  .item { display:flex; gap:18px; padding:14px 0; }
+  .item + .item { border-top:1px solid var(--line); }
+  .item .key { width:150px; flex:none; }
+  .item .code { font-weight:800; color:var(--accent); font-variant-numeric:tabular-nums; }
+  .item .name { font-weight:700; }
+  .item .val { flex:1; min-width:0; }
+  .item .act { margin-top:4px; font-size:14px; color:var(--mute); }
+  .item .act b { color:var(--green); margin-right:6px; }
+  .grp { display:flex; gap:16px; padding:10px 0; border-top:1px solid var(--line); }
+  .grp:last-of-type { border-bottom:1px solid var(--line); }
+  .grp .gh { width:56px; flex:none; font-weight:700; color:var(--mute); }
+  .grp .glist { flex:1; min-width:0; }
+  .grp .row { display:flex; gap:12px; align-items:baseline; }
+  .grp .row + .row { margin-top:6px; }
+  .grp .row .code { width:44px; flex:none; font-weight:800; color:var(--accent); }
+
+  /* 발견 카드. 머리(판정 + 제목) → 사진 → 본문 → 결정 순서로 한 장에 담는다 */
+  .finding { background:var(--card); border:1px solid var(--line); border-radius:16px; margin:22px 0; overflow:hidden; box-shadow:var(--shadow); }
+  .finding header { padding:18px 22px 14px; display:flex; gap:10px; align-items:baseline; }
+  .finding .body { padding:16px 22px 20px; }
+  .sev { flex:none; font-size:11.5px; font-weight:700; padding:2px 9px; border-radius:99px; letter-spacing:0; }
+  .s1 { background:var(--red-bg); color:var(--red); }
+  .s2 { background:var(--amber-bg); color:var(--amber); }
+  .ok { background:var(--green-bg); color:var(--green); }
+  figure { margin:0; background:#101114; border-top:1px solid var(--line); position:relative; }
+  figure img { display:block; width:100%; height:auto; }
+  figure .lab { font-size:12px; font-weight:700; padding:5px 22px; letter-spacing:.02em; }
+  figure .lab.b { background:#f1f1ef; color:var(--ink2); }
+  figure .lab.a { background:var(--accent-bg); color:var(--accent); }
+  figcaption { background:var(--card); color:var(--mute); font-size:13px; line-height:1.6; padding:9px 22px; border-bottom:1px solid var(--line); }
+  .pair { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--line); align-items:start; }
+  .pair figure { border-top:0; height:100%; display:flex; flex-direction:column; }
+  .pair figure img { flex:none; }
+  .pair figcaption { flex:1; }
+  .tall { max-height:720px; overflow:auto; }
+  dl { display:grid; grid-template-columns:92px 1fr; gap:8px 16px; margin:0; }
+  dt { color:var(--mute); font-size:13px; padding-top:2px; }
+  dd { margin:0; min-width:0; }
+  code { font:12.5px/1.4 ui-monospace, "SF Mono", Menlo, monospace; background:#f1f1ef; padding:1px 5px; border-radius:4px; }
+  .evidence { font:13px/1.6 ui-monospace, "SF Mono", Menlo, monospace; background:#f7f7f5; border:1px solid var(--line);
+              border-radius:8px; padding:10px 14px; margin-top:8px; white-space:pre-wrap; overflow-x:auto; }
+  .tag { font-size:11.5px; font-weight:700; color:#fff; background:var(--mute); padding:2px 8px; border-radius:4px; margin-left:8px; vertical-align:3px; }
+  ol, ul { padding-left:22px; }
+  li + li { margin-top:4px; }
+
+  /* 좁은 화면. 나란히 둔 것을 위아래로 쌓는다(목차는 report-nav.js 가 서랍으로 바꾼다) */
+  @media (max-width:1099px) { main { padding-top:64px; } }
+  @media (max-width:720px) {
+    body { font-size:15px; }
+    main { padding:60px 14px 140px; }
+    h1 { font-size:24px; }
+    h2 { font-size:19px; margin-top:48px; }
+    h3 { font-size:16px; }
+    .sub { margin-left:0; }
+    .lead { font-size:16px; padding:16px; }
+    .stats { grid-template-columns:1fr 1fr; gap:8px; }
+    .stat .n { font-size:22px; }
+    .tw table { min-width:520px; }
+    .items { padding:0 14px; }
+    .item, .grp { flex-direction:column; gap:4px; }
+    .item .key { width:auto; display:flex; gap:8px; align-items:baseline; }
+    .grp .gh { width:auto; }
+    .finding header { padding:14px 14px 10px; flex-wrap:wrap; gap:6px 10px; }
+    .finding .body { padding:12px 14px 16px; }
+    figure .lab, figcaption { padding-left:14px; padding-right:14px; }
+    .pair { grid-template-columns:1fr; }
+    .tall { max-height:70vh; }
+    dl { grid-template-columns:1fr; gap:2px; }
+    dt { padding-top:8px; }
+  }
+
+  /* 인쇄. 브라우저 인쇄로 A4 PDF 를 만들 때 그대로 나오게 한다 */
+  @page { size:A4; margin:14mm 12mm; }
+  @media print {
+    html { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    body { background:#fff; font-size:10.5pt; }
+    main { max-width:none; padding:0; }
+    h2 { margin-top:28px; break-after:avoid; }
+    .lead, .stat, .item, .grp, figure, .finding header, dl > * { break-inside:avoid; }
+    .finding { break-inside:auto; box-shadow:none; }
+    .tall { max-height:none; overflow:visible; }
+    .tw { overflow:visible; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<h1>{{이 문서가 답하는 질문}}</h1>
+<div class="meta">{{날짜}} - {{범위}} - {{기준}}</div>
+
+<div class="lead">{{결론 두세 문장. 가장 무거운 사례를 <b>강조</b>}}</div>
+
+<div class="stats">
+  <div class="stat"><div class="n">{{수}}</div><div class="l">{{무엇을 센 수}}</div></div>
+</div>
+
+<p class="note">{{어디서 어떻게 찍었나: 환경, 데이터, 계정, 폭. 찍으면서 바꾼 것. 화면으로 못 보인 항목은 어디에 모았나}}</p>
+
+<!-- 항목 목록. 개선 보고면 "반영 범위", 명세 대조면 "대조 결과". 없으면 지운다 -->
+<h2><span class="n">1.</span>{{항목 목록 제목}}</h2>
+<div class="items">
+  <div class="item">
+    <div class="key"><div class="code">R-1</div><div class="name">{{항목}}</div></div>
+    <div class="val">
+      <div>{{확인된 사실. 왜 그렇게 되어 있었는지.}}</div>
+      <div class="act"><b>{{조치 또는 판정}}</b>{{무엇을 했는지, 또는 무엇을 정해야 하는지.}}</div>
+    </div>
+  </div>
+</div>
+
+<h2><span class="n">2.</span>{{묶음 이름}}</h2>
+<div class="sub">{{이 묶음이 왜 한 묶음인가 한 줄}}</div>
+
+<section class="finding">
+  <header><span class="sev s1">심각</span><h3><span class="n">2-1</span>{{항목 제목 - 사실을 말하는 문장}} <span class="rc">R-1</span></h3></header>
+  <!-- 두 그림이 같은 범위, 같은 크기로 찍혔으면 data-compare 를 단다. 나란히, 슬라이더, 차이 막대가 생긴다 -->
+  <div class="pair" data-compare>
+    <figure><div class="lab b">{{개선 전}}</div><img src="images/{{a}}.png" alt="{{a 설명}}"><figcaption>{{화면 자리}} - 1 {{표시가 가리키는 것}}</figcaption></figure>
+    <figure><div class="lab a">{{개선 후}}</div><img src="images/{{b}}.png" alt="{{b 설명}}"><figcaption>{{화면 자리}} - 1 {{표시가 가리키는 것}}</figcaption></figure>
+  </div>
+  <div class="body">
+    <dl>
+      <dt>무엇이</dt><dd>{{무엇이 어떻게 어긋났나}}</dd>
+      <dt>근거</dt><dd><div class="evidence">{{저장된 값 / 화면 값 / 코드 위치}}</div></dd>
+      <dt>겪는 장면</dt><dd>{{사용자가 실제로 겪는 일}}</dd>
+      <dt>처방</dt><dd>{{어떻게 고치나}}</dd>
+    </dl>
+  </div>
+  <div class="decision" data-id="2-1">
+    <p class="q">{{이 발견을 어떻게 할까요? - 이 카드의 내용에 대한 질문}}</p>
+    <div class="opts">
+      <label><input type="radio" name="2-1" value="이번에 고친다" data-then="{{고르면 다음에 할 일 - 처방을 구체적으로}}">이번에 고친다<span class="hint">{{달라지는 것, 영향 범위}}</span></label>
+      <label><input type="radio" name="2-1" value="나중에" data-then="이번 범위에서 빼고 다음 작업 목록에 남긴다">나중에<span class="hint">{{지금 동작 그대로}}</span></label>
+      <label><input type="radio" name="2-1" value="고치지 않는다" data-then="{{의도로 보고 어디에 이유를 남기나}}">고치지 않는다<span class="hint">{{의도된 동작이라면}}</span></label>
+    </div>
+    <textarea placeholder="메모나 다른 답 (조건, 범위, 이유)"></textarea>
+  </div>
+</section>
+
+<section class="finding">
+  <header><span class="sev s2">중요</span><h3><span class="n">2-2</span>{{화면으로 못 보인 항목 (코드 근거)}}</h3></header>
+  <div class="body">
+    <dl>
+      <dt>무엇이</dt><dd>{{...}}</dd>
+      <dt>화면</dt><dd>{{왜 못 찍었나 - 데이터에 사례 없음 등}}</dd>
+    </dl>
+  </div>
+</section>
+
+<h2><span class="n">3.</span>{{잘 된 곳 - 고칠 때 기준으로 삼을 화면}}</h2>
+<div class="tw"><table>
+  <tr><th style="width:28%">화면</th><th>무엇을 잘 했나</th></tr>
+  <tr><td><span class="sev ok">기준</span> {{화면}}</td><td>{{...}}</td></tr>
+</table></div>
+
+<h2><span class="n">4.</span>{{다음에 할 것}}</h2>
+<ol>
+  <li>{{영향이 큰 순서로}}</li>
+</ol>
+
+<!-- 작업자용 절. report.html?internal 로 열 때만 나온다. 없으면 지운다 -->
+<section id="internal">
+  <h2><span class="n">9.</span>반영 시 확인 사항<span class="tag">내부</span></h2>
+  <p>{{환경변수 이름, 실행할 스크립트, 누락 시 무슨 일이 생기는지. 비밀값은 값이 아니라 이름과 받는 곳만.}}</p>
+</section>
+
+<div id="decisions"></div>
+
+</main>
+<script>if (!location.search.includes('internal')) document.getElementById('internal')?.remove();</script>
+<script src="decisions.js"></script>
+<script src="report-nav.js"></script>
+<script src="compare.js"></script>
+</body>
+</html>
