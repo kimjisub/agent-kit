@@ -21,24 +21,24 @@ NestJS 처럼 stdin 을 읽지 않는 서버는 이 문제가 없다. 한쪽만 
 **보여줄 기능에 필요한 데이터가 없으면 빈 화면이 찍힌다.** 캡처를 다 끝낸 뒤에
 알면 스택을 다시 세워야 한다. 화면을 열어보는 것보다 API 나 DB 로 직접 세는 편이 빠르다.
 
-```bash
-TOKEN=$(curl -s -X POST http://localhost:3199/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"username":"...","password":"..."}' | python3 -c "import json,sys; print(json.load(sys.stdin)['accessToken'])")
-
-curl -s -H "Authorization: Bearer $TOKEN" "http://localhost:3199/<엔드포인트>" | head -c 300
+```js
+// 로그인된 화면에서 앱 자신의 API 를 부른다. 세션 쿠키가 그대로 실려 토큰을 따로 다루지 않는다.
+// shot.mjs 의 before 안에서, 또는 쓰는 도구의 eval 로
+const res = await page.evaluate(() => fetch('/api/<엔드포인트>').then((r) => r.json()));
+console.log(JSON.stringify(res).slice(0, 300));
 ```
 
 시계열 비교 기능이라면 **비교 대상 기간에도 데이터가 있어야 한다.** 전년 동기를
 겹쳐 보이려면 작년 같은 달 데이터가 필요하다. 데이터가 있는 구간을 먼저 찾고
 그 구간을 조회 기간으로 잡아 캡처한다.
 
-```bash
-curl -s -H "Authorization: Bearer $TOKEN" "<...>&start=2024-01-01T00:00:00Z&end=2026-12-31T00:00:00Z" \
- | python3 -c "
-import json,sys,collections
-rows=json.load(sys.stdin)['data']
-print(dict(sorted(collections.Counter(r['_time'][:7] for r in rows).items())))"
+```js
+// 달마다 몇 건인지 센다
+const rows = await page.evaluate(() =>
+  fetch('/api/<엔드포인트>?start=2024-01-01T00:00:00Z&end=2026-12-31T00:00:00Z').then((r) => r.json()).then((j) => j.data));
+const byMonth = {};
+for (const r of rows) byMonth[r._time.slice(0, 7)] = (byMonth[r._time.slice(0, 7)] ?? 0) + 1;
+console.log(byMonth);
 ```
 
 **빈 상태 자체가 보여줄 것일 때도 있다.** 아직 아무도 신청하지 않은 화면이
