@@ -34,6 +34,7 @@ if (asks.length) {
   R.parts.push({
     count: () => asks.filter(answered).length,
     lines: () => asks.map((a) => `- ${a.dataset.ask} (${q(a)}): ${withThen(a)}`),
+    json: () => asks.map((a) => ({ id: a.dataset.ask, q: q(a), answered: answered(a), value: read(a), label: pick(a), then: then(a) })),
     rows: () => R.h("section", { class: "r-sec" }, R.h("p", { class: "ve-label caps" }, `결정 ${asks.length}개 중 ${asks.filter(answered).length}개 답함`),
       asks.map((a) => R.h("div", { class: "r-row" }, R.h("span", { class: "k" }, answered(a) ? "✓" : "·"), R.h("span", {}, state(a), R.h("small", {}, q(a))),
         R.h("span", { class: "acts" }, R.h("button", { type: "button", onclick: () => { R.close(); a.scrollIntoView({ block: "center" }); (inputs(a).find((i) => i.checked) || inputs(a)[0]).focus({ preventScroll: true }); } }, answered(a) ? "바꾸기" : "답하기"))))),

@@ -1,4 +1,5 @@
-// show 스킬이 visual-explainer v0.14.0(MIT, kit/LICENSE)에서 가져왔다. 고친 곳: 화면 문구와 묶는 글을 한국어로.
+// show 스킬이 visual-explainer v0.14.0(MIT, kit/LICENSE)에서 가져왔다. 고친 곳: 화면 문구와 묶는 글을 한국어로,
+// show 서버가 서빙한 페이지면 답을 서버로 보내고 그 답의 처리 상태를 보인다.
 // Reader replies, shared by kit pages and plan pages: the note popover, the selection buttons, and sending one reply
 // to the agent. Kit pages turn on page replies with veReply.page(); plan.js builds its own response on the same parts.
 // Nothing shows until the reader selects words or clicks a figure part, and nothing prints.
@@ -47,10 +48,21 @@ div.ve-sel { display: flex; gap: var(--s-1); padding: 0; box-shadow: none; } div
 `));
 
   const toast = (msg) => { const t = h("div", { class: "ve-toast", role: "status" }, msg); document.body.append(t); setTimeout(() => t.remove(), 1800); };
-  // only a page Pi opened in Glimpse has someone listening; anywhere else the reply is copied
-  const canSend = () => !!$("[data-send-back]") && typeof window.glimpse?.send === "function";
+  // show: a page the show server serves at /p/<id>/ sends the reply to that server, which writes it to a file and wakes
+  // the waiting session (scripts/show.mjs). Anywhere else (a file opened directly) the reply is copied.
+  const served = () => (/^https?:$/.test(location.protocol) && location.pathname.match(/^\/p\/([a-z0-9][a-z0-9-]*)\//)?.[1]) || null;
+  const glimpse = () => !!$("[data-send-back]") && typeof window.glimpse?.send === "function";
+  const canSend = () => !!served() || glimpse();
   async function deliver(msg) {
-    if (canSend()) { window.glimpse.send({ type: "visual-explainer:response", ...msg }); toast("에이전트에 보냈습니다"); return "sent"; }
+    const id = served();
+    if (id) {
+      try {
+        const r = await fetch(`/api/pages/${id}/replies`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msg) });
+        if (r.ok) { const { seq } = await r.json(); toast(`보냈습니다. 작업 세션이 답 #${seq} 을 받아 갑니다`); window.dispatchEvent(new CustomEvent("show:sent", { detail: { seq } })); return "sent"; }
+      } catch { /* 서버에 못 닿으면 아래에서 복사로 대신한다 */ }
+      toast("서버에 보내지 못해 복사로 대신합니다");
+    }
+    if (glimpse()) { window.glimpse.send({ type: "visual-explainer:response", ...msg }); toast("에이전트에 보냈습니다"); return "sent"; }
     try { await navigator.clipboard.writeText(msg.markdown); } catch {
       const ta = h("textarea"); ta.value = msg.markdown; document.body.append(ta); ta.select();
       let ok = false;
@@ -89,10 +101,10 @@ div.ve-sel { display: flex; gap: var(--s-1); padding: 0; box-shadow: none; } div
     closePop();
     dialog ??= document.body.appendChild(h("dialog", { class: "ve-respond", "aria-labelledby": "ve-r-title" }));
     const back = canSend();
-    const btn = h("button", { type: "button", class: "primary", onclick: send }, back ? "에이전트에 보내기" : copy);
+    const btn = h("button", { type: "button", class: "primary", onclick: send }, back ? "작업 세션에 보내기" : copy);
     dialog.replaceChildren(h("div", { class: "r-wrap" },
       h("header", { class: "r-head" }, h("h2", { id: "ve-r-title" }, title), h("button", { type: "button", onclick: close }, "닫기")),
-      h("div", { class: "r-body" }, body, h("section", { class: "r-sec" }, h("p", { class: "ve-label caps" }, back ? "에이전트에 보낼 글" : "대화에 붙여 넣을 글"), md)),
+      h("div", { class: "r-body" }, body, h("section", { class: "r-sec" }, h("p", { class: "ve-label caps" }, back ? "작업 세션에 보낼 글" : "대화에 붙여 넣을 글"), md)),
       h("footer", { class: "r-foot" }, foot, h("span", { class: "sp" }), btn)));
     if (!dialog.open) dialog.showModal();
     btn.focus();
@@ -192,7 +204,7 @@ div.ve-sel { display: flex; gap: var(--s-1); padding: 0; box-shadow: none; } div
       sheet({ title: "답 묶기", copy: "복사", body: [notesSec, ...parts.map((p) => p.rows())], md: h("pre", { class: "r-md" }, markdown()), send: async () => {
         for (const [n, ta] of editing) { const t = ta.value.trim(); if (t) n.text = t; }
         if (editing.size) changed();
-        if (await deliver({ kind: "page", markdown: markdown() }) === "failed") return;
+        if (await deliver({ kind: "page", markdown: markdown(), notes: notes.map(({ kind, where, part, quote, text }) => ({ kind, where, part, quote, text })), asks: parts.flatMap((p) => (p.json ? p.json() : [])) }) === "failed") return;
         notes = []; for (const p of parts) p.clear();
         changed(); close();
       } });
@@ -224,6 +236,29 @@ div.ve-sel { display: flex; gap: var(--s-1); padding: 0; box-shadow: none; } div
       askBtn.focus({ preventScroll: true });
     });
     if (total()) changed();
+
+    // show: 서버가 서빙한 페이지면 보낸 답이 어디까지 갔는지(받음, 가져감, 반영됨)를 화면 아래에 보인다
+    const id = served();
+    if (id) {
+      const pill = h("div", { class: "ve-status", role: "status" });
+      document.head.append(h("style", {}, `.ve-status{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--s-5) + env(safe-area-inset-bottom,0px));z-index:19;font:600 var(--t-label) var(--font-mono);background:var(--surface);color:var(--text);border:1px solid var(--border-bright);border-radius:var(--r-1);padding:var(--s-1) var(--s-3);box-shadow:0 6px 18px var(--lift)}.ve-status.done{border-color:var(--ok);color:var(--ok)}@media print{.ve-status{display:none}}`));
+      const word = { new: "받음, 세션이 가져가길 기다리는 중", taken: "작업 세션이 가져감", done: "반영됨" };
+      let last = "", until = 0;
+      const poll = async () => {
+        try {
+          const { replies: rs } = await (await fetch(`/api/pages/${id}/status`, { cache: "no-store" })).json();
+          const r = rs[rs.length - 1];
+          if (r) {
+            const text = `답 #${r.seq}: ${word[r.status] || r.status}${r.note ? ` - ${r.note}` : ""}`;
+            if (text !== last) { if (last) toast(text); last = text; pill.textContent = text; pill.classList.toggle("done", r.status === "done"); if (!pill.isConnected) document.body.append(pill); }
+            if (r.status === "done") until = 0;
+          }
+        } catch { /* 서버가 내려가면 다음에 다시 본다 */ }
+        if (Date.now() < until) setTimeout(poll, 4000);
+      };
+      window.addEventListener("show:sent", () => { const again = Date.now() >= until; until = Date.now() + 30 * 60 * 1000; if (again) poll(); });
+      until = Date.now() + 10 * 60 * 1000; poll();
+    }
   }
 
   return { $, $$, h, toast, deliver, note, closePop, onSelect, sheet, close, isOpen, page, parts, refresh: () => refresh() };
