@@ -50,14 +50,17 @@ div.ve-sel { display: flex; gap: var(--s-1); padding: 0; box-shadow: none; } div
   const toast = (msg) => { const t = h("div", { class: "ve-toast", role: "status" }, msg); document.body.append(t); setTimeout(() => t.remove(), 1800); };
   // show: a page the show server serves at /p/<id>/ sends the reply to that server, which writes it to a file and wakes
   // the waiting session (scripts/show.mjs). Anywhere else (a file opened directly) the reply is copied.
-  const served = () => (/^https?:$/.test(location.protocol) && location.pathname.match(/^\/p\/([a-z0-9][a-z0-9-]*)\//)?.[1]) || null;
+  // 바깥 주소가 하위 경로(https://host/show/p/<id>/)여도 되게, /p/<id>/ 앞부분을 api 의 앞부분으로 쓴다
+  const servedAt = () => (/^https?:$/.test(location.protocol) && location.pathname.match(/^(.*?)\/p\/([a-z0-9][a-z0-9-]*)\//)) || null;
+  const served = () => servedAt()?.[2] || null;
+  const apiBase = () => `${servedAt()?.[1] ?? ""}/api`;
   const glimpse = () => !!$("[data-send-back]") && typeof window.glimpse?.send === "function";
   const canSend = () => !!served() || glimpse();
   async function deliver(msg) {
     const id = served();
     if (id) {
       try {
-        const r = await fetch(`/api/pages/${id}/replies`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msg) });
+        const r = await fetch(`${apiBase()}/pages/${id}/replies`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msg) });
         if (r.ok) { const { seq } = await r.json(); toast(`보냈습니다. 작업 세션이 답 #${seq} 을 받아 갑니다`); window.dispatchEvent(new CustomEvent("show:sent", { detail: { seq } })); return "sent"; }
       } catch { /* 서버에 못 닿으면 아래에서 복사로 대신한다 */ }
       toast("서버에 보내지 못해 복사로 대신합니다");
@@ -246,7 +249,7 @@ div.ve-sel { display: flex; gap: var(--s-1); padding: 0; box-shadow: none; } div
       let last = "", until = 0;
       const poll = async () => {
         try {
-          const { replies: rs } = await (await fetch(`/api/pages/${id}/status`, { cache: "no-store" })).json();
+          const { replies: rs } = await (await fetch(`${apiBase()}/pages/${id}/status`, { cache: "no-store" })).json();
           const r = rs[rs.length - 1];
           if (r) {
             const text = `답 #${r.seq}: ${word[r.status] || r.status}${r.note ? ` - ${r.note}` : ""}`;

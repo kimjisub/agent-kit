@@ -34,9 +34,8 @@ npx skills add kimjisub/agent-skills --skill show
 | Python 3 | diff 그리기(`scripts/diff-html.py`) |
 | Pillow | 긴 화면 이어 붙이기, 브라우저 밖 이미지에 표시 그리기 |
 | Chrome | 인쇄 확인(`scripts/check_print.sh`). `pdftoppm` 이 있으면 쪽마다 PNG 도 뽑습니다 |
-| Tailscale(선택) | 공용 공간 서버를 tailnet 안 HTTPS 주소로 내보낼 때(`scripts/show.mjs expose`) |
 
-여러 세션이 만든 페이지는 공용 공간(`~/.show`) 하나에 모이고 서버 하나가 `/p/<id>/` 경로로 서빙합니다. 받는 사람이 페이지에서 결정을 골라 보내면 서버가 파일로 남기고, 페이지를 올린 세션이 `scripts/show.mjs wait` 로 기다리다 곧바로 받아 일을 이어 갑니다.
+여러 세션이 만든 페이지는 그 기기의 공용 공간(`~/.show`) 하나에 모이고 로컬 서버 하나(`127.0.0.1:4580`)가 `/p/<id>/` 경로로 서빙합니다. 다른 기기에서 열려면 그 서버를 각 환경의 방식으로 내보내고 `scripts/show.mjs config public <주소>` 로 알려 둡니다. 받는 사람이 페이지에서 결정을 골라 보내면 서버가 파일로 남기고, 페이지를 올린 세션이 `scripts/show.mjs wait` 로 기다리다 곧바로 받아 일을 이어 갑니다.
 
 Playwright 대신 다른 브라우저 자동화 도구를 써도 됩니다. 페이지에서 JS 를 실행할 수 있으면 `scripts/mark.js` 를 넣어 같은 표시를 그립니다.
 

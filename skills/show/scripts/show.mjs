@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// show 공용 공간 - 여러 세션이 만든 페이지를 서버 하나가 경로로 나눠 서빙하고, 받는 사람이 보낸 답을 파일로 남긴다.
+// show 공용 공간 - 이 기기에서 여러 세션이 만든 페이지를 로컬 서버 하나가 경로로 나눠 서빙하고, 받는 사람이 보낸 답을 파일로 남긴다.
+// 기기마다 자기 서버 하나를 둔다. 그 서버를 바깥(다른 기기, 휴대폰)에 어떻게 내보낼지는 그 환경이 정하고, 정한 주소만 config public 으로 알려 준다.
 //
 // 사용
 //   node show.mjs ensure                       서버가 떠 있는지 보고, 없으면 띄운다. 주소를 낸다
@@ -12,17 +13,17 @@
 //   node show.mjs done <id> <seq> [--note 한 줄] 반영을 마쳤다고 표시한다(페이지에 「반영됨」과 note)
 //   node show.mjs list | inbox                 페이지 목록 | 아직 안 가져간 답
 //   node show.mjs archive <id>                 페이지를 archive/ 로 옮긴다
-//   node show.mjs expose <https 포트>          Tailscale 을 쓰는 환경에서 tailnet 안 HTTPS 로 내보내고 그 주소를 기억한다(선택)
+//   node show.mjs config public <주소|->       환경이 이 서버를 바깥에 내보낸 주소를 기억한다(publish 가 PUBLIC 줄로 낸다). - 는 지운다
 //   node show.mjs serve                        서버를 앞에서 띄운다(ensure 가 뒤에서 부르는 것)
 //
 // 환경변수
 //   SHOW_HOME  공용 공간(기본 ~/.show)   SHOW_PORT  서버 포트(기본 4580, 127.0.0.1 에만 묶는다)
-//   SHOW_URL   다른 기기의 공용 서버를 쓸 때 그 주소. 주면 ensure 가 여기서 서버를 띄우지 않는다
+//   SHOW_PUBLIC_URL  config public 대신 쓰는 바깥 주소(선택)
 //
 // 공용 공간
 //   <SHOW_HOME>/pages/<id>/index.html   페이지      meta.json   제목, 프로젝트, 올린 곳, 시각, 결정 수
 //   <SHOW_HOME>/pages/<id>/replies/0001.json ...   받는 사람이 보낸 답. markdown, asks, notes, status(new, taken, done)
-//   <SHOW_HOME>/config.json             expose 로 정한 공개 주소   server.log   서버 기록
+//   <SHOW_HOME>/config.json             config public 으로 정한 바깥 주소   server.log   서버 기록
 //
 // 주의
 //   - id 는 소문자 영문, 숫자, - 만(기본은 <프로젝트>-<파일 이름>). 다른 세션의 페이지와 겹치지 않게 프로젝트를 앞에 둔다
@@ -38,8 +39,7 @@ import { fileURLToPath } from 'node:url';
 
 const HOME = process.env.SHOW_HOME || path.join(os.homedir(), '.show');
 const PORT = +(process.env.SHOW_PORT || 4580);
-const BASE = (process.env.SHOW_URL || `http://127.0.0.1:${PORT}`).replace(/\/$/, '');
-const REMOTE = !!process.env.SHOW_URL;
+const BASE = `http://127.0.0.1:${PORT}`;
 const ID = /^[a-z0-9][a-z0-9-]{0,79}$/;
 const PAGES = path.join(HOME, 'pages');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -90,7 +90,7 @@ function indexHtml() {
   const groups = new Map();
   for (const p of list) { const k = p.project || '(프로젝트 없음)'; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(p); }
   const rows = [...groups].map(([proj, ps]) => `<h2>${esc(proj)}</h2><table><tr><th>페이지</th><th>올린 때</th><th class="n">결정</th><th class="n">답</th></tr>${ps.map((p) =>
-    `<tr><td><a href="/p/${p.id}/">${esc(p.title || p.id)}</a><small>${esc(p.id)}${p.host ? ` - ${esc(p.host)}` : ''}</small></td><td>${esc(p.updated ? new Date(p.updated).toLocaleString('sv-SE').slice(0, 16) : '')}</td><td class="n">${p.asks || ''}</td><td class="n">${p.waiting ? `<b>${p.waiting} 새 답</b>` : p.replies || ''}</td></tr>`).join('')}</table>`).join('');
+    `<tr><td><a href="p/${p.id}/">${esc(p.title || p.id)}</a><small>${esc(p.id)}${p.host ? ` - ${esc(p.host)}` : ''}</small></td><td>${esc(p.updated ? new Date(p.updated).toLocaleString('sv-SE').slice(0, 16) : '')}</td><td class="n">${p.asks || ''}</td><td class="n">${p.waiting ? `<b>${p.waiting} 새 답</b>` : p.replies || ''}</td></tr>`).join('')}</table>`).join('');
   return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>show</title><style>
 body{margin:0;background:#f4f4f2;color:#17181c;font:15px/1.6 "Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo",sans-serif;word-break:keep-all}
 main{max-width:960px;margin:0 auto;padding:40px 18px 80px}h1{font-size:24px;margin:0 0 4px}p.m{color:#5f6470;margin:0 0 28px;font-size:13px}
@@ -107,7 +107,7 @@ async function handle(req, res) {
   if (req.method === 'GET' && u.pathname === '/api/health') return send(res, 200, { app: 'show', version: 1, home: HOME, pages: pages().length });
   if (parts[0] === 'p' && ID.test(parts[1] ?? '')) {
     const dir = path.join(PAGES, parts[1]);
-    if (parts.length === 2 && !u.pathname.endsWith('/')) { res.writeHead(301, { location: `/p/${parts[1]}/` }); return res.end(); }
+    if (parts.length === 2 && !u.pathname.endsWith('/')) { res.writeHead(301, { location: `${parts[1]}/` }); return res.end(); }
     const file = parts.length === 2 ? 'index.html' : parts.slice(2).join('/');
     if (file.includes('..') || /^(meta\.json|replies)/.test(file)) return send(res, 404, { error: 'not found' });
     const f = path.join(dir, file);
@@ -208,11 +208,10 @@ const api = async (p, opts = {}) => {
   return j;
 };
 const healthy = async () => { try { return (await api('/api/health')).app === 'show'; } catch { return false; } };
-const publicBase = () => (REMOTE ? BASE : config().public || '');
+const publicBase = () => (process.env.SHOW_PUBLIC_URL || config().public || '').replace(/\/$/, '');
 
 async function ensure() {
   if (await healthy()) return true;
-  if (REMOTE) { console.error(`SHOW_URL(${BASE}) 의 서버가 응답하지 않습니다`); process.exit(1); }
   fs.mkdirSync(HOME, { recursive: true });
   const log = fs.openSync(path.join(HOME, 'server.log'), 'a');
   // 내 셸이 끝나도 남도록 떼어 띄운다(부모가 1 이 된다)
@@ -285,17 +284,16 @@ async function main() {
   if (cmd === 'list') { await ensure(); const { pages: ps } = await api('/api/pages'); console.log(ps.length ? ps.map((p) => `${p.id}  ${p.title}  [${p.project}]  답 ${p.replies}(새 ${p.waiting})`).join('\n') : '페이지 없음'); return; }
   if (cmd === 'inbox') { const { replies: rs } = await api('/api/inbox'); console.log(rs.length ? rs.map(fmtReply).join('\n\n') : '새 답 없음'); return; }
   if (cmd === 'archive') { const id = argv[0]; console.log((await api(`/api/pages/${id}/archive`, { method: 'POST' })).archived); return; }
-  if (cmd === 'expose') {
-    const https = +argv[0]; if (!https) throw new Error('사용: expose <https 포트>');
-    const status = execFileSync('tailscale', ['serve', 'status'], { encoding: 'utf8' });
-    if (new RegExp(`:${https}\\b`).test(status) && !status.includes(`127.0.0.1:${PORT}`)) throw new Error(`tailscale https 포트 ${https} 는 이미 다른 것이 쓰고 있습니다`);
-    if (!new RegExp(`:${https}\\b`).test(status)) execFileSync('tailscale', ['serve', '--bg', `--https=${https}`, `http://127.0.0.1:${PORT}`], { stdio: 'inherit' });
-    const dns = JSON.parse(execFileSync('tailscale', ['status', '--json'], { encoding: 'utf8' })).Self.DNSName.replace(/\.$/, '');
-    const pub = `https://${dns}:${https}`;
-    fs.mkdirSync(HOME, { recursive: true }); writeJson(path.join(HOME, 'config.json'), { ...config(), public: pub });
-    console.log(`PUBLIC ${pub}/`); return;
+  if (cmd === 'config') {
+    const [key, value] = argv;
+    if (key === 'public' && value) {
+      if (value !== '-' && !/^https?:\/\/[^\s]+$/.test(value)) throw new Error('주소는 http:// 나 https:// 로 시작한다');
+      const c = config(); if (value === '-') delete c.public; else c.public = value.replace(/\/$/, '');
+      fs.mkdirSync(HOME, { recursive: true }); writeJson(path.join(HOME, 'config.json'), c);
+    }
+    console.log(JSON.stringify({ home: HOME, local: `${BASE}/`, public: publicBase() || null }, null, 2)); return;
   }
-  console.error('명령: ensure, publish, wait, watch, take, done, list, inbox, archive, expose, serve (헤더 주석 참고)');
+  console.error('명령: ensure, publish, wait, watch, take, done, list, inbox, archive, config, serve (헤더 주석 참고)');
   process.exit(2);
 }
 
