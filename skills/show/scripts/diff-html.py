@@ -2,10 +2,10 @@
 
     python3 diff-html.py <이전 파일> <지금 파일> [--side] [--context 3] [--name 표시할 경로]
     python3 diff-html.py --diff <git diff 출력 파일 또는 -> [--side]
-    ... --into index.html --id change      # index.html 의 <!--diff:change--> 와 <!--/diff:change--> 사이를 바꾼다
+    ... --into report.src.html --id change # 원본의 <!--diff:change--> 와 <!--/diff:change--> 사이를 바꾼다
 
 --side 는 좌우 대조, 없으면 한 줄 diff 다. 바뀐 줄 앞뒤로 context 줄만 남기고(--diff 는 git 이 고른 범위 그대로),
-구간 사이에 건너뛴 같은 줄은 「n줄 같음」 한 줄로 보인다. 모양은 assets/web-report.html 의 .df 규칙이 맡는다.
+구간 사이에 건너뛴 같은 줄은 「n줄 같음」 한 줄로 보인다. 모양은 kit/show.css 의 .df 규칙이 맡는다.
 출력: --into 가 없으면 조각을 stdout 에, 있으면 그 자리에 넣는다. stderr 에 "파일 n개, +a -b" 한 줄.
 주의: 표시 자리 주석이 없거나 둘 이상이면 아무것도 바꾸지 않고 exit 1. 바이너리 파일은 「바이너리」 한 줄로 둔다.
 """

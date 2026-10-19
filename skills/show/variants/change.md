@@ -1,6 +1,6 @@
 # 바뀐 코드와 문서
 
-**로드 시점 - Step 1 에서 재료가 바뀐 코드, 문서, 설정일 때.** 바뀐 것이 화면에 드러나면 [screen](screen.md) 도 함께 연다. diff 를 페이지에 그리는 법은 [bottlenecks §diff](../catalogs/bottlenecks.md#diff).
+**로드 시점 - Step 1 에서 재료가 바뀐 코드, 문서, 설정일 때.** 바뀐 것이 화면에 드러나면 [screen](screen.md) 도 함께 연다. diff 를 페이지에 그리는 법은 [figures §diff](../catalogs/figures.md#diff).
 
 | 부모(SKILL.md 절차) | 이 문서 |
 |---|---|
@@ -33,7 +33,7 @@ git diff --stat <기준>..HEAD
 diff 는 무엇을 바꿨는지만 말한다. 왜 바꿨는지는 그 구간 위에 한 줄로 단다. 출처는 커밋 메시지, 요청 원문, 대화에서 정한 것이다. 출처가 없는 의도를 지어 붙이지 않는다.
 
 - 리팩터처럼 동작이 같아야 하는 변경이면 같은 입력에 같은 출력이 나온다는 근거(테스트 이름과 결과, 비교한 출력)를 함께 둔다
-- 고른 방식과 버린 방식이 있으면 [bottlenecks §의도 대조](../catalogs/bottlenecks.md#의도-대조) 로 나란히 둔다
+- 고른 방식과 버린 방식이 있으면 [figures §의도 대조](../catalogs/figures.md#의도-대조) 로 나란히 둔다
 - 문서(Markdown, 기획서) 변경은 줄 단위보다 바뀐 단어가 보여야 읽힌다. `diff-html.py` 가 짝지어 바뀐 줄 안의 단어를 칠한다
 
 ## 저장해 둘 것

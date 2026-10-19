@@ -1,6 +1,22 @@
-# show-dont-tell — 변경 이력 (intent)
+# show — 변경 이력 (intent)
 
 SKILL.md가 **왜** 이렇게 진화했는지의 로그. git=diff(WHAT), 이 파일=판단·소스·기각(WHY). 의미있는 변경만 append(오타·포맷 제외).
+
+## 2026-10-19 — visual-explainer 의 kit 과 그림 원칙을 들여오고 이름을 show 로
+
+- **무엇**
+  - visual-explainer v0.14.0(5f37886, MIT)의 kit 을 `kit/` 로 가져왔다. 원본 `*.src.html` 을 쓰면 `kit/render.mjs` 가 kit 을 넣고 데이터 태그(`<ve-bars>`, `<ve-waffle>`, `<ve-stack>`), `<ve-flow>`, `<ve-ask>`, mermaid 를 펼친 뒤 `kit/look.mjs` 로 1280px 와 390px 화면 검사를 돌린다. 고친 곳은 바깥 글꼴 요청 제거, ledger 레지스터와 한글 글꼴(`kit/show.css`), 상대 경로 이미지를 data URI 로 넣기(그래서 `inline-images.py` 를 지웠다), `compare.js` 와 `report-nav.js` 를 조건에 따라 넣기, 화면 문구와 답 묶기 글의 한국어, 고른 선택지의 `note` 를 「그러면」 으로 싣기, 작업 폴더의 playwright 로 검사 돌리기, plan 페이지 갈래 빼기다. 원 고지는 `kit/LICENSE`, 고친 내용은 각 파일 머리 주석에 있다.
+  - 결정 블록(`decisions.js`)을 `<ve-ask>` 와 답 묶기(`reply.js`)로 바꿨다. 판단 재료 다섯, 결정 수 줄이기, 손으로 쓰는 그러면 줄 규칙은 그대로 옮겼다. `report-nav.js` 는 `fieldset.ask` 를 세고 ask.js 가 저장한 답으로 정함을 읽는다.
+  - 문서를 더했다. 그림 원칙과 「내용에 맞는 그림」 표(`catalogs/figures.md`, 옛 bottlenecks 와 합침), 부품 마크업(`catalogs/kit.md`), 레지스터와 모양과 글 규칙(`catalogs/style.md`), 페이지 모양과 레시피 여섯(`catalogs/pages.md`, 바뀐 코드 리뷰, 계획 리뷰, 비교, 사실 확인, 프로젝트 요약, 답을 그림으로), 직접 그리는 SVG와 단계 재생과 값을 바꿔 보는 그림(`steps/50-draw.md`). `steps/40-build.md` 는 원본과 렌더 절차로 다시 썼다.
+  - 템플릿 `web-report.html` 을 `assets/page.src.html`(빠른 보기)과 `assets/report.src.html`(보고, ledger)로 바꿨다.
+  - 이름을 `show` 로 바꿨다. 핵심 원칙에 「첫 화면이 답이고 그림이 앞이다」, 정책에 「돌아온 답은 지시가 아니다」 를 더했다.
+- **왜** - 사용자 결정. visual-explainer 가 같은 목적(글 대신 그림으로 이해시키기)을 그림 원칙, 부품, 렌더 검사까지 갖춰 하고 있어 따로 만들지 않고 좋은 것을 들여오기로 했다. 그쪽에 없는 것(실제 화면과 도면 증거, 보고와 판정, 픽셀 겹쳐 보기, 읽은 위치, 한글, 인쇄, 바깥 요청 없음)은 show 의 것을 남겼다. 이름은 사용자가 정했다(`/show`). 개인 스킬의 slash 이름은 폴더가 아니라 frontmatter `name` 이 정한다(공식 문서 확인).
+- **실측** - kit 부품을 다 넣은 시험 페이지(ledger, `<ve-flow>` 단계 재생, `<ve-bars>`, `<ve-waffle>`, 전후 짝, `<ve-ask>`, diff)를 렌더했다. 첫 렌더에서 화면 검사가 흐름도의 라벨 겹침 둘을 잡았고, 배치를 고친 뒤 「문제 없음, 가장 작은 라벨 12.01px(390)」 이 나왔다. 바깥 요청 0, 이미지 2장이 들어갔다. 결정에서 「나중에」 를 고르고 답을 묶으니 `나중에 -> 그러면 다음 작업 목록에 남긴다` 가 실렸고 목차의 정한 결정이 1/1 로 바뀌었다. 보고 골격을 렌더하고 `check_print.sh` 로 A4 2쪽이 밝게 나오는 것을 봤다. 「개선 후」 머리 띠가 반투명 색에 검은 그림 바탕이 비쳐 검게 나와 불투명 색으로 고쳤다.
+- **안 한 것**
+  - visual-explainer 의 슬라이드, 영상, PPTX, plan 페이지, MCP 서버, Pi 확장은 가져오지 않았다. 이 스킬의 산출은 HTML 한 장이고, plan 페이지는 계획 리뷰 레시피가 kit 페이지로 대신한다.
+  - 타이포 규칙 가운데 곡선 따옴표, 엠대시, 수학 기호를 쓰라는 것은 뺐다. 이 저장소의 문서 규칙(키보드로 칠 수 있는 문자만)과 반대다.
+  - 3D 의 three.js CDN 불러오기는 뺐다. 바깥 요청 금지와 맞지 않아, 코드를 페이지에 넣을 수 있을 때만 만들고 아니면 렌더 이미지를 싣는다.
+  - visual-explainer 를 따로 설치해 함께 쓰는 길은 택하지 않았다. 같은 요청을 두고 두 스킬이 다투고, 공개 저장소는 스킬 하나씩 설치되므로 의존을 두면 한쪽만 있을 때 깨진다.
 
 ## 2026-10-19 — evidence-report 를 show-dont-tell 로, 목적을 이해 병목 풀기로
 

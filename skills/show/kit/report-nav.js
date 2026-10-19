@@ -1,8 +1,8 @@
 // 보고서 왼쪽에 목차를 세우고, 어디까지 읽었는지와 분량을 보여 준다.
 //
-// 쓰는 법: 보고서 폴더에 복사하고 </body> 앞에 <script src="report-nav.js"></script> 를 둔다(decisions.js 보다 뒤).
-//   inline-images.py 가 이 스크립트도 HTML 안에 넣는다. 따로 표시할 것은 없다 - <main> 의 h2 가 절, 그 절 안의
-//   .finding h3 가 항목이 된다. 목차에 넣지 않을 h2 는 data-nav="skip".
+// 쓰는 법: 따로 넣지 않는다. render.mjs 가 <main> 의 h2 가 넷 이상인 페이지에 이 스크립트를 넣는다.
+//   <main> 의 h2 가 절, 그 절 안의 .finding h3 와 section h3 가 항목이 된다. 목차에 넣지 않을 h2 는 data-nav="skip".
+//   결정은 <ve-ask> 가 펼쳐진 fieldset.ask 이고, 답했는지는 ask.js 가 저장한 값으로 읽는다.
 //
 // 보이는 것
 //   - 맨 위: 문서 제목, 절과 사진과 결정 수와 예상 읽기 시간, 지나간 절과 정한 결정의 진행 막대
@@ -13,7 +13,7 @@
 (() => {
   const main = document.querySelector('main');
   if (!main) return;
-  const heads = [...main.querySelectorAll('h2')].filter((h) => h.dataset.nav !== 'skip' && !h.closest('#decisions'));
+  const heads = [...main.querySelectorAll('h2')].filter((h) => h.dataset.nav !== 'skip');
   if (heads.length < 2) return;
   const KEY = 'readnav:' + document.title + ':' + location.pathname;
   const saved = JSON.parse(localStorage.getItem(KEY) || '{}');
@@ -91,7 +91,7 @@
     return { h, num, title, imgs: 0, decisions: [], chars: 0, subs: [] };
   });
   main.querySelectorAll('img').forEach((el) => { const k = sectionOf(el); if (k >= 0) secs[k].imgs++; });
-  main.querySelectorAll('.decision').forEach((el) => { const k = sectionOf(el); if (k >= 0) secs[k].decisions.push(el); });
+  main.querySelectorAll('fieldset.ask[data-ask]').forEach((el) => { const k = sectionOf(el); if (k >= 0) secs[k].decisions.push(el); });
   main.querySelectorAll('.finding h3, section h3').forEach((el, j) => {
     const k = sectionOf(el); if (k < 0) return;
     if (!el.id) el.id = 'item-' + (j + 1);
@@ -100,7 +100,7 @@
   });
   const walker = document.createTreeWalker(main, NodeFilter.SHOW_TEXT);
   for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-    if (n.parentElement.closest('.decision, #decisions, script, style')) continue;
+    if (n.parentElement.closest('fieldset.ask, script, style')) continue;
     const k = sectionOf(n.parentElement); if (k >= 0) secs[k].chars += n.textContent.replace(/\s+/g, '').length;
   }
   // 한국어 보고서는 분당 약 600자, 사진 한 장 10초, 결정 하나 20초로 어림한다
@@ -157,8 +157,9 @@
   nav.addEventListener('click', (e) => { if (e.target.closest('a') && innerWidth < 1100) { nav.classList.remove('open'); paint(); } });
   nav.querySelector('[data-reset]').addEventListener('click', () => { seen.clear(); secs.forEach((s) => s.li.classList.remove('seen')); save(); paint(); });
 
-  // 결정 블록이 정해졌는지는 decisions.js 와 같은 기준(고른 것이나 메모가 있으면)으로 읽는다
-  const decided = (d) => d.querySelector('input:checked') || d.querySelector('textarea')?.value.trim();
+  // 결정에 답했는지는 ask.js 가 저장한 답으로 읽는다(추천이 미리 골라져 있어도 답한 것은 아니다)
+  const answers = () => { try { return JSON.parse(localStorage.getItem(`ve-page-ask:${location.pathname}`) || '{}'); } catch { return {}; } };
+  const decided = (d) => Object.hasOwn(answers(), d.dataset.ask);
   function paintCounts() {
     let done = 0;
     secs.forEach((s) => {
@@ -179,8 +180,8 @@
     const d = nav.querySelector('.rn-bar.d');
     if (d) { d.querySelector('.v').textContent = `${done} / ${total.dec}`; d.querySelector('.f').style.width = (done / total.dec) * 100 + '%'; }
   }
-  document.addEventListener('input', (e) => { if (e.target.closest('.decision')) setTimeout(paintCounts); });
-  document.addEventListener('click', (e) => { if (e.target.closest('#decisions [data-reset]')) setTimeout(paintCounts, 50); });
+  document.addEventListener('change', (e) => { if (e.target.closest('fieldset.ask')) setTimeout(paintCounts); });
+  document.addEventListener('click', (e) => { if (e.target.closest('fieldset.ask, dialog.ve-respond')) setTimeout(paintCounts, 50); });
 
   let cur = -1;
   const save = () => localStorage.setItem(KEY, JSON.stringify({ seen: [...seen], at: cur, y: Math.round(scrollY) }));

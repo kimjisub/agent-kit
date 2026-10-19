@@ -5,16 +5,16 @@
   },
   "metadata": {
     "description": "실무에서 다듬어 온 에이전트 스킬 모음",
-    "version": "2.0.0"
+    "version": "3.0.0"
   },
   "plugins": [
     {
-      "name": "show-dont-tell",
-      "description": "AI 가 낸 결과와 의도를 글만으로 이해하기 어려울 때, 읽는 사람이 막히는 자리를 찾아 실제 화면, diff, 도면, 그림, 조작 장치 등 맞는 수단으로 푸는 HTML 한 장을 만든다. 남에게 건네는 보고면 판정, 결정 블록, 모바일과 A4 인쇄까지 맞춘다.",
+      "name": "show",
+      "description": "AI 가 낸 결과와 의도를 글만으로 이해하기 어려울 때, 읽는 사람이 막히는 자리를 찾아 직접 그린 구조도, 단계 재생, 값을 바꿔 보는 그림, 실제 화면, 도면, diff 로 푸는 HTML 한 장을 만든다. 남에게 건네는 보고면 판정, 결정 묶기, 모바일과 A4 인쇄까지 맞춘다. kit 은 visual-explainer(MIT)에서 가져왔다.",
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/show-dont-tell"
+        "./skills/show"
       ]
     }
   ]

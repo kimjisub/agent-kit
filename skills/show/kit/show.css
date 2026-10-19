@@ -1,0 +1,171 @@
+/* show.css - show 스킬이 visual-explainer kit 위에 얹는 것. render.mjs 가 kit.css 뒤에 늘 넣는다.
+   1. 한글 글꼴(바깥 요청 없이 기기에 있는 글꼴만)과 한국어 줄바꿈
+   2. ledger 레지스터 - 종이와 잉크 두 톤의 밝은 보고용 바탕. 남에게 건네는 보고의 기본이다
+   3. 우리 스크립트(compare.js, report-nav.js)가 쓰는 변수 이름을 kit 토큰에 잇는다
+   4. 보고와 증거 부품 - 항목 목록, 발견 카드, 판정 배지, 전후 짝, 근거 칸, 표, diff
+   5. 좁은 화면과 A4 인쇄 */
+
+/* 1. 글꼴. kit 의 토큰은 :where() 안이라 여기 :root 규칙이 늘 이긴다 */
+:root {
+  --font-body: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, "D2Coding", Consolas, monospace;
+  --font-display: var(--font-body);
+}
+:root[data-register="paper"], :root[data-register="editorial"] {
+  --font-display: "Noto Serif KR", "Nanum Myeongjo", AppleMyungjo, Georgia, serif;
+}
+body { word-break: keep-all; overflow-wrap: break-word; }
+/* ch 는 숫자 0 의 폭이라 한글은 한 자가 2ch 가깝다. kit 의 ch 폭을 한글에 맞게 넓힌다 */
+h1 { max-width: 30ch; letter-spacing: -.02em; }
+.lead { max-width: 70ch; }
+figcaption { max-width: 90ch; }
+
+/* 2. ledger 레지스터 */
+:where(:root[data-register="ledger"]) {
+  color-scheme: light;
+  --bg: #f4f4f2; --surface: #fff; --border: #e3e4e8; --border-bright: #9ea2ab;
+  --text: #17181c; --text-dim: #5f6470; --accent: #2448c8; --accent-dim: rgba(36,72,200,.09);
+  --ok: #22694a; --warn: #93580a; --risk: #b8382e; --info: #2448c8;
+  --node-top: color-mix(in srgb, var(--text) 4%, var(--surface)); --lift: rgb(16 18 24 / .10); --halo: 22%;
+}
+:root[data-register="ledger"] body { font-size: 15.5px; line-height: 1.7; }
+:root[data-register="ledger"] main { max-width: 1040px; gap: var(--s-7); }
+:root[data-register="ledger"] h1 { font-size: clamp(1.6rem, 3.4vw, 2.2rem); line-height: 1.3; }
+:root[data-register="ledger"] h2 { font-size: 1.35rem; }
+
+/* 3. 우리 스크립트의 변수 이름 */
+:root {
+  --fg: var(--text); --ink2: var(--text); --mute: var(--text-dim); --line: var(--border); --line2: var(--border-bright);
+  --card: var(--surface); --nav-bg: color-mix(in srgb, var(--surface) 70%, var(--bg));
+  --accent-bg: var(--accent-dim); --red: var(--risk); --amber: var(--warn); --green: var(--ok);
+  --red-bg: color-mix(in srgb, var(--risk) 10%, var(--surface)); --amber-bg: color-mix(in srgb, var(--warn) 12%, var(--surface));
+  --green-bg: color-mix(in srgb, var(--ok) 11%, var(--surface)); --shadow: 0 1px 2px var(--lift);
+}
+
+/* 4. 보고와 증거 부품 */
+h2 .n { color: var(--text-dim); font: 600 var(--t-small) var(--font-mono); margin-right: var(--s-3); font-variant-numeric: tabular-nums; }
+h3 .n { color: var(--text-dim); margin-right: var(--s-2); font-variant-numeric: tabular-nums; }
+.sub { color: var(--text-dim); font-size: var(--t-small); margin-top: calc(-1 * var(--s-4)); margin-bottom: var(--s-5); }
+.note { font-size: var(--t-small); color: var(--text-dim); }
+.rc { font-weight: 700; color: var(--accent); white-space: nowrap; font-size: var(--t-small); }
+.tag { font-size: var(--t-label); font-weight: 700; color: var(--surface); background: var(--text-dim); padding: 2px 8px; border-radius: var(--r-1); margin-left: var(--s-2); vertical-align: 3px; }
+
+/* 센 수. kit 의 .kpis 를 써도 되고, 보고에서는 이 작은 카드가 맞는다 */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--s-3); }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-2); padding: var(--s-3) var(--s-4); }
+.stat .n { font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.stat .l { color: var(--text-dim); font-size: var(--t-small); }
+
+/* 표. 좁은 화면에서는 .tw 안에서 가로로 밀린다 */
+.tw { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--border); border-radius: var(--r-2); background: var(--surface); }
+.tw table { width: 100%; border-collapse: collapse; font-size: var(--t-small); }
+.tw th, .tw td { text-align: left; padding: var(--s-2) var(--s-3); border-bottom: 1px solid var(--border); vertical-align: top; }
+.tw tr:last-child td { border-bottom: 0; }
+.tw th { font-weight: 600; font-size: var(--t-label); color: var(--text-dim); white-space: nowrap; background: color-mix(in srgb, var(--text) 3%, var(--surface)); }
+.tw td.num, .tw th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 항목 목록. 라벨이 왼쪽, 내용이 오른쪽 */
+.items { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-2); padding: 0 var(--s-5); }
+.item { display: flex; gap: var(--s-4); padding: var(--s-3) 0; }
+.item + .item { border-top: 1px solid var(--border); }
+.item .key { width: 150px; flex: none; }
+.item .code, .grp .row .code { font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+.item .name { font-weight: 700; }
+.item .val { flex: 1; min-width: 0; }
+.item .act { margin-top: var(--s-1); font-size: var(--t-small); color: var(--text-dim); }
+.item .act b { color: var(--ok); margin-right: var(--s-2); }
+.grp { display: flex; gap: var(--s-4); padding: var(--s-2) 0; border-top: 1px solid var(--border); }
+.grp:last-of-type { border-bottom: 1px solid var(--border); }
+.grp .gh { width: 56px; flex: none; font-weight: 700; color: var(--text-dim); }
+.grp .glist { flex: 1; min-width: 0; }
+.grp .row { display: flex; gap: var(--s-3); align-items: baseline; }
+.grp .row + .row { margin-top: var(--s-1); }
+.grp .row .code { width: 44px; flex: none; }
+
+/* 발견 카드. 머리(판정 + 제목), 사진, 캡션, 본문, 결정 순서로 한 장에 담는다 */
+.finding { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-2); overflow: hidden; }
+.finding + .finding { margin-top: var(--s-5); }
+.finding > header { padding: var(--s-4) var(--s-5) var(--s-3); display: flex; gap: var(--s-3); align-items: baseline; }
+.finding .body { padding: var(--s-4) var(--s-5) var(--s-5); }
+.finding fieldset.ask { margin: 0 var(--s-5) var(--s-5); }
+.sev { flex: none; font-size: var(--t-label); font-weight: 700; padding: 2px 9px; border-radius: 99px; }
+.sev.s1 { background: var(--red-bg); color: var(--risk); }
+.sev.s2 { background: var(--amber-bg); color: var(--warn); }
+.sev.ok { background: var(--green-bg); color: var(--ok); }
+
+/* 사진. 발견 카드와 전후 짝 안의 figure 는 kit 의 그림과 달리 테두리 없이 카드 폭을 다 쓴다 */
+.finding figure, .pair figure { margin: 0; background: #101114; border-top: 1px solid var(--border); position: relative; }
+.finding figure img, .pair figure img, figure.shot img { display: block; width: 100%; height: auto; }
+.finding figure figcaption, .pair figure figcaption { background: var(--surface); margin: 0; max-width: none; font-size: var(--t-small); padding: var(--s-2) var(--s-5); border-bottom: 1px solid var(--border); }
+figure.shot img { border: 1px solid var(--border); border-radius: var(--r-2); }
+figure .lab { font-size: var(--t-label); font-weight: 700; padding: 5px var(--s-5); }
+figure .lab.b { background: color-mix(in srgb, var(--text) 5%, var(--surface)); color: var(--text); }
+figure .lab.a { background: color-mix(in srgb, var(--accent) 9%, var(--surface)); color: var(--accent); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); align-items: start; }
+.pair figure { border-top: 0; height: 100%; display: flex; flex-direction: column; }
+.pair figure img { flex: none; }
+.pair figcaption { flex: 1; }
+.tall { max-height: 720px; overflow: auto; }
+.finding dl { display: grid; grid-template-columns: 92px 1fr; gap: var(--s-2) var(--s-4); }
+.finding dt { color: var(--text-dim); font-size: var(--t-small); padding-top: 2px; }
+.finding dd { margin: 0; min-width: 0; }
+
+/* 근거 칸. 저장된 값과 화면 값, 파일과 줄, 명령과 출력 */
+.evidence { font: var(--t-small)/1.6 var(--font-mono); background: color-mix(in srgb, var(--text) 3%, var(--surface)); border: 1px solid var(--border);
+            border-radius: var(--r-1); padding: var(--s-2) var(--s-3); margin-top: var(--s-2); white-space: pre-wrap; overflow-x: auto; }
+
+/* diff. scripts/diff-html.py 가 내는 조각이다. 좌우 대조(data-mode="side")는 좁은 화면에서 가로로 밀린다 */
+.df { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-2); overflow: hidden; }
+.df + .df { margin-top: var(--s-4); }
+.df .dh { display: flex; justify-content: space-between; gap: var(--s-3); padding: var(--s-2) var(--s-3); border-bottom: 1px solid var(--border);
+          background: color-mix(in srgb, var(--text) 3%, var(--surface)); font: 600 var(--t-label)/1.5 var(--font-mono); }
+.df .dh .ds { color: var(--text-dim); font-weight: 500; white-space: nowrap; }
+.df .dw { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.df table { width: 100%; border-collapse: collapse; font: 12.5px/1.6 var(--font-mono); }
+.df td { padding: 0 10px; border: 0; white-space: pre-wrap; word-break: break-all; vertical-align: top; }
+.df td.ln { width: 1%; padding: 0 8px; color: var(--text-dim); text-align: right; white-space: nowrap; user-select: none; }
+.df[data-mode="side"] td.c { width: 49%; }
+.df .del, .df td.del { background: var(--red-bg); }
+.df .add, .df td.add { background: var(--green-bg); }
+.df td.nil { background: color-mix(in srgb, var(--text) 3%, var(--surface)); }
+.df del { background: color-mix(in srgb, var(--risk) 26%, var(--surface)); color: inherit; text-decoration: none; border-radius: 2px; }
+.df ins { background: color-mix(in srgb, var(--ok) 26%, var(--surface)); color: inherit; text-decoration: none; border-radius: 2px; }
+.df tr.hk td { background: var(--accent-dim); color: var(--accent); padding: 3px 10px; }
+.diff .why { font-size: var(--t-small); margin: var(--s-4) 0 var(--s-1); }
+
+/* 작업자용 절. report.html?internal 로 열 때만 남는다(템플릿 끝의 스크립트) */
+#internal { border-top: 1px dashed var(--border-bright); padding-top: var(--s-5); }
+
+/* 5. 좁은 화면 */
+@media (max-width: 720px) {
+  .items { padding: 0 var(--s-3); }
+  .item, .grp { flex-direction: column; gap: var(--s-1); }
+  .item .key { width: auto; display: flex; gap: var(--s-2); align-items: baseline; }
+  .grp .gh { width: auto; }
+  .finding > header { padding: var(--s-3) var(--s-3) var(--s-2); flex-wrap: wrap; gap: var(--s-1) var(--s-2); }
+  .finding .body { padding: var(--s-3) var(--s-3) var(--s-4); }
+  .finding fieldset.ask { margin: 0 var(--s-3) var(--s-4); }
+  figure .lab, .finding figure figcaption, .pair figure figcaption { padding-left: var(--s-3); padding-right: var(--s-3); }
+  .pair { grid-template-columns: 1fr; }
+  .tall { max-height: 70vh; }
+  .finding dl { grid-template-columns: 1fr; gap: 2px; }
+  .finding dt { padding-top: var(--s-2); }
+  .tw table { min-width: 520px; }
+  .df[data-mode="side"] table { min-width: 640px; }
+  .stats { grid-template-columns: 1fr 1fr; }
+}
+
+/* A4 인쇄. 어두운 레지스터도 종이에는 밝게, 조작 장치는 빼고 처음 상태(스테퍼는 마지막 단계)만 남긴다 */
+@page { size: A4; margin: 14mm 12mm; }
+@media print {
+  :root { color-scheme: light; --bg: #fff; --surface: #fff; --text: #17181c; --text-dim: #5f6470; --border: #e3e4e8; --border-bright: #9ea2ab; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; font-size: 10.5pt; }
+  body { background: #fff; }
+  main { max-width: none; padding: 0; gap: var(--s-6); }
+  h2 { break-after: avoid; }
+  .stat, .item, .grp, figure, .finding > header, .finding dl > *, fieldset.ask, .df tr { break-inside: avoid; }
+  .finding, .df { break-inside: auto; }
+  .tall { max-height: none; overflow: visible; }
+  .tw, .df .dw, .frame { overflow: visible; }
+  .ve-player, button { display: none !important; }
+}

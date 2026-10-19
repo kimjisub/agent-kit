@@ -1,0 +1,35 @@
+<!doctype html>
+<!-- 빠른 보기 골격. 레지스터는 내용에 맞춰 고른다(catalogs/style.md): instrument 리뷰와 수치, blueprint 구조와 흐름, paper 개념과 긴 읽기, editorial 정리와 이야기 -->
+<html lang="ko" data-register="blueprint">
+<head>
+<title>{{결론을 말하는 제목}}</title>
+<link rel="stylesheet" href="kit.css" data-ve-kit>
+<style>/* 이 페이지에만 쓰는 CSS. kit 의 토큰(--s-1..8, --t-*, --r-1, --r-2, 색 토큰)만 쓴다 */</style>
+</head>
+<body><main>
+  <header>
+    <p class="eyebrow">{{주제}}</p>
+    <h1>{{결론을 말하는 제목}}</h1>
+    <p class="lead">{{답 한두 문장. <b>핵심 한 구절</b>}}</p>
+    <p class="meta">{{대상, 출처, 기준 시점}}</p>
+  </header>
+
+  <!-- 첫 화면 = 답. 그림 하나에 주장 하나, 캡션이 그 주장이다 -->
+  <figure>
+    <div class="frame"><svg class="ve-svg" viewBox="0 0 800 300" aria-label="{{그림이 보이는 것 한 문장}}">
+      <!-- 직접 그린 SVG(steps/30-draw.md) 또는 이 figure 안에 <ve-flow> -->
+    </svg></div>
+    <figcaption><span class="fig-n">그림 1</span>{{이 그림의 주장 한 문장}}</figcaption>
+  </figure>
+
+  <section>
+    <div class="sec-head"><p class="ve-label caps">{{절 라벨}}</p><h2>{{주제가 아니라 결론을 말하는 절 제목}}</h2></div>
+    <p>{{그림이 못 말하는 이유와 맞바꿈만. 한 화면에 짧은 문단 하나 정도}}</p>
+  </section>
+
+  <section class="sources" aria-label="근거">
+    <p class="ve-label caps">근거</p>
+    <p><code>{{파일:줄}}</code> <code>{{명령}}</code></p>
+  </section>
+</main></body>
+</html>

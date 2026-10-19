@@ -1,0 +1,95 @@
+<!doctype html>
+<!-- 보고 골격. 남에게 건네는 문서라 ledger 레지스터(밝은 종이)로 둔다. 쓰지 않는 블록은 지운다(steps/60-output.md) -->
+<html lang="ko" data-register="ledger">
+<head>
+<title>{{이 문서가 답하는 질문}}</title>
+<link rel="stylesheet" href="kit.css" data-ve-kit>
+<style>/* 이 페이지에만 쓰는 CSS */</style>
+</head>
+<body><main>
+  <header>
+    <h1>{{이 문서가 답하는 질문}}</h1>
+    <p class="meta">{{날짜}} - {{범위}} - {{기준}}</p>
+    <p class="lead">{{결론 두세 문장. 가장 무거운 사례를 <b>강조</b>}}</p>
+    <div class="stats">
+      <div class="stat"><div class="n">{{수}}</div><div class="l">{{무엇을 센 수}}</div></div>
+    </div>
+    <p class="note">{{어디서 어떻게 찍었나: 환경, 데이터, 계정, 폭. 찍으면서 바꾼 것. 화면으로 못 보인 항목은 어디에 모았나}}</p>
+  </header>
+
+  <!-- 항목 목록. 개선 보고면 "반영 범위", 명세 대조면 "대조 결과". 없으면 지운다 -->
+  <section>
+    <h2><span class="n">1.</span>{{항목 목록 제목}}</h2>
+    <div class="items">
+      <div class="item">
+        <div class="key"><div class="code">R-1</div><div class="name">{{항목}}</div></div>
+        <div class="val">
+          <div>{{확인된 사실. 왜 그렇게 되어 있었는지.}}</div>
+          <div class="act"><b>{{조치 또는 판정}}</b>{{무엇을 했는지, 또는 무엇을 정해야 하는지.}}</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">2.</span>{{묶음 이름 - 결론을 말하는 문장}}</h2>
+    <p class="sub">{{이 묶음이 왜 한 묶음인가 한 줄}}</p>
+
+    <article class="finding">
+      <header><span class="sev s1">심각</span><h3><span class="n">2-1</span>{{항목 제목 - 사실을 말하는 문장}} <span class="rc">R-1</span></h3></header>
+      <!-- 두 그림이 같은 범위, 같은 크기로 찍혔으면 data-compare 를 단다. 나란히, 슬라이더, 차이 막대가 생긴다 -->
+      <div class="pair" data-compare>
+        <figure><div class="lab b">{{개선 전}}</div><img src="images/{{a}}.png" alt="{{a 설명}}"><figcaption>{{화면 자리}} - 1 {{표시가 가리키는 것}}</figcaption></figure>
+        <figure><div class="lab a">{{개선 후}}</div><img src="images/{{b}}.png" alt="{{b 설명}}"><figcaption>{{화면 자리}} - 1 {{표시가 가리키는 것}}</figcaption></figure>
+      </div>
+      <div class="body">
+        <dl>
+          <dt>무엇이</dt><dd>{{무엇이 어떻게 어긋났나}}</dd>
+          <dt>근거</dt><dd><div class="evidence">{{저장된 값 / 화면 값 / 코드 위치}}</div></dd>
+          <dt>겪는 장면</dt><dd>{{사용자가 실제로 겪는 일}}</dd>
+          <dt>처방</dt><dd>{{어떻게 고치나}}</dd>
+        </dl>
+      </div>
+      <!-- 결정. default 는 추천 선택지, note 는 고르면 다음에 할 일(묶음에 「그러면」으로 실린다) -->
+      <ve-ask id="f2-1" q="{{이 발견을 어떻게 할까요}}">
+        <ve-opt value="now" default note="{{고르면 다음에 할 일 - 처방을 구체적으로}}">이번에 고친다</ve-opt>
+        <ve-opt value="later" note="이번 범위에서 빼고 다음 작업 목록에 남긴다">나중에</ve-opt>
+        <ve-opt value="keep" note="{{의도로 보고 어디에 이유를 남기나}}">고치지 않는다</ve-opt>
+      </ve-ask>
+    </article>
+
+    <article class="finding">
+      <header><span class="sev s2">중요</span><h3><span class="n">2-2</span>{{화면으로 못 보인 항목 (코드 근거)}}</h3></header>
+      <div class="body">
+        <dl>
+          <dt>무엇이</dt><dd>{{...}}</dd>
+          <dt>화면</dt><dd>{{왜 못 찍었나 - 데이터에 사례 없음 등}}</dd>
+        </dl>
+      </div>
+    </article>
+  </section>
+
+  <section>
+    <h2><span class="n">3.</span>{{잘 된 곳 - 고칠 때 기준으로 삼을 화면}}</h2>
+    <div class="tw"><table>
+      <tr><th>화면</th><th>무엇을 잘 했나</th></tr>
+      <tr><td><span class="sev ok">기준</span> {{화면}}</td><td>{{...}}</td></tr>
+    </table></div>
+  </section>
+
+  <section>
+    <h2><span class="n">4.</span>{{다음에 할 것}}</h2>
+    <ol>
+      <li>{{영향이 큰 순서로}}</li>
+    </ol>
+  </section>
+
+  <!-- 작업자용 절. report.html?internal 로 열 때만 나온다. 없으면 지운다 -->
+  <section id="internal">
+    <h2 data-nav="skip"><span class="n">9.</span>반영 시 확인 사항<span class="tag">내부</span></h2>
+    <p>{{환경변수 이름, 실행할 스크립트, 누락 시 무슨 일이 생기는지. 비밀값은 값이 아니라 이름과 받는 곳만.}}</p>
+  </section>
+</main>
+<script>if (!location.search.includes('internal')) document.getElementById('internal')?.remove();</script>
+</body>
+</html>
