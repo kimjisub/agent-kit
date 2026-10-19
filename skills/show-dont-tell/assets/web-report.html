@@ -93,6 +93,24 @@
   ol, ul { padding-left:22px; }
   li + li { margin-top:4px; }
 
+  /* diff. scripts/diff-html.py 가 내는 조각이다. 좌우 대조(data-mode="side")는 좁은 화면에서 가로로 밀린다 */
+  .df { background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden; margin:12px 0; }
+  .df .dh { display:flex; justify-content:space-between; gap:12px; padding:8px 14px; background:#f6f6f4; border-bottom:1px solid var(--line);
+            font:600 12.5px/1.5 ui-monospace, "SF Mono", Menlo, monospace; }
+  .df .dh .ds { color:var(--mute); font-weight:500; white-space:nowrap; }
+  .df .dw { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .df table { font:12.5px/1.6 ui-monospace, "SF Mono", Menlo, monospace; }
+  .df td { padding:0 10px; border:0; white-space:pre-wrap; word-break:break-all; }
+  .df td.ln { width:1%; padding:0 8px; color:var(--mute); text-align:right; white-space:nowrap; user-select:none; }
+  .df[data-mode="side"] td.c { width:49%; }
+  .df .del, .df td.del { background:var(--red-bg); }
+  .df .add, .df td.add { background:var(--green-bg); }
+  .df td.nil { background:#f7f7f5; }
+  .df del { background:#f2c6c1; color:inherit; text-decoration:none; border-radius:2px; }
+  .df ins { background:#bde2ca; color:inherit; text-decoration:none; border-radius:2px; }
+  .df tr.hk td { background:var(--accent-bg); color:var(--accent); padding:3px 10px; }
+  .diff .why { font-size:14px; margin:14px 0 4px; }
+
   /* 좁은 화면. 나란히 둔 것을 위아래로 쌓는다(목차는 report-nav.js 가 서랍으로 바꾼다) */
   @media (max-width:1099px) { main { padding-top:64px; } }
   @media (max-width:720px) {
@@ -117,6 +135,7 @@
     .tall { max-height:70vh; }
     dl { grid-template-columns:1fr; gap:2px; }
     dt { padding-top:8px; }
+    .df[data-mode="side"] table { min-width:640px; }
   }
 
   /* 인쇄. 브라우저 인쇄로 A4 PDF 를 만들 때 그대로 나오게 한다 */
@@ -129,7 +148,9 @@
     .lead, .stat, .item, .grp, figure, .finding header, dl > * { break-inside:avoid; }
     .finding { break-inside:auto; box-shadow:none; }
     .tall { max-height:none; overflow:visible; }
-    .tw { overflow:visible; }
+    .tw, .df .dw { overflow:visible; }
+    .df { break-inside:auto; }
+    .df tr { break-inside:avoid; }
   }
 </style>
 </head>
