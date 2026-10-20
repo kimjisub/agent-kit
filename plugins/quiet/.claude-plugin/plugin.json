@@ -1,0 +1,9 @@
+{
+  "name": "quiet",
+  "version": "0.3.0",
+  "description": "Hide tool call rows so the transcript shows only the conversation. Toggle with /quiet.",
+  "author": { "name": "Jisub Kim", "url": "https://github.com/kimjisub" },
+  "homepage": "https://github.com/kimjisub/claude-code-kit/tree/main/plugins/quiet",
+  "repository": "https://github.com/kimjisub/claude-code-kit",
+  "license": "MIT"
+}
