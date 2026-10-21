@@ -6,7 +6,7 @@
 //
 // show 스킬이 visual-explainer v0.14.0(5f37886, MIT, kit/LICENSE)의 kit/render.mjs 를 가져와 고친 것이다. 고친 곳:
 //   바깥 글꼴 요청(Google Fonts)을 없애고 글꼴은 show.css 의 한글 글꼴로 둔다. 레지스터에 ledger 를 더했다.
-//   show.css 를 늘 넣고, .pair[data-compare] 가 있으면 compare.js, main 의 h2 가 넷 이상이면 report-nav.js 를 넣는다.
+//   show.css 를 늘 넣고, .pair[data-compare] 가 있으면 compare.js, main 의 h2 가 둘 이상이면 report-nav.js 를 넣는다.
 //   상대 경로 이미지를 data URI 로 넣어 결과가 파일 하나로 닫히게 했다. plan 페이지 갈래는 뺐다. lang 기본값은 ko.
 import { lstatSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
@@ -144,7 +144,7 @@ export function renderPage(source, { sendBack = false, base = process.cwd() } = 
   const compares = find(doc, (n) => hasClass(n, "pair") && "data-compare" in n.attrs).length;
   const mainEl = find(doc, (n) => n.name === "main")[0];
   const sections = mainEl ? find(mainEl, (n) => n.name === "h2" && n.attrs["data-nav"] !== "skip").length : 0;
-  const js = ["reply.js", ...(asks.length ? ["ask.js"] : []), "kit.js", ...(compares ? ["compare.js"] : []), ...(sections >= 4 ? ["report-nav.js"] : [])].map((f) => readFileSync(join(here, f), "utf8")).join("\n").replace(/<\/script/gi, "<\\/script");
+  const js = ["reply.js", ...(asks.length ? ["ask.js"] : []), "kit.js", ...(compares ? ["compare.js"] : []), ...(sections >= 2 ? ["report-nav.js"] : [])].map((f) => readFileSync(join(here, f), "utf8")).join("\n").replace(/<\/script/gi, "<\\/script");
   const script = `<script data-ve-kit${sendBack ? " data-send-back" : ""}>\n${js}</script>`;
   // without a charset, Firefox and Safari garble · and — (prepareRenderedHtml adds the viewport)
   const charset = find(doc, (n) => n.name === "meta" && ("charset" in n.attrs || /^content-type$/i.test(n.attrs["http-equiv"] ?? ""))).length ? "" : '<meta charset="utf-8">\n';

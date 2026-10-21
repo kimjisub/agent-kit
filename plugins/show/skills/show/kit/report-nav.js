@@ -1,6 +1,6 @@
 // 보고서 왼쪽에 목차를 세우고, 어디까지 읽었는지와 분량을 보여 준다.
 //
-// 쓰는 법: 따로 넣지 않는다. render.mjs 가 <main> 의 h2 가 넷 이상인 페이지에 이 스크립트를 넣는다.
+// 쓰는 법: 따로 넣지 않는다. render.mjs 가 <main> 의 h2 가 둘 이상인 페이지에 이 스크립트를 넣는다.
 //   <main> 의 h2 가 절, 그 절 안의 .finding h3 와 section h3 가 항목이 된다. 목차에 넣지 않을 h2 는 data-nav="skip".
 //   결정은 <ve-ask> 가 펼쳐진 fieldset.ask 이고, 답했는지는 ask.js 가 저장한 값으로 읽는다.
 //
@@ -85,8 +85,9 @@
   heads.forEach((h, i) => { if (!h.id) h.id = 'sec-' + (i + 1); });
   const order = (a, b) => a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING;
   const sectionOf = (el) => { let k = -1; heads.forEach((h, i) => { if (h === el || order(h, el)) k = i; }); return k; };
-  const secs = heads.map((h) => {
-    const num = h.querySelector('.n')?.textContent.trim().replace(/\.$/, '') || '';
+  // 제목에 .n 번호가 없으면 목차 순번을 쓴다
+  const secs = heads.map((h, i) => {
+    const num = h.querySelector('.n')?.textContent.trim().replace(/\.$/, '') || String(i + 1);
     const title = h.textContent.replace(h.querySelector('.n')?.textContent || '', '').trim();
     return { h, num, title, imgs: 0, decisions: [], chars: 0, subs: [] };
   });

@@ -364,22 +364,6 @@ export async function lookAt(file, { sheet = true } = {}) {
         if (n) await page.evaluate(goStep, [r, n - 1]);
         if (cells.length) items.push({ kind: "steps", cells });
       }
-
-      // a page that sets its own colors gets its first screen in dark too
-      const custom = await page.evaluate(() => [...document.querySelectorAll("style:not([data-ve-kit])")].some((s) => /--(?:accent|bg|surface|text|border|ok|warn|risk|info)[\w-]*\s*:/.test(s.textContent)));
-      if (sheet && custom) {
-        const dark = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: "reduce", colorScheme: "dark" });
-        try {
-          const d = await dark.newPage();
-          await d.goto(url, { waitUntil: "load" });
-          await d.evaluate(fontsReady);
-          await d.waitForTimeout(200);
-          const png = await d.screenshot();
-          items.push({ kind: "figure", cells: [{ png, ...pngSize(png), label: "First screen · dark" }] });
-        } finally {
-          await dark.close();
-        }
-      }
     } finally {
       await context.close();
     }

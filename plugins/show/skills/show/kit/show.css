@@ -1,9 +1,10 @@
 /* show.css - show 스킬이 visual-explainer kit 위에 얹는 것. render.mjs 가 kit.css 뒤에 늘 넣는다.
    1. 한글 글꼴(바깥 요청 없이 기기에 있는 글꼴만)과 한국어 줄바꿈
-   2. ledger 레지스터 - 종이와 잉크 두 톤의 밝은 보고용 바탕. 남에게 건네는 보고의 기본이다
-   3. 우리 스크립트(compare.js, report-nav.js)가 쓰는 변수 이름을 kit 토큰에 잇는다
-   4. 보고와 증거 부품 - 항목 목록, 발견 카드, 판정 배지, 전후 짝, 근거 칸, 표, diff
-   5. 좁은 화면과 A4 인쇄 */
+   2. 늘 밝게 - 어느 레지스터든 기기의 어두운 모드를 따르지 않는다
+   3. ledger 레지스터 - 종이와 잉크 두 톤의 밝은 보고용 바탕. 남에게 건네는 보고의 기본이다
+   4. 우리 스크립트(compare.js, report-nav.js)가 쓰는 변수 이름을 kit 토큰에 잇는다
+   5. 보고와 증거 부품 - 항목 목록, 발견 카드, 판정 배지, 전후 짝, 근거 칸, 표, diff
+   6. 좁은 화면과 A4 인쇄 */
 
 /* 1. 글꼴. kit 의 토큰은 :where() 안이라 여기 :root 규칙이 늘 이긴다 */
 :root {
@@ -20,7 +21,33 @@ h1 { max-width: 30ch; letter-spacing: -.02em; }
 .lead { max-width: 70ch; }
 figcaption { max-width: 90ch; }
 
-/* 2. ledger 레지스터 */
+/* 2. 늘 밝게. kit 의 레지스터는 기기의 어두운 모드를 따르지만(instrument, blueprint 는 어두운 쪽이 기본)
+   show 페이지는 받는 사람 기기와 상관없이 같게 보이도록 레지스터마다 밝은 토큰을 다시 건다.
+   kit 의 @media 규칙과 같은 :where() 라 뒤에 오는 여기가 이긴다. 순서가 kit 과 같아야 레지스터 규칙이 기본 규칙을 덮는다 */
+:root { color-scheme: light; }
+:where(:root) {
+  --bg: #f4f5f3; --surface: #ffffff; --border: #dfe3e0; --border-bright: #888e8b;
+  --text: #121614; --text-dim: #545e59; --accent: #955700; --accent-dim: rgba(149,87,0,.12);
+  --ok: #1c7443; --warn: #7a5e00; --risk: #b0341e; --info: #1a6890;
+  --node-top: var(--surface); --lift: rgb(18 22 20 / .12); --halo: 22%;
+}
+:where(:root[data-register="blueprint"]) {
+  --bg: #f2f6fa; --surface: #ffffff; --border: #d6e0ea; --border-bright: #818f9e;
+  --text: #0f1a26; --text-dim: #4d6074; --accent: #a34700; --accent-dim: rgba(163,71,0,.12);
+  --ok: #1c7443; --warn: #776300; --risk: #b0341e; --info: #145f99;
+}
+:where(:root[data-register="paper"]) {
+  --bg: #f7f7f4; --surface: #ffffff; --border: #e3e3dc; --border-bright: #8e8e8a;
+  --text: #17191c; --text-dim: #575c63; --accent: #2c4cd0; --accent-dim: rgba(44,76,208,.12);
+  --ok: #1d7443; --warn: #836000; --risk: #b3301d; --info: #1b6a94;
+}
+:where(:root[data-register="editorial"]) {
+  --bg: #fbfbf9; --surface: #f1f0ec; --border: #e2e0da; --border-bright: #8c8a85;
+  --text: #111111; --text-dim: #5a5853; --accent: #cc3418; --accent-dim: rgba(204,52,24,.12);
+  --ok: #1d7443; --warn: #836000; --risk: #a01d48; --info: #1b6a94;
+}
+
+/* 3. ledger 레지스터 */
 :where(:root[data-register="ledger"]) {
   color-scheme: light;
   --bg: #f4f4f2; --surface: #fff; --border: #e3e4e8; --border-bright: #9ea2ab;
@@ -33,7 +60,7 @@ figcaption { max-width: 90ch; }
 :root[data-register="ledger"] h1 { font-size: clamp(1.6rem, 3.4vw, 2.2rem); line-height: 1.3; }
 :root[data-register="ledger"] h2 { font-size: 1.35rem; }
 
-/* 3. 우리 스크립트의 변수 이름 */
+/* 4. 우리 스크립트의 변수 이름 */
 :root {
   --fg: var(--text); --ink2: var(--text); --mute: var(--text-dim); --line: var(--border); --line2: var(--border-bright);
   --card: var(--surface); --nav-bg: color-mix(in srgb, var(--surface) 70%, var(--bg));
@@ -42,7 +69,7 @@ figcaption { max-width: 90ch; }
   --green-bg: color-mix(in srgb, var(--ok) 11%, var(--surface)); --shadow: 0 1px 2px var(--lift);
 }
 
-/* 4. 보고와 증거 부품 */
+/* 5. 보고와 증거 부품 */
 h2 .n { color: var(--text-dim); font: 600 var(--t-small) var(--font-mono); margin-right: var(--s-3); font-variant-numeric: tabular-nums; }
 h3 .n { color: var(--text-dim); margin-right: var(--s-2); font-variant-numeric: tabular-nums; }
 .sub { color: var(--text-dim); font-size: var(--t-small); margin-top: calc(-1 * var(--s-4)); margin-bottom: var(--s-5); }
@@ -136,7 +163,7 @@ figure .lab.a { background: color-mix(in srgb, var(--accent) 9%, var(--surface))
 /* 작업자용 절. report.html?internal 로 열 때만 남는다(템플릿 끝의 스크립트) */
 #internal { border-top: 1px dashed var(--border-bright); padding-top: var(--s-5); }
 
-/* 5. 좁은 화면 */
+/* 6. 좁은 화면 */
 @media (max-width: 720px) {
   .items { padding: 0 var(--s-3); }
   .item, .grp { flex-direction: column; gap: var(--s-1); }

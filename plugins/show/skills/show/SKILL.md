@@ -174,7 +174,7 @@ node <스킬 폴더>/kit/render.mjs report.src.html     # report.html 을 쓴다
 | `kit/kit.css`, `kit.js`, `ask.*`, `reply.js`, `flow.mjs`, `tags.mjs`, `defs.svg`, `vendor/pele.mjs` | visual-explainer 의 kit. 토큰과 레지스터, 그림 부품, 단계 재생, 결정과 답 묶기, 흐름도와 데이터 태그, mermaid 렌더러 | render 가 페이지에 넣는다 |
 | `kit/show.css` | 한글 글꼴, ledger 레지스터, 보고와 증거 부품, diff 모양, 좁은 화면과 A4 인쇄 | render 가 늘 넣는다 |
 | `kit/compare.js` | `.pair[data-compare]` 위에 나란히, 슬라이더, 차이 막대를 단다. 두 그림의 픽셀 크기가 다르면 겹쳐 보기를 끈다 | render 가 짝이 있으면 넣는다 |
-| `kit/report-nav.js` | `h2` 와 `h3` 로 왼쪽 목차를 세우고 분량, 지나간 절, 남은 결정, 지금 위치를 보인다 | render 가 `h2` 넷 이상이면 넣는다 |
+| `kit/report-nav.js` | `h2` 와 `h3` 로 왼쪽 목차를 세우고 분량, 지나간 절, 남은 결정, 지금 위치를 보인다 | render 가 `h2` 둘 이상이면 넣는다 |
 | `assets/page.src.html`, `assets/report.src.html` | 빠른 보기와 보고의 원본 골격 | 작업 폴더로 복사해 쓴다 |
 | `scripts/diff-html.py` | 두 파일이나 `git diff` 출력을 좌우 대조나 한 줄 diff 로 그리고 바뀐 단어를 칠해 원본의 표시 자리에 넣는다 | HTML 조각, 바뀐 줄 수 |
 | `scripts/shot.mjs`, `scripts/mark.js` | 촬영 목록대로 화면을 열고 표시를 그려 찍는다. `mark.js` 는 다른 브라우저 도구에서 eval 로 넣는다 | png, 표시 결과 한 줄씩 |
