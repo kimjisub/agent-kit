@@ -16,8 +16,12 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { addClass, decode, esc, find, hasClass, inner, kids, parseHtml, serialize, textOf, words } from "./html.mjs";
 import { expandFlow } from "./flow.mjs";
 import { expandAsk } from "./ask.mjs";
-import { TAGS } from "./tags.mjs";
+import { TAGS as KIT_TAGS } from "./tags.mjs";
+import { FORMS } from "./forms.mjs";
+import { lookAtProse } from "./prose.mjs";
 import { PeleError, render as drawMermaid } from "./vendor/pele.mjs";
+// show: kit 의 태그(막대, 와플, 쌓기)에 show 의 태그(forms.mjs)를 더한다
+const TAGS = { ...KIT_TAGS, ...FORMS };
 const hasPlan = () => false;
 const renderPlanForHost = () => null;
 
@@ -145,7 +149,8 @@ export function renderPage(source, { sendBack = false, base = process.cwd() } = 
   const running = title ? `@page { @top-left { content: "${title.replace(/["\\]/g, "\\$&").replace(/</g, "\\3C ")}"; font: 8pt -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; color: #777; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }\n@page :first { @top-left { content: none; } }\n` : "";
   const bare = (u) => u.replace(/^https?:\/\//i, "").replace(/\/$/, "");
   for (const a of find(doc, (n) => n.name === "a" && /^https?:/i.test(n.attrs.href ?? ""))) if (!hasClass(a, "bare") && bare(textOf(a).trim()).includes(bare(a.attrs.href))) addClass(a, "bare");
-  const css = ["kit.css", ...(asks.length ? ["ask.css"] : []), ...(mermaids.length ? ["mermaid.css"] : []), "show.css"].map((f) => readFileSync(join(here, f), "utf8")).join("") + running;
+  const forms = charts.some((t) => Object.hasOwn(FORMS, t.name));
+  const css = ["kit.css", ...(asks.length ? ["ask.css"] : []), ...(mermaids.length ? ["mermaid.css"] : []), ...(forms ? ["forms.css"] : []), "show.css"].map((f) => readFileSync(join(here, f), "utf8")).join("") + running;
   const compares = find(doc, (n) => hasClass(n, "pair") && "data-compare" in n.attrs).length;
   const mainEl = find(doc, (n) => n.name === "main")[0];
   const sections = mainEl ? find(mainEl, (n) => n.name === "h2" && n.attrs["data-nav"] !== "skip").length : 0;
@@ -166,7 +171,7 @@ ${css}</style>`;
     scripts[0].html = script;
     for (const s of scripts.slice(1)) s.html = "";
   } else body.children.push({ html: `${script}\n` });
-  return { html: serialize(doc), kit: true, errors, warnings, report: { ...count(doc, charts), inlined } };
+  return { html: serialize(doc), kit: true, errors, warnings, report: { ...count(doc, charts), inlined }, prose: lookAtProse(doc) };
 }
 
 const favicon = '<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 64 64\'%3E%3Crect width=\'64\' height=\'64\' rx=\'14\' fill=\'%230f172a\'/%3E%3Cpath d=\'M18 40V24l14-8 14 8v16l-14 8-14-8Z\' fill=\'none\' stroke=\'%23fbbf24\' stroke-width=\'4\' stroke-linejoin=\'round\'/%3E%3Ccircle cx=\'32\' cy=\'32\' r=\'5\' fill=\'%2338bdf8\'/%3E%3C/svg%3E">';
@@ -209,7 +214,8 @@ export function renderPageForHost(html, { root, filename, sendBack = false }) {
   if (r.errors.length) throw new Error(`The page has ${r.errors.length} error(s); nothing was written:\n${r.errors.map((e) => `- ${e}`).join("\n")}`);
   const page = filename.replace(/\.src(\.html?)$/i, "$1");
   const source = page.replace(/\.html?$/i, ".src.html");
-  const warned = r.warnings.length ? `\nWarnings:\n${r.warnings.map((w) => `- ${w}`).join("\n")}` : "";
+  const warnings = [...r.warnings, ...(r.prose ?? []).map((p) => `text: ${p}`)];
+  const warned = warnings.length ? `\nWarnings:\n${warnings.map((w) => `- ${w}`).join("\n")}` : "";
   return { html: r.html, filename: page, source, kit: true, report: r.report, note: ` Source kept beside it as ${source}; edit it and render again for revisions.${warned}` };
 }
 
@@ -249,6 +255,12 @@ async function main() {
   writeFileSync(temp, result.kit ? prepareRenderedHtml(result.html) : result.html);
   renameSync(temp, output);
   console.log(`✓ ${resolve(output)}  ${summary}${result.warnings.length ? ` · ${result.warnings.length} warning(s)` : ""}${report}`);
+  // show: 그림으로 실을 정보가 글에 남은 자리. 페이지는 쓰였고, 고쳐서 다시 렌더한다
+  if (result.prose?.length) {
+    for (const p of result.prose) console.log(`  ✗ text: ${p}`);
+    console.log(`✗ ${result.prose.length} text problem(s); the page was written. Turn that prose into figures (catalogs/forms.md), or mark a section data-prose when the prose is the point.`);
+    process.exitCode = 1;
+  }
   // a kit page is looked at in a browser, so the agent reads one report and one sheet instead of scripting its own screenshots
   if (result.kit && !hasPlan(source) && !flag("--no-check")) {
     const { lookAt, lookLines } = await import("./look.mjs");

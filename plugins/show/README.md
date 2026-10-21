@@ -1,6 +1,6 @@
 # show
 
-AI output mostly arrives as text, and the reader has to redraw it in their head as screens, structure, order and size. Where that redrawing stalls is the bottleneck this skill looks for. It then builds one HTML page that draws it instead: a structure diagram, step playback, a figure you can change, real screenshots side by side, a drawing, or a diff. When nothing in the kit fits, it builds the part inside the page. Reports for other people get counted verdicts, decisions collected on the page, a phone layout and A4 print.
+AI output mostly arrives as text, and the reader has to redraw it in their head as screens, structure, order and size. Where that redrawing stalls is the bottleneck this skill looks for. It then builds one HTML page that draws it instead: a structure diagram, step playback, a figure you can change, a trend line, before and after values, a timeline, a tree, a matrix, a 2x2, a sequence diagram, real screenshots side by side, a drawing, or a diff. The renderer points at numbers, arrows and versions still written as sentences. When nothing in the kit fits, it builds the part inside the page. Reports for other people get counted verdicts, decisions collected on the page, a phone layout and A4 print.
 
 Skill docs, verdict words and templates are in Korean.
 
@@ -12,7 +12,7 @@ Installed as a plugin it runs as `/show:show`. Copied to `~/.claude/skills/show`
 
 ---
 
-AI 가 한 일과 낸 결과, 그 의도를 글만으로는 이해하기 어려울 때 쓰는 스킬입니다. 읽는 사람이 어디서 막히는지 먼저 찾고, 그 자리를 푸는 HTML 한 장을 만듭니다. 형식은 정해 두지 않습니다. 직접 그린 구조도와 흐름도, 단계 재생, 값을 바꿔 보는 그림, 막대와 와플, 실제로 띄워 찍은 화면, 같은 범위로 뽑은 도면, 바뀐 코드의 diff 가운데 맞는 것을 고르고, 맞는 것이 없으면 페이지 안에 직접 만듭니다. 받는 사람은 문장을 골라 의견을 달고 결정을 골라 답을 묶어 회신합니다. 남에게 건네는 보고라면 판정을 셉니다. 휴대폰에서 읽히고 브라우저 인쇄로 A4 PDF 가 나옵니다.
+AI 가 한 일과 낸 결과, 그 의도를 글만으로는 이해하기 어려울 때 쓰는 스킬입니다. 읽는 사람이 어디서 막히는지 먼저 찾고, 그 자리를 푸는 HTML 한 장을 만듭니다. 형식은 정해 두지 않습니다. 직접 그린 구조도와 흐름도, 단계 재생, 값을 바꿔 보는 그림, 막대와 와플, 추세선, 전후 값, 타임라인, 나무, 행렬, 2x2, 순서도, 실제로 띄워 찍은 화면, 같은 범위로 뽑은 도면, 바뀐 코드의 diff 가운데 맞는 것을 고르고, 맞는 것이 없으면 페이지 안에 직접 만듭니다. 그림이 받을 숫자, 화살표, 버전이 문장에 남아 있으면 렌더러가 그 자리를 짚습니다. 받는 사람은 문장을 골라 의견을 달고 결정을 골라 답을 묶어 회신합니다. 남에게 건네는 보고라면 판정을 셉니다. 휴대폰에서 읽히고 브라우저 인쇄로 A4 PDF 가 나옵니다.
 
 ## 쓰려면
 

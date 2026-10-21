@@ -1,0 +1,107 @@
+/* show 의 데이터 태그(kit/forms.mjs). render.mjs 가 그 태그가 있는 페이지에만 넣는다 */
+.ve-form { font: 500 14px var(--font-body); }
+.ve-form text { fill: var(--text-dim); dominant-baseline: central; font-family: var(--font-body); }
+.ve-form .ve-axis-t { font-size: 14px; }
+.ve-form text.l { text-anchor: end; } .ve-form text.s, .ve-form text.r { text-anchor: start; } .ve-form text.e { text-anchor: end; } .ve-form text.m { text-anchor: middle; }
+.ve-grid { fill: none; stroke: var(--border); stroke-width: 1; }
+
+/* 추세와 기울기 */
+.ve-line polyline { fill: none; stroke: var(--border-bright); stroke-width: 1.75; stroke-linejoin: round; }
+.ve-line .ve-series circle { fill: var(--surface); stroke: var(--border-bright); stroke-width: 1.5; }
+.ve-line .ve-series.hot polyline { stroke: var(--accent); stroke-width: 2.75; }
+.ve-line .ve-series.hot circle { fill: var(--accent); stroke: var(--accent); }
+.ve-line text.v { text-anchor: middle; font-size: 14px; font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; }
+.ve-line .ve-series.hot text.v, .ve-line text.end.hot { fill: var(--text); font-weight: 600; }
+.ve-line text.end { text-anchor: start; } .ve-line text.end.l { text-anchor: end; }
+.ve-mark path { stroke: var(--text-dim); stroke-width: 1; stroke-dasharray: 3 4; }
+.ve-mark text { text-anchor: middle; font-size: 14px; fill: var(--text); }
+
+/* 값마다 전에서 후로: 이름, 0 부터의 눈금 위 두 점, 값. 좁은 화면에서는 값이 아래 줄로 */
+.ve-shift { display: grid; grid-template-columns: max-content minmax(8rem, 1fr) max-content; column-gap: var(--s-4); row-gap: var(--s-2); align-items: center; font-size: var(--t-small); }
+.ve-shift .row { display: contents; }
+.ve-shift .nm { color: var(--text-dim); }
+.ve-shift .tr { position: relative; height: 16px; border-top: 1px solid var(--border); top: 8px; margin: 0 7px; }
+.ve-shift .tr i { position: absolute; top: -1px; }
+.ve-shift .tr .ln { height: 0; border-top: 2px solid var(--text-dim); top: -2px; }
+.ve-shift .tr .from, .ve-shift .tr .to { width: 12px; height: 12px; margin: -7px 0 0 -6px; border-radius: 50%; box-sizing: border-box; }
+.ve-shift .tr .from { background: var(--surface); border: 1.5px solid var(--text-dim); }
+.ve-shift .tr .to { background: var(--text-dim); width: 13px; height: 13px; margin: -7.5px 0 0 -6.5px; }
+.ve-shift .v { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ve-shift .ch { font-weight: 600; margin-left: var(--s-1); } .ve-shift .ch.ok { color: var(--ok); } .ve-shift .ch.risk { color: var(--risk); }
+.ve-shift .hot .nm, .ve-shift .hot .v { color: var(--text); font-weight: 600; }
+.ve-shift .hot .tr .ln { border-top-color: var(--accent); }
+.ve-shift .hot .tr .to { background: var(--accent); }
+.ve-shift .scale { grid-column: 2; margin: 0; font-size: var(--t-label); color: var(--text-dim); }
+@media (max-width: 720px) {
+  .ve-shift { grid-template-columns: max-content minmax(6rem, 1fr); }
+  .ve-shift .v { grid-column: 2; margin-top: calc(-1 * var(--s-1)); }
+  .ve-shift .scale { grid-column: 2; }
+}
+
+/* 두 축 위의 자리 */
+.ve-quad .ve-bnd.q { stroke-dasharray: none; stroke: var(--border-bright); }
+.ve-quad .qn { fill: var(--text-dim); font-size: 14px; font-weight: 600; }
+.ve-quad .dot circle { fill: var(--surface); stroke: var(--text-dim); stroke-width: 1.75; }
+.ve-quad .dot.hot circle { fill: var(--accent); stroke: var(--accent); }
+.ve-quad .dot text { fill: var(--text); paint-order: stroke; stroke: var(--surface); stroke-width: 4px; }
+.ve-quad .dot.hot text { font-weight: 600; }
+
+/* 순서도 */
+.ve-seq .life { stroke: var(--border-bright); stroke-width: 1; stroke-dasharray: 4 4; }
+.ve-seq .ve-el { paint-order: stroke; stroke: var(--surface); }
+
+/* 타임라인: 왼쪽에 시각, 가운데 레일, 오른쪽에 일. 레인이 있으면 레인마다 열 하나 */
+.ve-tl { display: grid; grid-template-columns: minmax(5.5rem, max-content) repeat(var(--lanes), minmax(0, 1fr)); column-gap: var(--s-4); font-size: var(--t-small); }
+.ve-tl .lanes { display: contents; }
+.ve-tl .lanes > span { font-weight: 600; color: var(--text-dim); padding-bottom: var(--s-2); border-bottom: 1px solid var(--border-bright); }
+.ve-tl .ev { display: contents; }
+.ve-tl .ev time { grid-column: 1; color: var(--text-dim); font-variant-numeric: tabular-nums; padding: var(--s-2) 0; white-space: nowrap; }
+.ve-tl .ev .c { grid-column: var(--lane, 2); position: relative; padding: var(--s-2) 0 var(--s-2) var(--s-5); border-left: 2px solid var(--border); }
+.ve-tl .ev .c::before { content: ''; position: absolute; left: -7px; top: calc(var(--s-2) + .45em); width: 8px; height: 8px; border-radius: 50%; background: var(--surface); border: 2px solid var(--text-dim); }
+.ve-tl .ev .c b { display: block; font-weight: 600; color: var(--text); }
+.ve-tl .ev .c .d { display: block; color: var(--text-dim); margin-top: 2px; }
+.ve-tl .ev .ln { display: none; }
+.ve-tl .ev.is-key .c::before { background: var(--accent); border-color: var(--accent); }
+.ve-tl .ev.is-key .c b { color: var(--accent); }
+.ve-tl .ev.is-new .c::before { border-color: var(--ok); }
+.ve-tl .ev.is-gone .c b { text-decoration: line-through; color: var(--text-dim); }
+.ve-tl .gap { grid-column: 1 / -1; height: var(--gap); display: grid; grid-template-columns: subgrid; align-items: center; }
+.ve-tl .gap span { grid-column: 1; font-size: var(--t-label); color: var(--text-dim); }
+.ve-tl:not(.has-lanes) .gap::after { content: ''; grid-column: 2; align-self: stretch; border-left: 2px dotted var(--border-bright); }
+@media (max-width: 720px) {
+  .ve-tl.has-lanes { grid-template-columns: minmax(4.5rem, max-content) minmax(0, 1fr); }
+  .ve-tl .lanes { display: none; }
+  .ve-tl.has-lanes .ev .c { grid-column: 2; }
+  .ve-tl.has-lanes .ev .ln { display: inline-block; font-size: var(--t-label); color: var(--text-dim); border: 1px solid var(--border-bright); border-radius: var(--r-1); padding: 0 var(--s-1); margin-bottom: 2px; }
+}
+
+/* 계층: 가는 선으로 잇는 들여쓴 목록 */
+.ve-tree ul { list-style: none; margin: 0; padding: 0; }
+.ve-tree ul ul { margin-left: .55rem; padding-left: var(--s-4); border-left: 1px solid var(--border-bright); }
+.ve-tree li { position: relative; padding: 3px 0; }
+.ve-tree ul ul > li::before { content: ''; position: absolute; left: calc(-1 * var(--s-4)); top: 1em; width: calc(var(--s-4) - 4px); border-top: 1px solid var(--border-bright); }
+.ve-tree ul ul > li:last-child::after { content: ''; position: absolute; left: calc(-1 * var(--s-4) - 1px); top: calc(1em + 1px); bottom: 0; border-left: 1px solid var(--surface); }
+.ve-tree .nd { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--s-2); }
+.ve-tree .nm { font-weight: 600; }
+.ve-tree.mono .nm { font: 500 var(--t-small) var(--font-mono); }
+.ve-tree .nt { color: var(--text-dim); font-size: var(--t-small); }
+.ve-tree .is-key > .nd .nm { color: var(--accent); }
+.ve-tree .is-gone > .nd .nm { text-decoration: line-through; color: var(--text-dim); }
+.ve-tree .chip { font-size: 11px; padding: 0 var(--s-1); }
+
+/* 항목 x 기준: 찬 원, 반 찬 원, 빈 원 */
+.ve-matrix table { min-width: 0; }
+.ve-matrix th[scope="col"], .ve-matrix td { text-align: center; }
+.ve-matrix tbody th { font-weight: 600; font-size: var(--t-small); color: var(--text); white-space: normal; text-align: left; }
+.ve-matrix tbody th small { display: block; font-weight: 400; color: var(--text-dim); }
+.ve-matrix .key { background: var(--accent-dim); }
+.ve-matrix th.key { color: var(--accent); }
+.ve-matrix tr.hot th { color: var(--accent); }
+.mk { display: inline-block; width: .8rem; height: .8rem; border-radius: 50%; border: 1.5px solid var(--text); vertical-align: -1px; }
+.mk.yes { background: var(--text); }
+.mk.part { background: linear-gradient(90deg, var(--text) 50%, transparent 50%); }
+.mk.no { border-color: var(--text-dim); background: none; }
+.ve-matrix .na { color: var(--text-dim); }
+.ve-matrix .legend { display: flex; flex-wrap: wrap; gap: var(--s-4); margin-top: var(--s-2); font-size: var(--t-label); color: var(--text-dim); }
+.ve-matrix .legend > span { display: inline-flex; align-items: center; gap: var(--s-1); }
+@media print { .ve-tl .ev, .ve-tree li, .ve-matrix tr { break-inside: avoid; } }

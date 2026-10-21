@@ -103,6 +103,58 @@
 
 표시는 `key`, `hot`, `async`, `new`, `gone`. `data-s` 와 `data-ref` 는 직접 그린 부분과 같이 동작하고, `data-s` 가 있는 화살표마다 재생 점이 생긴다. 화살표 라벨은 12자 안팎까지. 렌더 오류는 줄을 짚는다(`line 42 <ve-bar>: value="-3" is negative`).
 
+## show 데이터 태그 (forms.mjs)
+
+글로 쓰면 문장이 되는 정보를 값만 적어 그림으로 바꾼다. 좌표는 렌더러가 계산한다. 어느 정보에 어느 태그인지는 [forms](forms.md). 모두 `<figure>` 안에 두고 `label` 을 단다. `data-ref`, `data-s` 는 그린 부분에 그대로 옮겨진다.
+
+```html
+<ve-line x="v1.0, v1.1, v1.2, v1.3" unit="ms" label="p95 가 820 에서 310 으로">
+  <ve-series name="p95" hot>820 760 410 310</ve-series>
+  <ve-series name="p50">300 290 180 150</ve-series>
+  <ve-mark at="v1.2">캐시 도입</ve-mark>
+</ve-line>
+
+<ve-shift unit="ms" better="lower" label="p95 820 에서 310, 로그인 400 에서 520">
+  <ve-row from="820" to="310" hot>p95 지연</ve-row>
+  <ve-row from="400" to="520">로그인</ve-row>
+</ve-shift>
+
+<ve-timeline label="v1.0 부터 v1.2 까지">
+  <ve-event at="2026-07-01">v1.0<small>첫 배포</small></ve-event>
+  <ve-event at="2026-08-30" lane="서버" key>캐시<small>읽기의 94% 가 DB 를 건너뜀</small></ve-event>
+</ve-timeline>
+
+<ve-tree mono label="바뀐 폴더">
+  <ve-item>src<ve-item new note="TTL 30초">cache</ve-item><ve-item gone>legacy</ve-item></ve-item>
+</ve-tree>
+
+<ve-matrix cols="v1.0, v1.2, v1.4" key="v1.4" label="기능이 버전마다 있는지">
+  <ve-row name="캐시">no yes yes</ve-row>
+  <ve-row name="오프라인 보기" note="앱만">no part yes</ve-row>
+  <ve-row name="응답">3초 이내 | 1초 이내 | 1초 이내</ve-row>
+</ve-matrix>
+
+<ve-quad x="노력 적음, 노력 많음" y="효과 작음, 효과 큼" q="바로 한다, 계획한다, 미뤄도 된다, 뺀다" label="...">
+  <ve-dot at="20 80" hot>캐시 무효화</ve-dot>
+</ve-quad>
+
+<ve-seq label="앱이 API 를 부르고 API 가 캐시를 먼저 본다">
+  <ve-actor id="app">앱</ve-actor><ve-actor id="api" key>API<small>orders.ts</small></ve-actor><ve-actor id="c">캐시</ve-actor>
+  <ve-msg from="app" to="api">GET /orders</ve-msg>
+  <ve-msg from="api" to="api">토큰 검사</ve-msg>
+  <ve-msg from="api" to="c" hot>키 조회</ve-msg>
+  <ve-msg from="c" to="api" back>없음</ve-msg>
+</ve-seq>
+```
+
+- **추세 `<ve-line>`**: `x` 는 쉼표로 가른 시점. 값은 공백이나 「쉼표 + 공백」으로 가르고 `1,200` 의 쉼표는 자릿수다. 축은 0 부터이고, 음수가 있으면 `from` 을 준다. 선 이름은 끝점 옆에 붙어 범례가 없다. 선이 하나이고 점이 여덟까지면 점마다 값이 붙는다. `x` 가 둘이면 양 끝에 값이 붙는 기울기 그림이다. `<ve-mark at>` 은 그 시점에 세로 점선과 사건 이름
+- **전후 `<ve-shift>`**: 항목마다 빈 점(전)과 찬 점(후)을 0 부터의 같은 눈금에 둔다. 값 옆에 바뀐 비율이 붙고, `better="lower"` 나 `higher` 면 좋아진 것은 초록, 나빠진 것은 빨강이다. 단위가 다른 지표는 태그를 나눈다
+- **타임라인 `<ve-timeline>`**: 쓴 순서가 시간 순서다. `at` 이 날짜(`2026-10-22`, `2026-10`)면 사이가 긴 만큼 줄 사이가 넓어지고 「3주 뒤」 가 붙는다. 하나에 `lane` 을 주면 모두 준다. 레인마다 열이 생기고 좁은 화면에서는 꼬리표가 된다. 표시는 `key`, `new`, `gone`
+- **나무 `<ve-tree>`**: `<ve-item>` 을 겹쳐 쓴다. `note` 는 이름 옆 흐린 설명, `new` 와 `gone` 은 꼬리표, `key` 는 강조색. 경로와 파일이면 `mono`
+- **행렬 `<ve-matrix>`**: 칸은 `yes`, `part`, `no`(찬 원, 반 찬 원, 빈 원), `-`(해당 없음), 그 밖의 글이다. 칸에 공백이 들면 `|` 로 가른다. 쓴 기호만 범례에 나오고 낱말은 `yes="지원"` 처럼 바꾼다. `key` 열과 `hot` 행이 강조된다
+- **2x2 `<ve-quad>`**: `at="x y"` 는 0~100. `x`, `y` 는 낮은 쪽과 높은 쪽 이름, `q` 는 왼쪽 위, 오른쪽 위, 왼쪽 아래, 오른쪽 아래 칸 이름. 점 이름은 그 점이 든 칸 안에서 다른 점과 이름을 피해 놓인다
+- **순서도 `<ve-seq>`**: `<ve-actor>` 가 쓴 순서로 열이 되고 `<ve-msg>` 가 쓴 순서로 아래로 내려간다. 자기에게 보내면 고리, `back` 이나 `async` 는 점선, `hot` 은 강조. 메시지 라벨이 두 열 사이보다 길면 경고가 난다
+
 ## 결정 - `<ve-ask>`
 
 받는 사람이 고를 것을 묻는다. 답은 그 사람이 묶는 답에 함께 실린다.
