@@ -2,13 +2,13 @@
 
 **로드 시점 - Step 3 에서 페이지 원본(`*.src.html`)을 쓸 때 찾아본다.** kit 은 모든 페이지가 함께 쓰는 CSS, SVG 정의, 스크립트다. 원본에는 표시 한 줄만 쓰고 `kit/render.mjs` 가 그 자리에 kit 을 넣는다. 그리는 규칙은 [draw](../steps/50-draw.md), 모양 규칙은 [style](style.md).
 
-출처: kit 은 visual-explainer v0.14.0(MIT, `kit/LICENSE`)의 것이다. 보고와 증거 부품, 한글 글꼴, ledger 레지스터, 인쇄는 show 가 `kit/show.css` 로 더했다. kit 의 CSS, JS, `.mjs` 원본은 페이지를 쓰려고 읽지 않는다. 이 문서와 렌더 오류가 필요한 것을 말한다.
+출처: kit 은 visual-explainer v0.14.0(MIT, `kit/LICENSE`)의 것이다. 보고와 증거 부품, 한글 글꼴, 표준 문서 모양, 인쇄는 show 가 `kit/show.css` 로 더했다. kit 의 CSS, JS, `.mjs` 원본은 페이지를 쓰려고 읽지 않는다. 이 문서와 렌더 오류가 필요한 것을 말한다.
 
 ## 원본
 
 ```html
 <!doctype html>
-<html lang="ko" data-register="blueprint">
+<html lang="ko">
 <head>
 <title>읽기의 94% 는 DB 에 닿지 않습니다</title>
 <link rel="stylesheet" href="kit.css" data-ve-kit>
@@ -26,7 +26,7 @@
     <figcaption><span class="fig-n">그림 1</span>주장 한 문장.</figcaption>
   </figure>
   <section>
-    <div class="sec-head"><p class="ve-label caps">부하</p><h2>결론을 말하는 절 제목</h2></div>
+    <h2>결론을 말하는 절 제목</h2>
     ...
   </section>
   <section class="sources" aria-label="근거"><p class="ve-label caps">근거</p><p><code>src/cache/user.ts:14</code></p></section>

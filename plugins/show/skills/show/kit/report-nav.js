@@ -50,7 +50,7 @@
     .rn-ck::after { content:""; position:absolute; left:4.5px; top:2.5px; width:3px; height:6px; border:solid #fff; border-width:0 1.5px 1.5px 0; transform:rotate(45deg); }
     .rn-sec.seen:not(.has-badge) .rn-ck { display:block; }
     .rn-sec.seen > a .rn-t { color:var(--mute, #6b7078); }
-    .rn-sec.cur { background:var(--card, #fff); box-shadow:0 1px 2px rgba(0,0,0,.06); }
+    .rn-sec.cur { background:rgba(0,0,0,.045); }
     .rn-sec.cur > a .rn-t { color:var(--fg, #16181d); font-weight:600; }
     .rn-sec.cur > a .rn-n { color:var(--fg, #16181d); }
     .rn-sub { list-style:none; margin:0; padding:0 8px 8px 36px; display:none; }

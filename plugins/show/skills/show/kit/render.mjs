@@ -5,7 +5,7 @@
 // from a copied skill folder.
 //
 // show 스킬이 visual-explainer v0.14.0(5f37886, MIT, kit/LICENSE)의 kit/render.mjs 를 가져와 고친 것이다. 고친 곳:
-//   바깥 글꼴 요청(Google Fonts)을 없애고 글꼴은 show.css 의 한글 글꼴로 둔다. 레지스터에 ledger 를 더했다.
+//   바깥 글꼴 요청(Google Fonts)을 없애고 글꼴은 show.css 의 한글 글꼴로 둔다. 레지스터에 ledger 를 더했다. 모양은 레지스터와 상관없이 show.css 의 표준 문서 하나다.
 //   show.css 를 늘 넣고, .pair[data-compare] 가 있으면 compare.js, main 의 h2 가 둘 이상이면 report-nav.js 를 넣는다.
 //   상대 경로 이미지를 data URI 로 넣어 결과가 파일 하나로 닫히게 했다. plan 페이지 갈래는 뺐다. lang 기본값은 ko.
 import { lstatSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";

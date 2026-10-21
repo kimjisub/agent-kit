@@ -19,8 +19,8 @@ AI 의 결과물은 대부분 글로 나온다. 글은 한 줄씩 읽어야 하�
 
 | 무게 | 받는 사람 | 얹는 것 |
 |---|---|---|
-| 빠른 보기 | 지금 대화 중인 사용자 | 병목을 푸는 데 필요한 그림만. 레지스터는 내용에 맞춘다. 판정 세기와 인쇄 확인은 하지 않는다 |
-| 보고 | 코드와 대화를 모르는 남, 나중에 다시 열 사람 | 질문 한 문장, 센 판정, 찍은 조건, 결정, ledger 레지스터, 좁은 화면과 A4 인쇄 확인 |
+| 빠른 보기 | 지금 대화 중인 사용자 | 병목을 푸는 데 필요한 그림만. 판정 세기와 인쇄 확인은 하지 않는다 |
+| 보고 | 코드와 대화를 모르는 남, 나중에 다시 열 사람 | 질문 한 문장, 센 판정, 찍은 조건, 결정, 좁은 화면과 A4 인쇄 확인 |
 
 kit 과 그림 원칙, 스타일 가이드, 페이지 레시피는 visual-explainer(github.com/nicobailon/visual-explainer, v0.14.0, MIT)에서 가져와 한국어와 이 절차에 맞게 고쳤다. 원 저작권 고지는 `kit/LICENSE` 에 있다.
 
@@ -171,8 +171,8 @@ node <스킬 폴더>/kit/render.mjs report.src.html     # report.html 을 쓴다
 |---|---|---|
 | `kit/render.mjs` | 원본 `*.src.html` 의 kit 표시 자리에 kit 을 넣고, 데이터 태그와 `<ve-flow>`, `<ve-ask>`, mermaid 를 SVG 와 HTML 로 펼치고, 상대 경로 이미지를 넣어 파일 하나로 쓴 뒤 브라우저로 연다(`--no-check` 면 열지 않는다) | `*.html`, 오류와 화면 검사 `✗`, 시트 경로 |
 | `kit/look.mjs` | render 가 부르는 화면 검사. 1280px 와 390px 로 열어 라벨 겹침, 그림 밖으로 나간 글자, 가로 넘침, 제목 간격, 콘솔 오류를 찾고 가장 작은 라벨 크기를 잰다 | 문제 줄, `*.sheet.png` |
-| `kit/kit.css`, `kit.js`, `ask.*`, `reply.js`, `flow.mjs`, `tags.mjs`, `defs.svg`, `vendor/pele.mjs` | visual-explainer 의 kit. 토큰과 레지스터, 그림 부품, 단계 재생, 결정과 답 묶기, 흐름도와 데이터 태그, mermaid 렌더러 | render 가 페이지에 넣는다 |
-| `kit/show.css` | 한글 글꼴, ledger 레지스터, 보고와 증거 부품, diff 모양, 좁은 화면과 A4 인쇄 | render 가 늘 넣는다 |
+| `kit/kit.css`, `kit.js`, `ask.*`, `reply.js`, `flow.mjs`, `tags.mjs`, `defs.svg`, `vendor/pele.mjs` | visual-explainer 의 kit. 토큰, 그림 부품, 단계 재생, 결정과 답 묶기, 흐름도와 데이터 태그, mermaid 렌더러 | render 가 페이지에 넣는다 |
+| `kit/show.css` | 한글 글꼴, 표준 문서 모양(흰 바탕 한 단, 장식 없음), 보고와 증거 부품, diff 모양, 좁은 화면과 A4 인쇄 | render 가 늘 넣는다 |
 | `kit/compare.js` | `.pair[data-compare]` 위에 나란히, 슬라이더, 차이 막대를 단다. 두 그림의 픽셀 크기가 다르면 겹쳐 보기를 끈다 | render 가 짝이 있으면 넣는다 |
 | `kit/report-nav.js` | `h2` 와 `h3` 로 왼쪽 목차를 세우고 분량, 지나간 절, 남은 결정, 지금 위치를 보인다 | render 가 `h2` 둘 이상이면 넣는다 |
 | `assets/page.src.html`, `assets/report.src.html` | 빠른 보기와 보고의 원본 골격 | 작업 폴더로 복사해 쓴다 |

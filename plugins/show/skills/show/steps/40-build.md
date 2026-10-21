@@ -11,8 +11,8 @@ cp <스킬 폴더>/assets/page.src.html   <작업 폴더>/page.src.html     # �
 cp <스킬 폴더>/assets/report.src.html <작업 폴더>/report.src.html   # 보고
 ```
 
-- 빠른 보기는 제목, 결론 한 단락(`.lead`), 그림들, 근거 절로 시작한다. 레지스터는 내용에 맞춰 고른다([style §레지스터](../catalogs/style.md#레지스터))
-- 보고는 ledger 레지스터다. 쓰지 않는 블록(센 수, 찍은 조건, 항목 목록, 작업자용 절)은 지운다([output §골격](60-output.md#골격))
+- 빠른 보기는 제목, 결론 한 단락(`.lead`), 그림들, 근거 절로 시작한다. 모양은 표준 문서 하나다([style §표준 문서 모양](../catalogs/style.md#표준-문서-모양))
+- 보고는 쓰지 않는 블록(센 수, 찍은 조건, 항목 목록, 작업자용 절)은 지운다([output §골격](60-output.md#골격))
 - `<head>` 의 `<link rel="stylesheet" href="kit.css" data-ve-kit>` 한 줄이 kit 표시 자리다. 지우지 않는다. kit 파일을 작업 폴더로 복사하지 않는다
 
 ## 렌더
@@ -37,7 +37,7 @@ kit 과 show.css 에 맞는 것이 없으면 그 페이지 안에 직접 만든�
 **스타일**
 
 - 원본의 `<style>` 에 쓴다. kit 과 show.css 의 규칙을 덮어쓰지 않는다. 좁은 화면과 인쇄가 그 규칙에 걸려 있다
-- 간격, 글자 크기, 모서리, 움직임은 kit 의 단계 토큰만 쓰고, 색은 레지스터 토큰만 쓴다([style §내가 쓰는 CSS](../catalogs/style.md#내가-쓰는-css))
+- 간격, 글자 크기, 모서리, 움직임은 kit 의 단계 토큰만 쓰고, 색은 kit 의 색 토큰만 쓴다([style §내가 쓰는 CSS](../catalogs/style.md#내가-쓰는-css))
 - 폭은 % 와 `max-width` 로 잡는다. 새 부품마다 `@media (max-width:720px)` 규칙을 함께 쓴다
 
 **스크립트**
