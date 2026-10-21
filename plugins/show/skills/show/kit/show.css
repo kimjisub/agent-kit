@@ -208,7 +208,7 @@ figure .lab.a { background: color-mix(in srgb, var(--accent) 9%, var(--surface))
 /* A4 인쇄. 화면의 표준 문서를 종이로 옮긴다. 조작 장치는 빼고 처음 상태(단계 재생은 마지막 단계)를 남기고, 접힌 것은 편다.
    쪽 번호는 여기서, 둘째 쪽부터의 쪽 머리(문서 제목)는 render.mjs 가 <title> 로 단다 */
 @page {
-  size: A4; margin: 16mm 15mm 18mm;
+  size: A4; margin: 20mm;
   @bottom-right { content: counter(page) " / " counter(pages); font: 8pt -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; color: #777; }
 }
 @media print {
