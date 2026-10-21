@@ -74,7 +74,7 @@ dialog.ve-respond::backdrop { background: rgb(0 0 0 / .32); }
 .rn-dock .ve-watch { max-width: none; flex-wrap: wrap; align-items: baseline; border: 0; padding: 0; background: none; }
 .rn-dock .ve-watch .dot { align-self: center; }
 .rn-dock .ve-watch .tx { flex: 1; min-width: 0; white-space: normal; }
-.rn-dock .ve-watch .st { flex-basis: 100%; padding-left: 16px; }
+.rn-dock .ve-watch .st { flex-basis: 100%; padding-left: 16px; white-space: normal; }
 .rn-dock .ve-watch .st::before { display: none; }
 .rn-dock .send { width: 100%; box-shadow: none; }
 @media (max-width: 40rem) { .ve-dock { left: 12px; right: 12px; justify-content: space-between; } .ve-watch { max-width: none; flex: 1; min-width: 0; } }
