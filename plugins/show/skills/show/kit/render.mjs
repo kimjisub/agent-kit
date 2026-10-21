@@ -8,11 +8,12 @@
 //   바깥 글꼴 요청(Google Fonts)을 없애고 글꼴은 show.css 의 한글 글꼴로 둔다. 레지스터에 ledger 를 더했다. 모양은 레지스터와 상관없이 show.css 의 표준 문서 하나다.
 //   show.css 를 늘 넣고, .pair[data-compare] 가 있으면 compare.js, main 의 h2 가 둘 이상이면 report-nav.js 를 넣는다.
 //   상대 경로 이미지를 data URI 로 넣어 결과가 파일 하나로 닫히게 했다. plan 페이지 갈래는 뺐다. lang 기본값은 ko.
+//   인쇄용으로 <title> 을 둘째 쪽부터의 쪽 머리(@page @top-left)로 넣고, 글이 곧 주소인 바깥 링크에 .bare 를 단다(show.css 가 그 밖의 링크 뒤에 주소를 적는다).
 import { lstatSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { basename, dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { decode, esc, find, hasClass, inner, kids, parseHtml, serialize, textOf, words } from "./html.mjs";
+import { addClass, decode, esc, find, hasClass, inner, kids, parseHtml, serialize, textOf, words } from "./html.mjs";
 import { expandFlow } from "./flow.mjs";
 import { expandAsk } from "./ask.mjs";
 import { TAGS } from "./tags.mjs";
@@ -140,7 +141,12 @@ export function renderPage(source, { sendBack = false, base = process.cwd() } = 
   if (errors.length) return { html: source, kit: true, errors, warnings };
 
   // a page with <ve-ask> also gets its styles and its part of the reply; a page with Mermaid gets the diagram colors
-  const css = ["kit.css", ...(asks.length ? ["ask.css"] : []), ...(mermaids.length ? ["mermaid.css"] : []), "show.css"].map((f) => readFileSync(join(here, f), "utf8")).join("");
+  // 인쇄: 둘째 쪽부터 쪽 머리에 문서 제목을 달고(쪽 번호는 show.css), 글이 곧 주소인 링크에는 주소를 다시 적지 않게 .bare 를 단다
+  const title = textOf(find(doc, (n) => n.name === "title")[0] ?? { children: [] }).replace(/\s+/g, " ").trim();
+  const running = title ? `@page { @top-left { content: "${title.replace(/["\\]/g, "\\$&").replace(/</g, "\\3C ")}"; font: 8pt -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; color: #777; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }\n@page :first { @top-left { content: none; } }\n` : "";
+  const bare = (u) => u.replace(/^https?:\/\//i, "").replace(/\/$/, "");
+  for (const a of find(doc, (n) => n.name === "a" && /^https?:/i.test(n.attrs.href ?? ""))) if (!hasClass(a, "bare") && bare(textOf(a).trim()).includes(bare(a.attrs.href))) addClass(a, "bare");
+  const css = ["kit.css", ...(asks.length ? ["ask.css"] : []), ...(mermaids.length ? ["mermaid.css"] : []), "show.css"].map((f) => readFileSync(join(here, f), "utf8")).join("") + running;
   const compares = find(doc, (n) => hasClass(n, "pair") && "data-compare" in n.attrs).length;
   const mainEl = find(doc, (n) => n.name === "main")[0];
   const sections = mainEl ? find(mainEl, (n) => n.name === "h2" && n.attrs["data-nav"] !== "skip").length : 0;

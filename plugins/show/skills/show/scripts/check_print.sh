@@ -4,6 +4,7 @@
 # 사용: check_print.sh <report.html> [query]
 #   query 를 주면 URL 뒤에 붙인다(예: internal -> 내부 절까지).
 # 출력: 확인용 PDF 경로와 쪽수, 쪽마다의 PNG 경로(pdftoppm 이 있을 때). PNG 를 Read 로 연다.
+# 쪽 번호와 쪽 머리는 show.css 와 render.mjs 가 @page 로 다는 것이라, 브라우저 머리글을 끈 이 출력에도 나온다.
 set -euo pipefail
 HTML=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")
 QUERY=${2:+"?$2"}

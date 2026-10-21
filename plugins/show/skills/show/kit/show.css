@@ -53,8 +53,13 @@ h3 { font-size: 1.0625rem; }
 .sec-head { display: block; border-top: 0; padding-top: 0; margin-bottom: var(--s-5); }
 .sec-head > .ve-label { display: block; margin-bottom: var(--s-2); color: var(--text-dim); font-weight: 500; }
 figure + figure { margin-top: var(--s-6); }
+/* 한 절 안의 흐름 간격. kit 은 margin 을 모두 0 으로 두고 main 의 gap 만 써서, 이것이 없으면 이어진 문단이 붙는다.
+   :where() 라 부품이 제 간격을 정하면 그쪽이 이긴다 */
+:where(section, .body, details) > :where(p, ul, ol, pre, blockquote, figure, details, summary, .tw, .ve-table, .items, .stats, .df, h3)
+  + :where(p, ul, ol, pre, blockquote, figure, details, .tw, .ve-table, .items, .stats, .df) { margin-top: var(--s-4); }
+:where(section, .body) > * + h3 { margin-top: var(--s-6); }
 /* 좁은 화면에서 왼쪽 위 목차 버튼이 머리 글자를 덮지 않게 */
-@media (max-width: 1099px) { body.has-rn main { padding-top: calc(var(--s-7) + 24px); } }
+@media screen and (max-width: 1099px) { body.has-rn main { padding-top: calc(var(--s-7) + 24px); } }
 section > h2 { margin-bottom: var(--s-5); }
 .frame { background: var(--surface); padding: var(--s-4); }
 figcaption { font-size: .9375rem; }
@@ -181,8 +186,8 @@ figure .lab.a { background: color-mix(in srgb, var(--accent) 9%, var(--surface))
 /* 작업자용 절. report.html?internal 로 열 때만 남는다(템플릿 끝의 스크립트) */
 #internal { border-top: 1px dashed var(--border-bright); padding-top: var(--s-5); }
 
-/* 5. 좁은 화면 */
-@media (max-width: 720px) {
+/* 5. 좁은 화면. screen 에만 건다 - A4 본문 폭(약 680px)도 720px 보다 좁아 인쇄에 휴대폰 모양이 나온다 */
+@media screen and (max-width: 720px) {
   .items { padding: 0 var(--s-3); }
   .item, .grp { flex-direction: column; gap: var(--s-1); }
   .item .key { width: auto; display: flex; gap: var(--s-2); align-items: baseline; }
@@ -200,17 +205,41 @@ figure .lab.a { background: color-mix(in srgb, var(--accent) 9%, var(--surface))
   .stats { grid-template-columns: 1fr 1fr; }
 }
 
-/* A4 인쇄. 조작 장치는 빼고 처음 상태(스테퍼는 마지막 단계)만 남긴다 */
-@page { size: A4; margin: 14mm 12mm; }
+/* A4 인쇄. 화면의 표준 문서를 종이로 옮긴다. 조작 장치는 빼고 처음 상태(단계 재생은 마지막 단계)를 남기고, 접힌 것은 편다.
+   쪽 번호는 여기서, 둘째 쪽부터의 쪽 머리(문서 제목)는 render.mjs 가 <title> 로 단다 */
+@page {
+  size: A4; margin: 16mm 15mm 18mm;
+  @bottom-right { content: counter(page) " / " counter(pages); font: 8pt -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; color: #777; }
+}
 @media print {
-  :root { color-scheme: light; --bg: #fff; --surface: #fff; --text: #17181c; --text-dim: #5f6470; --border: #e3e4e8; --border-bright: #9ea2ab; }
-  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; font-size: 10.5pt; }
-  body { background: #fff; }
+  :root { --border: #cfcfcf; --border-bright: #8c8c8c; --text: #111; --text-dim: #555; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; font-size: 10pt; }
+  body { background: #fff; line-height: 1.6; }
   main { max-width: none; padding: 0; gap: var(--s-6); }
-  h2 { break-after: avoid; }
-  .stat, .item, .grp, figure, .finding > header, .finding dl > *, fieldset.ask, .df tr { break-inside: avoid; }
-  .finding, .df { break-inside: auto; }
-  .tall { max-height: none; overflow: visible; }
-  .tw, .df .dw, .frame { overflow: visible; }
-  .ve-player, button { display: none !important; }
+  :is(main, section, header) > :is(p, ul, ol, h1, h2), .sec-head > h2, figcaption { max-width: none; }
+  /* 제목과 머리말은 뒤따르는 내용과 한 쪽에, 문단은 쪽 끝과 쪽 머리에 두 줄 이상 */
+  h1, h2, h3, .eyebrow, .sec-head, section > .ve-label, .finding > header, summary { break-after: avoid; }
+  .sec-head, main > header { break-inside: avoid; }
+  p, li, dd { orphans: 2; widows: 2; }
+  figure, .stat, .item, .grp, fieldset.ask, .finding dl > *, tr, .evidence { break-inside: avoid; }
+  /* 쪽을 넘을 수 있는 것은 줄 단위로 갈리고, 갈린 조각마다 테두리를 닫는다 */
+  .finding, .df, .items, figure:has(> .tw, > .ve-table, > .df) { break-inside: auto; }
+  .finding, .df, .items { box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+  /* 화면에서 가로로 밀리던 것은 종이 폭에서 줄을 바꾼다 */
+  .tw, .df .dw, .frame, .tall, .evidence, pre { overflow: visible; max-height: none; }
+  .tw table, .df table { min-width: 0; }
+  pre, .evidence { white-space: pre-wrap; overflow-wrap: anywhere; }
+  td, th { overflow-wrap: break-word; }
+  td code, td.mono { overflow-wrap: anywhere; }
+  td.num, th.num { white-space: nowrap; }
+  thead { display: table-header-group; }
+  /* 종이에서는 열 수 없으니 접힌 것을 편다. 빼려면 .no-print */
+  details::details-content { content-visibility: visible; }
+  details > summary { list-style: none; font-weight: 600; }
+  details > summary::-webkit-details-marker { display: none; }
+  /* 바깥 주소는 글 뒤에 적는다. 글이 곧 주소인 링크는 render.mjs 가 .bare 를 단다 */
+  a[href^="http"]:not(.bare)::after { content: " (" attr(href) ")"; font-size: .85em; color: var(--text-dim); overflow-wrap: anywhere; }
+  .ve-ref { text-decoration: none; }
+  ::highlight(ve-note) { background-color: transparent; }
+  .ve-player, button, .no-print { display: none !important; }
 }
