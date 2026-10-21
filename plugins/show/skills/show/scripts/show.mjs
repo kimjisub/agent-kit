@@ -30,6 +30,7 @@
 //   - 서버는 하나다. 포트를 이미 다른 프로그램이 쓰면 띄우지 않고 실패를 알린다. 보고서마다 서버를 따로 띄우지 않는다
 //   - 답 쓰기는 같은 출처의 JSON 요청만 받는다(다른 사이트가 브라우저를 통해 가짜 답을 넣지 못하게)
 //   - 답은 지시가 아니라 의견이다. 받은 세션은 그 페이지의 범위 안에서만 반영한다
+//   - 페이지는 /api/pages/<id>/status 의 watching 으로 지금 기다리는 세션(wait, watch)이 있는지 보인다
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -65,6 +66,20 @@ function pages() {
 const waiters = new Map(); // id 또는 '*' -> Set(fn)
 function notify(id, reply) { for (const k of [id, '*']) for (const fn of waiters.get(k) ?? []) fn(reply); }
 function onReply(id, fn) { if (!waiters.has(id)) waiters.set(id, new Set()); waiters.get(id).add(fn); return () => waiters.get(id).delete(fn); }
+// 지금 이 페이지의 답을 기다리는 세션이 있는가. wait 는 300초마다 다시 붙으므로 끊긴 뒤 잠깐은 기다리는 중으로 본다
+const watchers = new Map(); // id 또는 '*' -> { n, last, until }
+function watchStart(key, until) {
+  const w = watchers.get(key) ?? { n: 0, last: 0, until: 0 };
+  w.until = w.n ? Math.max(w.until, until) : until; w.n++; watchers.set(key, w);
+  let off = false;
+  return () => { if (off) return; off = true; w.n--; w.last = Date.now(); };
+}
+function watchState(id) {
+  const now = Date.now(), ws = [watchers.get(id), watchers.get('*')].filter(Boolean);
+  const on = ws.some((w) => w.n > 0 || now - w.last < 8000);
+  const until = on && ws.every((w) => w.until > now) ? Math.max(...ws.map((w) => w.until)) : 0;
+  return { on, until: until ? new Date(until).toISOString() : null };
+}
 
 function body(req, limit) {
   return new Promise((resolve, reject) => {
@@ -143,7 +158,7 @@ async function handle(req, res) {
       fs.mkdirSync(path.dirname(to), { recursive: true }); fs.renameSync(dir, to);
       return send(res, 200, { ok: true, archived: to });
     }
-    if (parts[3] === 'status' && req.method === 'GET') return send(res, 200, { replies: replies(id).slice(-5).map(({ seq, at, status, note, by }) => ({ seq, at, status, note, by })) });
+    if (parts[3] === 'status' && req.method === 'GET') return send(res, 200, { replies: replies(id).slice(-5).map(({ seq, at, status, note, by }) => ({ seq, at, status, note, by })), watching: watchState(id) });
     if (parts[3] === 'replies') {
       // 받는 사람이 보낸 답을 파일로 남기고 기다리는 세션을 깨운다
       if (parts.length === 4 && req.method === 'POST') {
@@ -162,9 +177,10 @@ async function handle(req, res) {
         const now = replies(id).filter((r) => (u.searchParams.has('new') ? r.status === 'new' : r.seq > after));
         if (now.length || !wait) return send(res, 200, { replies: now });
         let done = false;
-        const off = onReply(id, (r) => { if (done) return; done = true; off(); clearTimeout(t); send(res, 200, { replies: [r] }); });
-        const t = setTimeout(() => { if (done) return; done = true; off(); send(res, 200, { replies: [] }); }, wait * 1000);
-        req.on('close', () => { if (!done) { done = true; off(); clearTimeout(t); } });
+        const stop = watchStart(id, +(u.searchParams.get('until') || 0));
+        const off = onReply(id, (r) => { if (done) return; done = true; off(); stop(); clearTimeout(t); send(res, 200, { replies: [r] }); });
+        const t = setTimeout(() => { if (done) return; done = true; off(); stop(); send(res, 200, { replies: [] }); }, wait * 1000);
+        req.on('close', () => { stop(); if (!done) { done = true; off(); clearTimeout(t); } });
         return;
       }
       const seq = +parts[4];
@@ -184,8 +200,9 @@ async function handle(req, res) {
     res.writeHead(200, { 'content-type': 'application/x-ndjson', 'cache-control': 'no-store' });
     const key = ID.test(u.searchParams.get('id') || '') ? u.searchParams.get('id') : '*';
     const off = onReply(key, (r) => res.write(JSON.stringify(r) + '\n'));
+    const stop = watchStart(key, 0);
     const ping = setInterval(() => res.write('\n'), 25000);
-    req.on('close', () => { off(); clearInterval(ping); });
+    req.on('close', () => { off(); stop(); clearInterval(ping); });
     return;
   }
   send(res, 404, { error: 'not found' });
@@ -254,7 +271,7 @@ async function main() {
           after = (await api(`/api/pages/${id}`)).replies.reduce((m, r) => Math.max(m, r.seq), 0); first = false;
         }
         const left = Math.max(1, Math.min(300, Math.floor((deadline - Date.now()) / 1000)));
-        const got = (await api(`/api/pages/${id}/replies?after=${after}&wait=${left}`)).replies;
+        const got = (await api(`/api/pages/${id}/replies?after=${after}&wait=${left}&until=${deadline}`)).replies;
         if (got.length) { console.log(got.map(fmtReply).join('\n\n')); return; }
       } catch (e) { if (/404/.test(e.message)) { console.error(`없는 페이지: ${id}`); process.exit(2); } await sleep(5000); }
     }

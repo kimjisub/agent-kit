@@ -1,6 +1,6 @@
 {
   "name": "show",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "When an agent's result or intent is hard to follow as text, build one HTML page that unblocks the reader. Kit adapted from visual-explainer (MIT).",
   "author": { "name": "Jisub Kim", "url": "https://github.com/kimjisub" },
   "homepage": "https://github.com/kimjisub/claude-code-kit/tree/main/plugins/show",
