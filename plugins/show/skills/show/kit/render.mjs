@@ -82,10 +82,7 @@ export function renderPage(source, { sendBack = false, base = process.cwd() } = 
     for (const a of asks) if (!inMain.has(a)) errors.push(`${where(a)}: <ve-ask> must be inside <main>, where the reader's reply is collected`);
   }
   const ids = new Map();
-  for (const t of tags) {
-    if (t.name === "ve-ask") t.html = expandAsk(t, { errors, warnings, where, ids, k: asks.indexOf(t) + 1, total: asks.length, page: true });
-    else t.html = t.name === "ve-flow" ? expandFlow(t, { errors, warnings, where, ref, page: true }) : TAGS[t.name](t, { errors, warnings, where });
-  }
+  for (const t of charts) t.html = t.name === "ve-flow" ? expandFlow(t, { errors, warnings, where, ref, page: true }) : TAGS[t.name](t, { errors, warnings, where });
   // Mermaid becomes plain SVG here, so the page draws offline, follows the theme through CSS, and is checked like any drawing.
   // A phone gets its own layout when Pele can make one narrower. Neither layout shrinks below its natural width (the frame
   // scrolls instead), and Pele draws some labels smaller than its base size, so the base grows until the smallest is 12 px.
@@ -138,6 +135,8 @@ export function renderPage(source, { sendBack = false, base = process.cwd() } = 
     img.openRaw = img.openRaw.replace(/(\ssrc\s*=\s*)(["']?)[^"'\s>]+\2/i, `$1"data:${type};base64,${data.toString("base64")}"`);
     inlined++;
   }
+  // 결정은 이미지를 넣은 뒤에 펼친다. 선택지와 설명에 든 그림도 파일 안에 들어간다
+  for (const t of asks) t.html = expandAsk(t, { errors, warnings, where, ids, k: asks.indexOf(t) + 1, total: asks.length, page: true });
   if (errors.length) return { html: source, kit: true, errors, warnings };
 
   // a page with <ve-ask> also gets its styles and its part of the reply; a page with Mermaid gets the diagram colors

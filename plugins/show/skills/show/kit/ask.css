@@ -13,4 +13,22 @@
 .opt-label { font-weight: 500; }
 .sug { font: 500 var(--t-label) var(--font-body); color: var(--text-dim); }
 .opt small { flex-basis: 100%; display: block; color: var(--text-dim); font-size: var(--t-small); }
-@media print { .ask { break-inside: avoid; } }
+.opt:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* 질문 아래의 설명 그림. 받는 사람이 고르기 전에 무엇을 고르는지 본다 */
+.ask-fig { display: grid; gap: var(--s-3); min-width: 0; overflow-x: auto; }
+.ask-fig figure { margin: 0; }
+.ask-fig img, .ask-fig svg { display: block; max-width: 100%; height: auto; }
+/* 그림이 있는 선택지는 카드로: 그림이 위, 고르는 칸과 이름이 아래 */
+.ask.cards .ask-opts { grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); }
+.opt.has-media { grid-template-rows: auto auto; align-content: start; }
+.opt-media { grid-column: 1 / -1; display: block; border: 1px solid var(--border); border-radius: var(--r-1); background: var(--surface); overflow: hidden; }
+.opt-media img, .opt-media svg { display: block; width: 100%; height: auto; max-height: 16rem; object-fit: contain; }
+/* 직접 쓰기: 고르면 입력 칸이 열린다 */
+.opt-own { border-style: dashed; }
+.ask-own { display: none; width: 100%; min-height: 4.5rem; resize: vertical; font: var(--t-body)/1.55 var(--font-body); color: var(--text); background: var(--surface); border: 1px solid var(--border-bright); border-radius: var(--r-1); padding: var(--s-2) var(--s-3); margin-top: calc(-1 * var(--s-1)); }
+.ask-own:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.ask:has(.opt-own input:checked) .ask-own { display: block; }
+@media print {
+  .ask { break-inside: avoid; }
+  .opt-own:not(:has(input:checked)) { display: none; }
+}
