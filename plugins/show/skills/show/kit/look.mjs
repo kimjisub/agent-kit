@@ -49,6 +49,16 @@ function measure(minLabel) {
     const px = parseFloat(getComputedStyle(t).fontSize) * Math.hypot(m.a, m.b);
     if (!smallest || px < smallest.px) smallest = { px: Math.round(px * 100) / 100, text: t.textContent.trim().slice(0, 40) };
   }
+  // before/after pairs whose two pictures cover different ranges: one was shot taller or wider, so what the
+  // other shows below its edge reads as removed (2026-10-21: a 5000px "before" next to a 900px "after" looked like lost features)
+  const unmatched = [];
+  for (const pair of document.querySelectorAll("main .pair")) {
+    const imgs = [...pair.querySelectorAll(":scope > figure img")].filter((i) => i.naturalWidth);
+    if (imgs.length < 2) continue;
+    const [a, b] = imgs;
+    if (Math.abs(a.naturalWidth / b.naturalWidth - 1) > 0.02 || Math.abs(a.naturalHeight / b.naturalHeight - 1) > 0.02)
+      unmatched.push(`${(a.getAttribute("alt") || a.currentSrc.slice(0, 40)).slice(0, 40)} (${a.naturalWidth}x${a.naturalHeight} vs ${b.naturalWidth}x${b.naturalHeight})`);
+  }
   let prose = 0;
   for (const p of document.querySelectorAll("p, li")) if (!p.closest("figure") && !p.parentElement.closest("p, li")) prose += p.textContent.trim().split(/\s+/).filter(Boolean).length;
   return {
@@ -57,6 +67,7 @@ function measure(minLabel) {
     small: smallest !== null && smallest.px < minLabel,
     figures: document.querySelectorAll("figure").length,
     prose,
+    unmatched,
     kit: document.documentElement.dataset.veKit === "ready",
   };
 }
@@ -389,6 +400,7 @@ export async function lookAt(file, { sheet = true } = {}) {
     ...result.errors,
     ...WIDTHS.filter((w) => at[w].overflow).map((w) => `the page scrolls sideways at ${w}px`),
     ...WIDTHS.filter((w) => at[w].small).map((w) => `a diagram label renders at ${at[w].smallest.px}px at ${w}px ("${at[w].smallest.text}"); keep labels at ${MIN_LABEL}px or more`),
+    ...(at[1280].unmatched || []).map((n) => `a before/after pair shows different ranges: ${n}; shoot both at the same viewport and scroll, or crop both to the same box`),
     ...(at[1280].kit ? [] : ["the kit's script did not run to its end"]),
     ...result.problems,
     ...shapes,
