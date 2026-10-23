@@ -2,7 +2,7 @@
 name: spec
 description: 연동, 기술 명세. API, Webhook, 데이터 규격을 엔드포인트, 필드, 예시, 상태(구현 예정, 합의 대기)와 함께 양측이 구현할 수 있게 적는 문서
 layouts: a4 web
-category: INTERFACE SPEC
+category: 인터페이스 명세
 labels: 작성 | 수신 구현 | 연동 대상 | 버전 | 작성자
 ---
 

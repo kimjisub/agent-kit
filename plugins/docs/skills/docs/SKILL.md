@@ -181,7 +181,7 @@ docs/
 name: proposal
 description: 한 줄 (--list 에 뜬다)
 layouts: a4 deck                        허용 레이아웃. 첫 값이 기본
-category: PROPOSAL                      표지 카테고리 기본값
+category: 제안서                        표지 카테고리 기본값
 labels: 발신 | 수신 | 대상 | 기간 | 담당   표지 메타 라벨. COVER_FROM | TO | TARGET | PERIOD | OWNER 순서
 ---
 ```

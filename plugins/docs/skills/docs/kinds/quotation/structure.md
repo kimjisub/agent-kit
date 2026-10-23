@@ -63,7 +63,7 @@ KIND=quotation [BRAND=<brand>] <변수...> bash scripts/build.sh scaffold <문�
 
 | 변수 | 표지 라벨 | 기본값 |
 |---|---|---|
-| `CATEGORY` | 카테고리 | 비우면 `QUOTATION`. 한글을 곁들이려면 `QUOTATION, 견적서` |
+| `CATEGORY` | 카테고리 | 비우면 `견적서`. 범위를 좁히려면 `유지보수 견적서` |
 | `DOC_TITLE` | 탭 제목 | 폴더 이름 |
 | `DOC_HEADER` | 러닝 헤더 | `DOC_TITLE` |
 | `COVER_TITLE` | 표지 대제목(HTML 가능, `<br>` 줄바꿈) | `DOC_HEADER` |

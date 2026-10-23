@@ -123,7 +123,7 @@ KIND=spec [LAYOUT=a4|web] [BRAND=<brand>] <변수...> bash scripts/build.sh scaf
 
 | 변수 | 표지 라벨 | 예시 |
 |---|---|---|
-| `CATEGORY` | 카테고리 | 비우면 `INTERFACE SPEC`. 연동이 아닌 기술 명세는 `TECHNICAL SPEC` |
+| `CATEGORY` | 카테고리 | 비우면 `인터페이스 명세`. 연동이 아닌 기술 명세는 `기술 명세` |
 | `DOC_TITLE` | 탭 제목 | `출고 연동 인터페이스 명세서` |
 | `DOC_HEADER` | 러닝 헤더 | `출고 연동 명세 v0.1`(버전을 넣는다) |
 | `SUBTITLE` | 부제 | `Webhook, 조회 API 규격` |

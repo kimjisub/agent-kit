@@ -2,7 +2,7 @@
 name: brief
 description: 외주 의뢰서. 디자이너, 작가, 개발자 같은 외부 작업자에게 범위와 방향과 받을 결과물을 건네는 문서
 layouts: a4
-category: BRIEF
+category: 의뢰서
 labels: 의뢰 | 수행 | 대상 | 기간 | 담당
 ---
 

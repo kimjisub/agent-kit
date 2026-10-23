@@ -1,6 +1,6 @@
 {
   "name": "docs",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Write proposals, quotes, reports, slide decks, manuals, specs and handbooks as one HTML file and render a PDF. Content kind, layout (A4, 16:9 slides, screen-first chapters) and brand are picked separately.",
   "author": {
     "name": "Jisub Kim",

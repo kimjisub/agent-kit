@@ -2,7 +2,7 @@
 name: handbook
 description: 장 단위 참조 문서(인수인계서, 운영 핸드북, 온보딩 가이드, 시스템 설명서). 여러 독자가 필요한 장만 찾아 다시 연다
 layouts: web a4
-category: HANDBOOK
+category: 핸드북
 labels: 작성 | 대상 | 범위 | 갱신 | 담당
 ---
 

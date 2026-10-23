@@ -2,7 +2,7 @@
 name: proposal
 description: 제안서. 문제 정의, 제안, 근거, 실행 계획, 비용과 일정, 다음 단계로 읽는 사람의 결정을 끌어내는 설득 문서
 layouts: a4 deck
-category: PROPOSAL
+category: 제안서
 labels: 발신 | 수신 | 대상 | 기간 | 담당
 ---
 

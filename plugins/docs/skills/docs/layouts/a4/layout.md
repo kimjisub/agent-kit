@@ -34,7 +34,6 @@ KIND=<kind> [LAYOUT=a4] [BRAND=<brand>] DOC_TITLE=".." COVER_TITLE=".." ... \
 
 | 자리 | 값 | 비우면 |
 |---|---|---|
-| 상단 밴드 | 브랜드 주색 | 항상 있음 |
 | 로고, 태그라인 | `brands/<brand>/` 의 로고와 `BRAND_TAGLINE` | 로고 파일이 없으면 `BRAND_NAME` 글자 로고, 이름도 없으면 사라짐 |
 | 카테고리 | `CATEGORY`. 없으면 `kinds/<kind>/kind.md` 의 `category` | 사라짐 |
 | 제목 | `COVER_TITLE`(`<br>` 로 줄바꿈). 없으면 `DOC_HEADER` | |
@@ -66,7 +65,7 @@ KIND=<kind> [LAYOUT=a4] [BRAND=<brand>] DOC_TITLE=".." COVER_TITLE=".." ... \
 
 ### next: 끝머리 결정 요청
 
-읽는 사람에게 요청할 결정과 기한을 문서 끝에 둘 때 쓴다. 문서당 하나. 모양은 `summary` 와 같고 색이 보조색이다.
+읽는 사람에게 요청할 결정과 기한을 문서 끝에 둘 때 쓴다. 문서당 하나. 모양은 `summary` 와 같고 테두리와 라벨이 강조색이다.
 
 ```html
 <div class="next">
@@ -81,14 +80,14 @@ KIND=<kind> [LAYOUT=a4] [BRAND=<brand>] DOC_TITLE=".." COVER_TITLE=".." ... \
 
 | 컴포넌트 | 쓰는 때 | 색 | 한 쪽에 |
 |---|---|---|---|
-| `finding` | 핵심 발견, 인사이트 한 건 | 보조색 | 강조 상자 합계 둘 안에서 |
+| `finding` | 핵심 발견, 인사이트 한 건 | 강조색 선 | 강조 상자 합계 둘 안에서 |
 | `tip` | 알면 편하지만 몰라도 진행에 지장 없는 것 | 의미 색(초록) | `tip` 과 `warn` 을 합쳐 셋까지 |
 | `warn` | 되돌릴 수 없거나 장애로 이어지는 동작 앞 | 의미 색(주황) | `tip` 과 `warn` 을 합쳐 셋까지 |
 | `open` | 미확정, 합의 필요 항목 한 건 | 의미 색(주황) | 상자 하나에 항목 하나. 미확정 절에서는 개수 제한 없음 |
 
 ```html
-<div class="finding"><span class="tag">FINDING</span>신규 도입 기업의 40% 가 직원 50인 미만입니다.</div>
-<div class="tip"><span class="tag">TIP</span>자주 쓰는 매장은 즐겨찾기에 두면 목록 맨 위에 보입니다.</div>
+<div class="finding"><span class="tag">발견</span>신규 도입 기업의 40% 가 직원 50인 미만입니다.</div>
+<div class="tip"><span class="tag">도움말</span>자주 쓰는 매장은 즐겨찾기에 두면 목록 맨 위에 보입니다.</div>
 <div class="warn"><span class="tag">주의</span><strong>초기화</strong>를 누르면 설정이 모두 지워지고 되돌릴 수 없습니다.</div>
 <div class="open"><span class="tag">미확정</span>서명 알고리즘(HMAC-SHA256 과 Ed25519 중). 결정: 물류 시스템 개발팀, 10월 24일까지.</div>
 ```
@@ -196,7 +195,7 @@ KIND=<kind> [LAYOUT=a4] [BRAND=<brand>] DOC_TITLE=".." COVER_TITLE=".." ... \
 
 ```html
 <div id="chart-visits" class="chart" style="height:260px"></div>
-<div class="finding"><span class="tag">FINDING</span>5월 셋째 주부터 방문이 두 배로 늘었습니다.</div>
+<div class="finding"><span class="tag">발견</span>5월 셋째 주부터 방문이 두 배로 늘었습니다.</div>
 ```
 
 ### prose: 긴 산문 절
@@ -213,14 +212,14 @@ KIND=<kind> [LAYOUT=a4] [BRAND=<brand>] DOC_TITLE=".." COVER_TITLE=".." ... \
 
 | 요소 | 모양 | 쓰는 법 |
 |---|---|---|
-| `h1` | 19pt, 아래 주색 괘선, 새 쪽에서 시작 | 장. 번호는 `1.` 형식 |
-| `h2` | 14.5pt, 왼쪽 주색 바 | 절 |
-| `h3` | 12pt | 소절. 자주 묻는 질문의 질문 줄 |
+| `h1` | 18pt, 새 쪽에서 시작 | 장. 번호는 `1.` 형식 |
+| `h2` | 13.5pt | 절 |
+| `h3` | 11pt | 소절. 자주 묻는 질문의 질문 줄 |
 | `h4` | 본문 크기, 굵게 | 드물게 |
-| `table` | 헤더는 채움 없는 헤어라인 괘선과 작은 대문자, 짝수 행 옅은 배경 | 라벨과 값, 항목과 수치를 대조할 때만. 긴 설명은 불릿으로 편다 |
-| `blockquote` | 보조색 왼쪽 바와 옅은 배경 | 조건 박스, 남의 원문 인용 |
-| `code` | 고정폭, 옅은 배경, 잉크색 | 필드 이름, 경로, 헤더 이름, 명령어 |
-| `pre` > `code` | 옅은 배경, 주색 왼쪽 바, 줄바꿈 | 예시 JSON, 명령, 텍스트 흐름 도식(`A -> B`) |
+| `table` | 줄 선만. 머리줄 아래 굵은 선, 행 사이 가는 선, 바탕색 없음. 쪽을 넘으면 줄 단위로 갈리고 머리줄이 되풀이된다 | 라벨과 값, 항목과 수치를 대조할 때만. 긴 설명은 불릿으로 편다 |
+| `blockquote` | 왼쪽 가는 선, 흐린 글자 | 조건 박스, 남의 원문 인용 |
+| `code` | 고정폭, 가는 테두리 | 필드 이름, 경로, 헤더 이름, 명령어 |
+| `pre` > `code` | 가는 테두리, 줄바꿈 | 예시 JSON, 명령, 텍스트 흐름 도식(`A -> B`) |
 | `img` | | 번들 `assets/` 에 두고 `src="assets/파일명.png"` 로 넣는다 |
 
 - 제목 위계를 건너뛰지 않는다(`h1` 다음에 `h3` 로 가지 않는다).

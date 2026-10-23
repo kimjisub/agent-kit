@@ -2,7 +2,7 @@
 name: manual
 description: 사용 설명서. 제품이나 프로그램을 운영하는 사람이 켜기, 화면, 설정, 평소 운영, 문제 대응을 보고 따라 하는 안내서
 layouts: a4 web
-category: USER MANUAL
+category: 사용 설명서
 labels: 제공 | 대상 독자 | 대상 제품 | 버전 | 작성
 ---
 

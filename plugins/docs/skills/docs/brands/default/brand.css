@@ -8,39 +8,39 @@
    =================================================================== */
 
 :root {
-  /* 주색. 표지 밴드, 제목의 rule 과 바, 라벨, 지표 숫자 */
-  --brand-primary: #2F5B8F;
-  --brand-primary-dark: #22446B;
+  /* 강조색 하나. 링크, 결정 요청 상자, 한 줄 강조의 선. 표준 문서는 이 색 하나만 쓴다 */
+  --brand-primary: #1F4FA3;
+  --brand-primary-dark: #173C7D;
 
-  /* 보조색. 표지 accent bar, 기밀 상자, 인용, 링크 밑줄 */
-  --brand-accent: #9A8458;
+  /* 보조색. 기본 레이아웃은 쓰지 않는다. 회사 양식이 둘째 색을 쓸 때만 채운다 */
+  --brand-accent: #1F4FA3;
 
   /* 옅은 배경 */
-  --brand-primary-tint: #EEF3F9;
-  --brand-accent-tint: #F8F6F1;
-  --brand-surface: #F6F5F3;
+  --brand-primary-tint: #F2F5FB;
+  --brand-accent-tint: #F2F5FB;
+  --brand-surface: #F7F7F7;
 
   --brand-font: 'Pretendard', 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
   /* 그레이스케일 */
-  --ink: #191817;
-  --ink-soft: #4F4B47;
-  --line: #E3DED8;
-  --muted: #8B847D;
+  --ink: #1A1A1A;
+  --ink-soft: #555555;
+  --line: #CFCFCF;
+  --muted: #777777;
 
   /* 타입 스케일 (인쇄 pt). 인접 단계를 또렷이 벌린다 */
   --fs-caption: 8pt; --fs-small: 9pt; --fs-body: 10pt; --fs-lead: 10.5pt;
-  --fs-h3: 12pt; --fs-h2: 14.5pt; --fs-h1: 19pt; --fs-display: 30pt;
-  --lh-tight: 1.2; --lh-body: 1.55; --lh-relaxed: 1.62;
+  --fs-h3: 11pt; --fs-h2: 13.5pt; --fs-h1: 18pt; --fs-display: 26pt;
+  --lh-tight: 1.2; --lh-body: 1.6; --lh-relaxed: 1.65;
 
   /* 산문 한 줄 길이 상한 */
   --measure: 160mm;
 
   --space-1: 2mm; --space-2: 3mm; --space-3: 5mm; --space-4: 7mm; --space-5: 10mm; --space-6: 14mm;
-  --radius: 1.5mm;
+  --radius: 1mm;
 
   /* 의미 색. 브랜드와 무관하게 상태를 뜻한다 */
-  --ok: #1A8F3C;      --ok-tint: #EAF6EE;
-  --caution: #C2790A; --caution-tint: #FDF4E6;
-  --danger: #B0413E;  --danger-tint: #F8ECEB;
+  --ok: #23703F;      --ok-tint: #EEF5F0;
+  --caution: #8A5A00; --caution-tint: #FAF4E8;
+  --danger: #B3261E;  --danger-tint: #FBEDEC;
 }

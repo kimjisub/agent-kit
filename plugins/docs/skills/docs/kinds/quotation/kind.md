@@ -2,7 +2,7 @@
 name: quotation
 description: 간단 견적서. 표지, 견적표, 견적 조건으로 된 1~3쪽 정식 견적서
 layouts: a4
-category: QUOTATION
+category: 견적서
 labels: 발신 | 수신 | 대상 | 유효기간 | 담당
 ---
 

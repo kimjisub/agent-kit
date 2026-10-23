@@ -153,7 +153,7 @@ KIND=proposal [LAYOUT=a4] [BRAND=<brand>] <변수...> bash scripts/build.sh scaf
 
 | 변수 | 표지 라벨 | 예시 |
 |---|---|---|
-| `CATEGORY` | 카테고리 | 비우면 `PROPOSAL`. `PROPOSAL / 제안서`, `TECHNICAL PROPOSAL / 기술 제안서` |
+| `CATEGORY` | 카테고리 | 비우면 `제안서`. `기술 제안서`, `사업 제안서` |
 | `DOC_TITLE` | 탭 제목 | `매장 재고 관리 시스템 도입 제안서` |
 | `DOC_HEADER` | 러닝 헤더 | `재고 관리 시스템 도입 제안` |
 | `SUBTITLE` | 부제 | `재고 대조 자동화와 12주 도입 계획` |

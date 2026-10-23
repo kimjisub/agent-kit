@@ -43,7 +43,7 @@
 
 ## 표지 값
 
-- [ ] `CATEGORY` 가 `USER MANUAL` 이나 `USER MANUAL / ...` 형식이다
+- [ ] `CATEGORY` 가 `사용 설명서` 나 `관리자 설명서` 처럼 종류가 드러나는 한국어다
 - [ ] 버전(`COVER_PERIOD`)이 제품 버전과 맞다
 
 ## 톤: 쉽고 짧게

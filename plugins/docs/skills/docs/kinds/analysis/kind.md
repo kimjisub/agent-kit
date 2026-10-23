@@ -2,7 +2,7 @@
 name: analysis
 description: 분석, 조사 보고서. 요약, 방법, 발견, 데이터, 결론까지 근거와 검증을 함께 담는 기록형 문서
 layouts: a4 deck
-category: ANALYSIS
+category: 분석 보고서
 labels: 작성 | 공유 | 분석대상 | 기간 | 작성자
 ---
 

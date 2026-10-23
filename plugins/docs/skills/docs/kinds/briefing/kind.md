@@ -2,7 +2,7 @@
 name: briefing
 description: 발표 자료. 성과 공유, 사내 발표, 소개처럼 말로 전하며 화면에 띄우는 문서
 layouts: deck a4
-category: BRIEFING
+category: 브리핑
 labels: 발표 | 청중 | 주제 | 일시 | 발표자
 ---
 

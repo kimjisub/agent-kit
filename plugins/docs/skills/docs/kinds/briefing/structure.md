@@ -30,7 +30,7 @@
 
 | 환경 변수 | deck 표지 자리 | a4 표지 라벨 | 예시 값 |
 |---|---|---|---|
-| `CATEGORY` | `.cover-label`(카테고리 레이블). 생략하면 `BRIEFING` | 같음 | `BRIEFING` |
+| `CATEGORY` | `.cover-label`(카테고리 레이블). 생략하면 `브리핑` | 같음 | `브리핑` |
 | `COVER_TITLE` | `<h1>`(메인 제목) | 같음 | `2026 3분기 채용 성과` |
 | `SUBTITLE` | `.cover-company`(회사, 수신처 부제) | 같음 | `사업본부 월간 회의` |
 | `COVER_TO` | `.cover-meta`(청중, 날짜 같은 메타 한 줄) | 청중 | `사업본부 전원, 2026-09-30` |

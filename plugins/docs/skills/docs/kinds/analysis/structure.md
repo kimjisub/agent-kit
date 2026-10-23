@@ -71,7 +71,7 @@ KIND=analysis [LAYOUT=a4] [BRAND=<brand>] <변수...> bash scripts/build.sh scaf
 
 | 변수 | 표지 라벨 | 예시 |
 |---|---|---|
-| `CATEGORY` | 카테고리 | 비우면 `ANALYSIS`. 한글을 곁들이려면 `ANALYSIS, 분석 보고서` |
+| `CATEGORY` | 카테고리 | 비우면 `분석 보고서`. 범위를 좁히려면 `시장 분석 보고서` |
 | `DOC_TITLE` | 탭 제목 | `국내 B2B 협업툴 시장 분석 보고서` |
 | `DOC_HEADER` | 러닝 헤더 | `B2B 협업툴 시장 분석` |
 | `SUBTITLE` | 부제 | `시장 규모와 도입 동향` |

@@ -20,14 +20,14 @@
       "name": "docs",
       "source": "./plugins/docs",
       "description": "Write proposals, quotes, reports, slide decks, manuals, specs and handbooks as one HTML file and render a PDF. Content kind, layout and brand are picked separately. Docs are in Korean.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "category": "productivity"
     },
     {
       "name": "professionalify",
       "source": "./plugins/professionalify",
       "description": "Measure and raise the professionalism of documents, slides, charts, diagrams and UI copy along 16 axes, and absorb each piece of feedback back into the axis docs. Docs are in Korean.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "category": "productivity"
     },
     {

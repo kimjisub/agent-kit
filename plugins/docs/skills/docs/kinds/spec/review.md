@@ -41,7 +41,7 @@
 
 ## 표지 값
 
-- [ ] `CATEGORY` 가 `INTERFACE SPEC` 이나 `TECHNICAL SPEC` 계열이다
+- [ ] `CATEGORY` 가 `인터페이스 명세` 나 `기술 명세` 계열이다
 - [ ] 버전(`COVER_PERIOD`)에 번호와 상태가 함께 있다
 - [ ] 러닝 헤더(`DOC_HEADER`)에 버전이 있다
 

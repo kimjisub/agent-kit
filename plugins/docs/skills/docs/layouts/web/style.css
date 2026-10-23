@@ -43,9 +43,9 @@ a.ext::after {
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M4 2h6v6M10 2 3 9' fill='none' stroke='black' stroke-width='1.6'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 b, strong { color: var(--hb-ink); font-weight: 600; }
-code { font-family: var(--hb-mono); font-size: .84em; color: var(--hb-ink); background: var(--hb-panel); border-radius: 3px; padding: .06em .32em; overflow-wrap: anywhere; }
-pre { font-family: var(--hb-mono); font-size: .8rem; line-height: 1.7; background: var(--hb-panel); border-radius: 6px; padding: 1rem 1.15rem; margin: 1rem 0 1.2rem; overflow-x: auto; color: var(--hb-ink); }
-pre code { background: none; padding: 0; font-size: 1em; overflow-wrap: normal; }
+code { font-family: var(--hb-mono); font-size: .84em; color: var(--hb-ink); border: 1px solid var(--hb-hair); border-radius: 3px; padding: .02em .3em; overflow-wrap: anywhere; }
+pre { font-family: var(--hb-mono); font-size: .8rem; line-height: 1.7; border: 1px solid var(--hb-line); border-radius: 4px; padding: 1rem 1.15rem; margin: 1rem 0 1.2rem; overflow-x: auto; color: var(--hb-ink); }
+pre code { border: 0; padding: 0; font-size: 1em; overflow-wrap: normal; }
 p { margin: .85rem 0; }
 ul, ol { margin: .7rem 0 1rem 1.25rem; }
 li { margin: .35rem 0; padding-left: .15rem; }
@@ -85,8 +85,8 @@ main { padding: 80px 64px 140px; min-width: 0; }
 
 /* === 표지 === */
 .cover-page { padding-bottom: 3.2rem; margin-bottom: 1rem; border-bottom: 1px solid var(--hb-line); }
-.cover-page .kicker { font-size: .74rem; letter-spacing: .24em; font-weight: 600; color: var(--hb-accent-d); text-transform: uppercase; }
-.cover-page h1 { font-size: 3.1rem; font-weight: 700; color: var(--hb-ink); letter-spacing: -.04em; line-height: 1.15; margin: .9rem 0 1.1rem; }
+.cover-page .kicker { font-size: .84rem; font-weight: 600; color: var(--hb-muted); }
+.cover-page h1 { font-size: 2.4rem; font-weight: 700; color: var(--hb-ink); letter-spacing: -.02em; line-height: 1.25; margin: .6rem 0 1rem; }
 .cover-page .sub { font-size: 1.14rem; line-height: 1.7; color: var(--hb-text); max-width: 34em; }
 .cover-page .meta { display: grid; grid-template-columns: repeat(4, auto); justify-content: start; gap: .3rem 2.6rem; margin-top: 2.4rem; font-size: .84rem; }
 .cover-page .meta dt { color: var(--hb-muted); font-size: .74rem; }
@@ -100,8 +100,8 @@ main { padding: 80px 64px 140px; min-width: 0; }
 .chapter { padding-top: 5.5rem; }
 .ch-head { padding-bottom: .6rem; margin-bottom: 1.4rem; }
 .ch-part { font-size: .78rem; font-weight: 600; color: var(--hb-muted); letter-spacing: .04em; margin-bottom: .35rem; }
-.ch-num { font-size: 2.4rem; font-weight: 300; color: var(--hb-accent); letter-spacing: -.02em; line-height: 1; font-variant-numeric: tabular-nums; }
-.chapter h1 { font-size: 2.1rem; font-weight: 700; color: var(--hb-ink); letter-spacing: -.035em; line-height: 1.25; margin: .5rem 0; }
+.ch-num { font-size: 1rem; font-weight: 600; color: var(--hb-muted); line-height: 1; font-variant-numeric: tabular-nums; }
+.chapter h1 { font-size: 1.75rem; font-weight: 700; color: var(--hb-ink); letter-spacing: -.01em; line-height: 1.35; margin: .4rem 0; }
 .readers { font-size: .82rem; color: var(--hb-muted); }
 .ch-lead { font-size: 1.07rem; line-height: 1.8; color: var(--hb-text); margin: 1.1rem 0 0; }
 .ch-toc { display: flex; flex-wrap: wrap; gap: .25rem 1.3rem; font-size: .82rem; margin: 1.4rem 0 .4rem; }
@@ -146,11 +146,11 @@ table.mx td.x i.w { background: var(--hb-accent-soft); }
 table.mx th.c { padding: .5rem .45rem .55rem; white-space: nowrap; }
 
 /* === 상자 === */
-.risk { background: var(--hb-panel); border-radius: 8px; padding: 1.15rem 1.4rem 1.2rem; margin: 0 0 1.2rem; }
+.risk { border: 1px solid var(--hb-line); border-radius: 4px; padding: 1.1rem 1.3rem 1.15rem; margin: 0 0 1.2rem; }
 .risk .t { font-size: .8rem; font-weight: 700; color: var(--hb-ink); margin-bottom: .35rem; }
 .risk ol { margin: .3rem 0 0 1.15rem; }
 .risk li { margin: .45rem 0; font-size: .95rem; }
-.note { background: var(--hb-panel); border-radius: 6px; padding: .95rem 1.15rem; margin: 1.1rem 0; font-size: .94rem; }
+.note { border: 1px solid var(--hb-line); border-radius: 4px; padding: .9rem 1.1rem; margin: 1.1rem 0; font-size: .94rem; }
 .warn { border-left: 2px solid var(--hb-accent); padding: .1rem 0 .1rem 1.1rem; margin: 1.3rem 0; font-size: .95rem; }
 
 /* === 상태 표시 === */
@@ -236,23 +236,22 @@ table.mx th.c { padding: .5rem .45rem .55rem; white-space: nowrap; }
 .dg-row:last-child { border-bottom: 1px solid var(--hb-hair); }
 .dg-lb { font-size: .76rem; font-weight: 600; color: var(--hb-muted); padding-top: .35rem; }
 .dg-boxes { display: flex; flex-wrap: wrap; gap: .5rem; }
-.nd { background: var(--hb-panel); border-radius: 5px; padding: .5rem .75rem; font-size: .8rem; line-height: 1.55; min-width: 0; }
+.nd { border: 1px solid var(--hb-line); border-radius: 4px; padding: .5rem .75rem; font-size: .8rem; line-height: 1.55; min-width: 0; }
 .nd b { display: block; font-size: .84rem; }
-.nd.hl { box-shadow: inset 2px 0 0 var(--hb-accent); }
-.nd.dash { background: #fff; box-shadow: inset 0 0 0 1px var(--hb-line); }
+.nd.hl { border-color: var(--hb-accent); }
+.nd.dash { border-style: dashed; }
 
 /* === 그림: 도식과 화면 캡처 === */
 .doc-figure { margin: 1.4rem 0 1.8rem; break-inside: avoid; min-width: 0; }
-.doc-figure > a { display: block; border: 1px solid var(--hb-line); border-radius: 8px; overflow: hidden; background: #fff; text-decoration: none; }
-.doc-figure img { display: block; width: 100%; height: auto; }
+.doc-figure > a { display: block; border: 1px solid var(--hb-line); border-radius: 4px; overflow: hidden; background: #fff; text-decoration: none; }
+.doc-figure img { display: block; width: auto; max-width: 100%; height: auto; margin: 0 auto; }
 .doc-figure figcaption { font-size: .78rem; color: var(--hb-muted); line-height: 1.6; margin: .55rem 0 0; }
 .doc-figure figcaption strong { font-weight: 600; }
-.doc-figure.screenshot > a { box-shadow: 0 3px 16px rgba(25, 24, 23, .04); }
 .doc-figure.narrow img { width: auto; max-width: 100%; max-height: 540px; margin: 0 auto; }
 .media-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .media-pair .doc-figure { margin: .8rem 0 1.1rem; }
 /* 화면에서만 펼쳐 보는 보조 캡처: 인쇄에서는 빠진다 */
-.capture-detail { margin: 1rem 0 1.5rem; border: 1px solid var(--hb-line); border-radius: 8px; padding: .8rem 1rem; }
+.capture-detail { margin: 1rem 0 1.5rem; border: 1px solid var(--hb-line); border-radius: 4px; padding: .8rem 1rem; }
 .capture-detail summary { cursor: pointer; color: var(--hb-muted); font-size: .84rem; }
 .capture-detail .doc-figure { margin: .9rem 0 .2rem; }
 
@@ -271,11 +270,11 @@ table.mx th.c { padding: .5rem .45rem .55rem; white-space: nowrap; }
 
 /* === 인쇄: 표지 한 쪽, 장마다 새 쪽 === */
 @page {
-  size: A4; margin: 13mm 15mm 15mm 15mm;
-  @bottom-left { content: "__DOC_HEADER__"; font-family: __BRAND_FONT_STACK__; font-size: 7.5pt; color: #8b847d; }
-  @bottom-right { content: counter(page); font-family: __BRAND_FONT_STACK__; font-size: 7.5pt; color: #8b847d; }
+  size: A4; margin: 20mm;
+  @top-left { content: "__DOC_HEADER__"; font-family: __BRAND_FONT_STACK__; font-size: 8pt; color: #777; }
+  @bottom-right { content: counter(page) " / " counter(pages); font-family: __BRAND_FONT_STACK__; font-size: 8pt; color: #777; }
 }
-@page :first { margin: 0; @bottom-left { content: none; } @bottom-right { content: none; } }
+@page :first { @top-left { content: none; } @bottom-right { content: none; } }
 @media print {
   html { font-size: 12.8px; }
   body { line-height: 1.62; }
@@ -283,8 +282,8 @@ table.mx th.c { padding: .5rem .45rem .55rem; white-space: nowrap; }
   .layout { display: block; } nav.side { display: none; }
   main { padding: 0; } .doc { max-width: none; }
   .print-only { display: block; }
-  .cover-page { height: 297mm; padding: 40mm 20mm 30mm; margin: 0; border: 0; display: flex; flex-direction: column; justify-content: space-between; break-after: page; }
-  .cover-page h1 { font-size: 3.6rem; }
+  .cover-page { height: 257mm; padding: 30mm 0 0; margin: 0; border: 0; display: flex; flex-direction: column; justify-content: space-between; break-after: page; }
+  .cover-page h1 { font-size: 2.6rem; }
   .chapter { break-before: page; padding-top: 0; }
   .ch-head { margin-bottom: 1rem; }
   .ch-toc, .capture-detail { display: none; }
@@ -294,6 +293,8 @@ table.mx th.c { padding: .5rem .45rem .55rem; white-space: nowrap; }
   tr, .risk, .stat, .area, .opt, .cards, .flow, .tl li, .dg-row, .note, .warn, .bar, .steps > li, .stats, .areas, .opts, .guide-toc li, .doc-figure { break-inside: avoid; }
   .tbl:has(table.mx) { break-inside: avoid; }
   .tbl { overflow: visible; }
+  thead { display: table-header-group; }
+  h1, .ch-head { break-after: avoid; }
   pre { white-space: pre-wrap; overflow-wrap: anywhere; }
   a { text-decoration: none; }
   .doc-figure > a { border-radius: 0; }

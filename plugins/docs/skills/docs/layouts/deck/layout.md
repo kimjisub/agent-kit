@@ -31,7 +31,7 @@ bash <skill-dir>/scripts/build.sh pdf "/path/to/덱"
 
 ## 표지 슬라이드
 
-`cover.html` 이 어두운 배경의 표지 슬라이드를 한 장 만든다. 찍히는 것은 아래 다섯 변수와 브랜드 로고뿐이다.
+`cover.html` 이 흰 바탕의 표지 슬라이드를 한 장 만든다. 찍히는 것은 아래 다섯 변수와 브랜드 로고뿐이다.
 
 | 변수 | 표지 자리 | 비었을 때 |
 |---|---|---|
@@ -41,7 +41,7 @@ bash <skill-dir>/scripts/build.sh pdf "/path/to/덱"
 | `COVER_TO` | `.cover-meta`(수신자, 날짜 같은 메타 한 줄) | 숨김 |
 | `COVER_PERIOD` | 표지 하단 우측 글자 | 빈칸으로 남음 |
 
-- **로고**는 브랜드 폴더의 `logo-white.svg`(없으면 `logo.svg`)를 좌상단과 하단 좌측에 넣는다. 로고 파일이 없으면 `BRAND_NAME` 으로 글자 로고를 만들고, 이름도 비었으면(기본 브랜드) 로고 자리를 숨긴다.
+- **로고**는 브랜드 폴더의 `logo.svg` 를 좌상단과 하단 좌측에 넣는다. 로고 파일이 없으면 `BRAND_NAME` 으로 글자 로고를 만들고, 이름도 비었으면(기본 브랜드) 로고 자리를 숨긴다.
 - **쓰이지 않는 것**: `kind.md` 의 `labels`(표지 라벨 다섯), `COVER_FROM`, `COVER_TARGET`, `COVER_OWNER`, `COVER_CONFIDENTIAL`, 브랜드의 태그라인과 법인명. 이것들은 A4 표지에서만 찍힌다. deck 에서 작성자나 기밀 표시가 필요하면 `COVER_TO` 한 줄에 합치거나 본문 슬라이드에 쓴다.
 - 빈 요소 숨김은 `:empty` 로 판정한다. 셸을 손으로 고칠 때 값을 공백 없이 요소 안에 바로 넣는다.
 
@@ -154,7 +154,7 @@ proposal, analysis 처럼 A4 를 기본으로 쓰는 종류를 `LAYOUT=deck` 으
 | 클래스 | 용도 | 간단 HTML 예시 |
 |---|---|---|
 | `.slide` | 1920x1080 슬라이드 캔버스 | `<section class="slide">` |
-| `.slide.cover` | 표지, 섹션 표지(어두운 배경) | `<section class="slide cover">` |
+| `.slide.cover` | 표지, 섹션 표지(흰 바탕) | `<section class="slide cover">` |
 | `.slide-body` | 본문 영역(패딩, flex 포함) | `<div class="slide-body">` |
 | `.slide-content` | 본문 세로 균형 래퍼(변형 `.spread`, `.top`) | `<div class="slide-content">...</div>` |
 | `.slide-header` | 번호와 제목 행 | `<div class="slide-header">` |
@@ -176,19 +176,19 @@ proposal, analysis 처럼 A4 를 기본으로 쓰는 종류를 `LAYOUT=deck` 으
 
 | 클래스 | 용도 | 간단 HTML 예시 |
 |---|---|---|
-| `.section-label` | 섹션 레이블(대문자 소형, 하단 2px 괘선) | `<span class="section-label">배경</span>` |
+| `.section-label` | 섹션 레이블(16px 굵게, 하단 가는 괘선) | `<span class="section-label">배경</span>` |
 | `.data-table` | 레이블과 값 표 | `<table class="data-table"><tr><td class="dt-label">설립</td><td class="dt-value">2015</td></tr></table>` |
 | `.prose` | 본문 산문(20px, 행간 1.8) | `<p class="prose">내용...</p>` |
 | `.bullet-list` | 불릿 목록(점 마커) | `<ul class="bullet-list"><li>항목</li></ul>` |
 | `.metric-row` | KPI 지표 행(flex) | `<div class="metric-row">` |
-| `.metric` | 개별 KPI 블록(상단 3px 괘선) | `<div class="metric"><div class="metric-value">42%</div><div class="metric-label">성장률</div></div>` |
+| `.metric` | 개별 KPI 블록(상단 1px 괘선) | `<div class="metric"><div class="metric-value">42%</div><div class="metric-label">성장률</div></div>` |
 | `.metric-value` | KPI 큰 숫자(48px bold) | `<div class="metric-value">1,234</div>` |
-| `.metric-label` | KPI 라벨(14px 대문자) | `<div class="metric-label">월간 활성 사용자</div>` |
+| `.metric-label` | KPI 라벨(17px) | `<div class="metric-label">월간 활성 사용자</div>` |
 | `.tag-row` | 태그 목록 행 | `<div class="tag-row"><span class="tag">핀테크</span></div>` |
 | `.tag` | 개별 태그 칩 | `<span class="tag">보안 인증</span>` |
 | `.timeline` | 타임라인(flex, 세로 구분선) | `<div class="timeline">` |
 | `.timeline-item` | 타임라인 항목 | `<div class="timeline-item"><div class="period">2020</div><p>내용</p></div>` |
-| `.period` | 타임라인 기간 레이블(주색) | `<div class="period">2020-2022</div>` |
+| `.period` | 타임라인 기간 레이블(17px 굵게) | `<div class="period">2020-2022</div>` |
 | `.sp-grid` | 특장점, 기능 2xN 그리드 | `<div class="sp-grid">` |
 | `.sp-item` | 그리드 셀(아이콘, 제목, 설명) | `<div class="sp-item"><div class="sp-icon">...</div><h4>제목</h4><p>설명</p></div>` |
 | `.sp-icon` | 아이콘 영역(32px, 인라인 SVG 권장) | `<div class="sp-icon"><svg .../></div>` |
@@ -206,26 +206,16 @@ proposal, analysis 처럼 A4 를 기본으로 쓰는 종류를 `LAYOUT=deck` 으
 
 ### 1. 섹션 표지 (divider)
 
-챕터 전환용 전면 슬라이드. 배경색은 섹션 색으로 직접 지정한다.
+챕터 전환용 슬라이드. 다른 슬라이드와 같은 흰 바탕이고, 번호와 제목의 크기로 전환을 알린다.
 
 ```html
-<section class="slide cover" style="background: var(--brand-primary); color: var(--white);">
+<section class="slide cover">
   <div style="flex:1; display:flex; flex-direction:column; justify-content:center; padding:0 110px;">
-    <div style="font-size:190px; font-weight:900; line-height:0.85; color:rgba(255,255,255,0.20);">01</div>
-    <div style="font-size:66px; font-weight:900; margin-top:6px;">섹션 제목</div>
-    <div style="width:96px; height:5px; background:rgba(255,255,255,0.85); margin:30px 0;"></div>
-    <p style="font-size:25px; color:rgba(255,255,255,0.92); max-width:1150px; line-height:1.5;">
+    <div style="font-size:28px; font-weight:600; color:var(--gray-500); font-variant-numeric:tabular-nums;">01</div>
+    <div style="font-size:60px; font-weight:700; margin-top:10px; color:var(--gray-900);">섹션 제목</div>
+    <p style="font-size:25px; color:var(--gray-500); max-width:1150px; line-height:1.5; margin-top:24px;">
       이 섹션에서 다룰 내용을 한 줄로 요약한다.
     </p>
-    <!-- 선택: 어젠다 칩 -->
-    <div style="margin-top:34px; display:flex; gap:14px; flex-wrap:wrap;">
-      <span style="font-size:18px; color:var(--white); background:rgba(255,255,255,0.18); padding:9px 20px; border-radius:24px;">항목 A</span>
-      <span style="font-size:18px; color:var(--white); background:rgba(255,255,255,0.18); padding:9px 20px; border-radius:24px;">항목 B</span>
-    </div>
-  </div>
-  <div class="slide-footer" style="border-top:1px solid rgba(255,255,255,0.12); color:rgba(255,255,255,0.3);">
-    <span></span>
-    <span>3</span>
   </div>
 </section>
 ```
@@ -304,7 +294,7 @@ proposal, analysis 처럼 A4 를 기본으로 쓰는 종류를 `LAYOUT=deck` 으
       </div>
 
       <!-- 박스(강조) -->
-      <div style="flex:1; border:1.5px solid var(--brand-primary); border-radius:13px; padding:28px 24px; text-align:center; background:var(--brand-primary-tint);">
+      <div style="flex:1; border:1.5px solid var(--brand-primary); border-radius:6px; padding:28px 24px; text-align:center;">
         <div style="font-size:21px; font-weight:800; color:var(--gray-900); line-height:1.3;">전사 적용</div>
         <div style="font-size:17px; color:var(--gray-500); margin-top:7px; line-height:1.5;">계정 이관과 교육</div>
       </div>
@@ -420,15 +410,15 @@ proposal, analysis 처럼 A4 를 기본으로 쓰는 종류를 `LAYOUT=deck` 으
 ```html
 <!-- 채운 배지 -->
 <span style="display:inline-flex; align-items:center; justify-content:center;
-  width:34px; height:34px; border-radius:9px;
+  width:34px; height:34px; border-radius:50%;
   background:var(--brand-primary); color:var(--white);
-  font-size:17px; font-weight:900; flex-shrink:0;">1</span>
+  font-size:17px; font-weight:700; flex-shrink:0;">1</span>
 
 <!-- 외곽선 배지 -->
 <span style="display:inline-flex; align-items:center; justify-content:center;
-  width:34px; height:34px; border-radius:9px;
+  width:34px; height:34px; border-radius:50%;
   border:2px solid var(--brand-primary); color:var(--brand-primary);
-  font-size:17px; font-weight:900; flex-shrink:0;">2</span>
+  font-size:17px; font-weight:700; flex-shrink:0;">2</span>
 ```
 
 ### 8. 마무리 슬라이드

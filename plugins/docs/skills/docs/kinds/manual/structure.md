@@ -118,7 +118,7 @@ KIND=manual [LAYOUT=a4|web] [BRAND=<brand>] <변수...> bash scripts/build.sh sc
 
 | 변수 | 표지 라벨 | 예시 |
 |---|---|---|
-| `CATEGORY` | 카테고리 | 비우면 `USER MANUAL`. `USER MANUAL / 사용 설명서` |
+| `CATEGORY` | 카테고리 | 비우면 `사용 설명서`. `관리자 설명서` |
 | `DOC_TITLE` | 탭 제목 | `재고 관리 프로그램 사용 설명서` |
 | `DOC_HEADER` | 러닝 헤더 | `재고 관리 프로그램 사용 설명서` |
 | `SUBTITLE` | 부제 | `설치, 운영, 문제 대응 안내` |

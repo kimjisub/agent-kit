@@ -2,6 +2,10 @@
 /* ===================================================================
    layouts/a4: A4 세로 흐름 문서의 스타일 (쪽, 표지, 본문, 컴포넌트)
 
+   모양은 표준 문서 하나다. 흰 바탕, 검은 글, 강조색 하나(--brand-primary), 가는 선.
+   색 띠, 장식 선, 대문자 꼬리표, 색 바탕 상자, 줄무늬 표, 제목 앞 막대를 쓰지 않는다.
+   강조는 굵기와 크기와 자리로 하고, 색은 숫자와 표지 제목과 결정 요청에만 쓴다.
+
    색, 폰트는 브랜드 토큰으로만 참조한다:
      - 본문/표지 등 일반 영역 -> CSS 변수 var(--brand-*)  (brands/<id>/brand.css 의 :root 가 정의)
      - @page 머리말/꼬리말 등 CSS 변수를 못 쓰는 영역 -> BRAND placeholder (build.sh 가 brand.env 값으로 치환)
@@ -10,39 +14,32 @@
    문서 하나에만 필요한 스타일은 그 문서 html 의 <style> 끝에 둔다.
    =================================================================== */
 
+/* 여백은 사방 20mm. 둘째 쪽부터 위에 문서 이름, 아래에 쪽 번호 */
 @page {
   size: A4;
-  margin: 22mm 18mm 22mm 18mm;
+  margin: 20mm;
   @top-left {
-    /* 실제 로고 이미지(워드마크). build.sh 가 logo.svg 에 인쇄 크기를 주입해
-       data-URI 로 치환한다 - margin box 는 외부 경로, CSS 변수가 불안정해 인라인한다. */
-    content: url("__BRAND_LOGO_HEADER__");
-  }
-  @top-right {
     content: "__DOC_HEADER__";
     font-family: __BRAND_FONT_STACK__;
     font-size: 8pt;
-    color: #888;
+    color: #777;
   }
-  @bottom-center {
-    content: counter(page);
-    font-family: __BRAND_FONT_STACK__;
-    font-size: 8pt;
-    color: #888;
-  }
-  @bottom-right {
+  @bottom-left {
     content: "__BRAND_PAGE_MARK__";
     font-family: __BRAND_FONT_STACK__;
-    font-size: 7pt;
-    letter-spacing: 1px;
-    color: __BRAND_ACCENT_HEX__;
+    font-size: 7.5pt;
+    color: #777;
+  }
+  @bottom-right {
+    content: counter(page) " / " counter(pages);
+    font-family: __BRAND_FONT_STACK__;
+    font-size: 8pt;
+    color: #777;
   }
 }
 @page :first {
-  margin: 0;
   @top-left { content: ""; }
-  @top-right { content: ""; }
-  @bottom-center { content: ""; }
+  @bottom-left { content: ""; }
   @bottom-right { content: ""; }
 }
 
@@ -51,10 +48,11 @@
 html, body {
   margin: 0;
   padding: 0;
+  background: #fff;
   font-family: var(--brand-font, 'Pretendard', 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, system-ui, sans-serif);
-  font-size: 10pt;
-  line-height: 1.55;
-  color: var(--ink, #1A202C);
+  font-size: var(--fs-body, 10pt);
+  line-height: var(--lh-body, 1.6);
+  color: var(--ink, #1a1a1a);
   -webkit-font-smoothing: antialiased;
   /* 인쇄와 PDF 저장에서 배경색을 빼지 않는다 */
   -webkit-print-color-adjust: exact;
@@ -66,136 +64,52 @@ html, body {
   font-variant-ligatures: none;
 }
 
-/* === 커버 페이지 === */
+/* === 표지. 장식 없이 글의 크기와 자리로 위계를 만든다 === */
 .cover {
-  width: 210mm;
-  min-height: 297mm;
-  padding: 0;
-  page-break-after: always;
-  position: relative;
-  background: #FFFFFF;
+  min-height: 257mm; /* A4 297mm 에서 위아래 여백 20mm 씩 */
+  break-after: page;
   display: flex;
   flex-direction: column;
 }
-
-.cover-band {
-  height: 12mm;
-  background: var(--brand-primary);
-}
-
-.cover-inner {
-  flex: 1;
-  padding: 35mm 28mm 30mm 28mm;
-  display: flex;
-  flex-direction: column;
-}
-
-.cover-logo {
-  width: 55mm;
-  height: auto;
-  margin-bottom: 8mm;
-}
-
-.cover-logo img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.cover-tagline {
-  font-size: 9pt;
-  letter-spacing: 3px;
-  color: #888;
-  text-transform: uppercase;
-  margin-bottom: 14mm;
-}
-
-.cover-accent {
-  width: 50mm;
-  height: 3pt;
-  background: var(--brand-accent);
-  margin-bottom: 10mm;
-}
-
-.cover-category {
-  font-size: 11pt;
-  letter-spacing: 5px;
-  color: #4A5568;
-  text-transform: uppercase;
-  margin-bottom: 8mm;
-}
-
+.cover-inner { flex: 1; display: flex; flex-direction: column; padding-top: 30mm; }
+.cover-logo { width: 40mm; margin-bottom: 18mm; }
+.cover-logo img { width: 100%; height: auto; display: block; }
+.cover-tagline { font-size: 9pt; color: var(--muted); margin: -14mm 0 18mm; }
+.cover-category { font-size: 10pt; font-weight: 600; color: var(--ink-soft); margin-bottom: 4mm; }
 .cover-title {
-  font-size: 32pt;
-  font-weight: 800;
-  color: var(--brand-primary);
-  line-height: 1.25;
-  letter-spacing: -0.5pt;
-  margin-bottom: 6mm;
+  font-size: var(--fs-display, 26pt);
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.3;
+  letter-spacing: -0.3pt;
+  margin-bottom: 5mm;
 }
-
-.cover-subtitle {
-  font-size: 14pt;
-  color: #4A5568;
-  font-weight: 400;
-  line-height: 1.5;
-}
-
+.cover-subtitle { font-size: 13pt; color: var(--ink-soft); line-height: 1.5; }
 .cover-meta {
   margin-top: auto;
+  border-top: 0.75pt solid var(--line);
+  padding-top: 5mm;
   font-size: 9.5pt;
-  color: #4A5568;
-  line-height: 2.1;
-  border-top: 1pt solid #E2E8F0;
-  padding-top: 8mm;
+  line-height: 2;
 }
-
-.cover-meta-row {
-  display: flex;
-  align-items: baseline;
-}
-
-.cover-meta-label {
-  display: inline-block;
-  width: 60pt;
-  color: #999;
-  font-weight: 600;
-  font-size: 8.5pt;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.cover-meta-value {
-  color: #1A202C;
-  font-weight: 500;
-}
-
-.cover-footer {
-  margin-top: 8mm;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  font-size: 8pt;
-  color: #999;
-  letter-spacing: 1px;
-}
-
+.cover-meta-row { display: flex; align-items: baseline; }
+.cover-meta-label { flex: 0 0 22mm; color: var(--muted); }
+.cover-meta-value { color: var(--ink); }
 .cover-confidentiality {
-  margin-top: 8mm;
-  padding: 4mm 5mm;
-  border: 0.5pt solid var(--brand-accent);
-  background: var(--brand-accent-tint);
-  font-size: 7.5pt;
-  color: #4A5568;
+  margin-top: 6mm;
+  padding: 3mm 4mm;
+  border: 0.75pt solid var(--line);
+  font-size: 8pt;
+  color: var(--ink-soft);
   line-height: 1.55;
 }
-.cover-confidentiality strong {
-  display: block;
+.cover-confidentiality strong { display: block; font-size: 8.5pt; font-weight: 600; color: var(--ink); margin-bottom: 1mm; }
+.cover-footer {
+  margin-top: 5mm;
+  display: flex;
+  justify-content: space-between;
   font-size: 8pt;
-  color: var(--brand-primary);
-  letter-spacing: 1.5px;
-  margin-bottom: 1.5mm;
-  text-transform: uppercase;
+  color: var(--muted);
 }
 
 /* 값이 빈 표지 요소는 숨긴다. 브랜드나 표지 변수를 비워 두면 빈 줄 대신 자리가 사라진다.
@@ -203,80 +117,52 @@ html, body {
 .cover-meta-row:has(.cover-meta-value:empty),
 .cover-confidentiality:has(.cover-confidential-body:empty),
 .cover-logo:has(img[src=""]) { display: none; }
-.cover-tagline:empty, .cover-subtitle:empty, .cover-footer span:empty { display: none; }
+.cover-tagline:empty, .cover-category:empty, .cover-subtitle:empty, .cover-footer span:empty { display: none; }
 
 /* === 본문 === */
 .content { padding: 0; }
 
 .content h1 {
-  color: var(--ink);
   font-size: var(--fs-h1);
-  font-weight: 800;
-  margin-top: 0;
-  margin-bottom: 6mm;
-  padding-bottom: 3mm;
-  border-bottom: 2pt solid var(--brand-primary);
-  page-break-before: always;
-  letter-spacing: -0.3pt;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.2pt;
+  margin: 0 0 6mm;
+  break-before: page;
 }
-
-.content h1:first-of-type {
-  page-break-before: auto;
-}
-
+.content h1:first-of-type { break-before: auto; }
 .content h2 {
-  color: var(--ink);
   font-size: var(--fs-h2);
   font-weight: 700;
-  margin-top: 9mm;
-  margin-bottom: 3mm;
-  padding-left: 3mm;
-  border-left: 2.5pt solid var(--brand-primary);
-  letter-spacing: -0.2pt;
+  line-height: 1.4;
+  margin: 9mm 0 3mm;
 }
-
-.content h3 {
-  color: var(--ink);
-  font-size: var(--fs-h3);
-  font-weight: 700;
-  margin-top: 6mm;
-  margin-bottom: 2mm;
-}
-
-.content h4 {
-  color: var(--ink-soft);
-  font-size: var(--fs-body);
-  font-weight: 700;
-  margin-top: 4mm;
-  margin-bottom: 1.5mm;
-}
+.content h3 { font-size: var(--fs-h3); font-weight: 700; margin: 6mm 0 2mm; }
+.content h4 { font-size: var(--fs-body); font-weight: 700; color: var(--ink-soft); margin: 4mm 0 1.5mm; }
 
 /* 본문은 콘텐츠 폭 전체를 쓴다. 설득 서사처럼 산문이 긴 절은 .prose 로 감싸 줄 길이 상한을 켠다. */
-.content p { margin: 0 0 3mm 0; }
+.content p { margin: 0 0 3mm; }
 .content .prose p, .content .prose ul, .content .prose ol { max-width: var(--measure); }
+.content ul, .content ol { margin: 2mm 0 3mm; padding-left: 6mm; }
+.content li { margin-bottom: 1mm; }
+.content strong { font-weight: 700; }
+.content em { color: var(--ink-soft); }
+.content a { color: var(--brand-primary); text-decoration: underline; text-decoration-thickness: 0.5pt; text-underline-offset: 1.5pt; }
+.content hr { border: none; border-top: 0.75pt solid var(--line); margin: 6mm 0; }
 
-.content table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 4mm 0;
-  font-size: 9pt;
-  page-break-inside: avoid;
-}
-
+/* 표는 줄 선만. 머리줄 아래 굵은 선, 행 사이 가는 선, 바탕색 없음. 쪽을 넘으면 줄 단위로 갈리고 머리줄이 되풀이된다 */
+.content table { width: 100%; border-collapse: collapse; margin: 4mm 0; font-size: 9pt; }
+.content thead { display: table-header-group; }
 .content table th {
-  background: none;
-  color: var(--ink);
   text-align: left;
-  padding: 2mm 3mm;
-  font-weight: 700;
-  font-size: 8.5pt;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  border-bottom: 1.2pt solid var(--ink);
+  padding: 1.8mm 3mm;
+  font-weight: 600;
+  color: var(--ink);
+  border-bottom: 1pt solid var(--ink);
+  vertical-align: bottom;
 }
-
 .content table td {
-  padding: 2mm 3mm;
+  padding: 1.8mm 3mm;
   border-bottom: 0.5pt solid var(--line);
   vertical-align: top;
   font-variant-numeric: tabular-nums;
@@ -285,174 +171,140 @@ html, body {
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
-
-.content table tr:nth-child(even) td {
-  background: var(--brand-surface);
-}
-
-.content table tr:last-child td {
-  border-bottom: 1pt solid var(--ink);
-}
+.content table tr { break-inside: avoid; }
+.content td.num, .content th.num { text-align: right; white-space: nowrap; }
 
 .content blockquote {
-  border-left: 3pt solid var(--brand-accent);
-  background: var(--brand-accent-tint);
-  padding: 3mm 4mm;
+  border-left: 1pt solid var(--line);
+  padding: 0 0 0 4mm;
   margin: 4mm 0;
-  color: #2D3748;
-  font-size: 9.5pt;
-  page-break-inside: avoid;
+  color: var(--ink-soft);
 }
-
 .content blockquote p:last-child { margin-bottom: 0; }
 
 .content code {
-  font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, 'Pretendard', monospace;
-  background: var(--brand-surface);
-  padding: 0.3mm 1.5mm;
-  border-radius: 1mm;
+  font-family: var(--c-mono);
   font-size: 8.5pt;
-  color: var(--ink);
+  padding: 0.2mm 1mm;
+  border: 0.5pt solid var(--line);
+  border-radius: 0.8mm;
 }
-
 .content pre {
-  background: var(--brand-surface);
-  padding: 4mm;
-  border-radius: 2mm;
-  border-left: 3pt solid var(--brand-primary);
+  font-family: var(--c-mono);
   font-size: 8pt;
-  overflow-x: hidden;
-  white-space: pre-wrap;
-  word-break: break-all;
+  border: 0.75pt solid var(--line);
+  border-radius: 1mm;
+  padding: 3mm 4mm;
   margin: 4mm 0;
-  page-break-inside: avoid;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
+.content pre code { border: 0; padding: 0; font-size: 8pt; }
 
-.content pre code { background: none; padding: 0; color: #1A202C; font-size: 8pt; }
-
-.content ul, .content ol {
-  margin: 2mm 0 3mm 0;
-  padding-left: 6mm;
-}
-
-.content li { margin-bottom: 1mm; }
-
-.content hr {
-  border: none;
-  border-top: 0.5pt solid #E2E8F0;
-  margin: 6mm 0;
-}
-
-.content strong { color: var(--ink); font-weight: 700; }
-.content em { color: var(--ink-soft); }
-.content a { color: var(--ink); text-decoration: none; border-bottom: 0.5pt solid var(--brand-accent); }
-
-.content h1, .content h2, .content h3 { page-break-after: avoid; }
-.content table, .content pre, .content blockquote { page-break-inside: avoid; }
+/* 제목은 뒤따르는 내용과 한 쪽에, 문단은 쪽 끝과 쪽 머리에 두 줄 이상 */
+.content h1, .content h2, .content h3, .content h4 { break-after: avoid; }
+.content p, .content li { orphans: 2; widows: 2; }
+.content blockquote, .content figure { break-inside: avoid; }
 
 /* =================================================================
    컴포넌트. 내용 종류가 이름으로 부르는 상자와 표. 카탈로그는 layout.md
+   상자는 흰 바탕에 가는 테두리 하나. 라벨은 본문 글꼴의 굵은 글씨이고 대문자로 벌리지 않는다
    ================================================================= */
 .content {
-  --c-ok: var(--ok, #1A8F3C);        --c-ok-tint: var(--ok-tint, #EAF6EE);
-  --c-caution: var(--caution, #C2790A); --c-caution-tint: var(--caution-tint, #FDF4E6);
-  --c-danger: var(--danger, #B0413E);
-  --c-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, 'Pretendard', monospace;
+  --c-ok: var(--ok, #23703f);
+  --c-caution: var(--caution, #8a5a00);
+  --c-danger: var(--danger, #b3261e);
+  --c-mono: ui-monospace, 'SF Mono', Menlo, 'D2Coding', Consolas, 'Pretendard', monospace;
 }
 
-/* 요약 상자(.summary)와 다음 단계 상자(.next). 라벨은 첫 줄의 .label */
+/* 요약 상자(.summary)와 결정 요청 상자(.next). 라벨은 첫 줄의 .label */
 .content .summary, .content .next {
-  border: 0.5pt solid var(--brand-primary);
-  border-left: 4pt solid var(--brand-primary);
-  background: var(--brand-primary-tint);
-  padding: 4mm 5mm; margin: 0 0 6mm 0; font-size: 9.5pt; page-break-inside: avoid;
+  border: 0.75pt solid var(--line);
+  border-radius: var(--radius);
+  padding: 4mm 5mm;
+  margin: 0 0 6mm;
+  break-inside: avoid;
 }
-.content .next { border-color: var(--brand-accent); background: var(--brand-accent-tint); margin: 4mm 0; }
+.content .next { border-color: var(--brand-primary); margin: 5mm 0; }
 .content .summary > .label, .content .next > .label {
-  display: block; font-size: 8pt; font-weight: 800; letter-spacing: 2px;
-  color: var(--brand-primary); text-transform: uppercase; margin-bottom: 2mm;
+  display: block; font-size: 9pt; font-weight: 700; color: var(--ink-soft); margin-bottom: 1.5mm;
 }
-.content .next > .label { color: var(--brand-accent); }
+.content .next > .label { color: var(--brand-primary); }
 .content .summary > :last-child, .content .next > :last-child { margin-bottom: 0; }
 
-/* 한 줄 강조(.finding), 도움말(.tip), 주의(.warn), 미확정(.open). 머리표는 첫 요소의 .tag */
+/* 한 줄 강조(.finding), 도움말(.tip), 주의(.warn), 미확정(.open). 머리표는 첫 요소의 .tag.
+   바탕은 칠하지 않고 왼쪽 가는 선과 머리표 색으로만 가른다 */
 .content .finding, .content .tip, .content .warn, .content .open {
-  border-left: 3pt solid var(--brand-accent); background: var(--brand-accent-tint);
-  padding: 2.5mm 4mm; margin: 3mm 0; font-size: 9pt; page-break-inside: avoid;
+  border-left: 1.5pt solid var(--line);
+  padding: 0.5mm 0 0.5mm 4mm;
+  margin: 4mm 0;
+  break-inside: avoid;
 }
-.content .tip  { border-left-color: var(--c-ok);      background: var(--c-ok-tint); }
-.content .warn, .content .open { border-left-color: var(--c-caution); background: var(--c-caution-tint); }
+.content .finding { border-left-color: var(--brand-primary); }
+.content .warn, .content .open { border-left-color: var(--c-caution); }
+.content .tip { border-left-color: var(--c-ok); }
 .content .finding > .tag, .content .tip > .tag, .content .warn > .tag, .content .open > .tag {
-  font-size: 7.5pt; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-right: 2mm;
-  color: var(--brand-accent);
+  font-weight: 700; margin-right: 2mm; color: var(--ink);
 }
-.content .tip > .tag  { color: var(--c-ok); }
 .content .warn > .tag, .content .open > .tag { color: var(--c-caution); }
+.content .tip > .tag { color: var(--c-ok); }
 
-/* 지표 카드 줄 */
-.content .metrics { display: flex; gap: 4mm; margin: 4mm 0; page-break-inside: avoid; }
-.content .metrics > .metric {
-  flex: 1; border: 0.5pt solid var(--line); border-top: 2pt solid var(--brand-primary); padding: 3mm; text-align: center;
-}
+/* 지표 줄. 카드 테두리 없이 숫자와 이름만, 사이는 가는 세로선 */
+.content .metrics { display: flex; margin: 5mm 0; break-inside: avoid; border-top: 0.75pt solid var(--line); border-bottom: 0.75pt solid var(--line); }
+.content .metrics > .metric { flex: 1; padding: 3mm 4mm; }
+.content .metrics > .metric + .metric { border-left: 0.75pt solid var(--line); }
 .content .metrics .metric-value {
-  display: block; font-size: 16pt; font-weight: 800; color: var(--brand-primary); line-height: 1.2; font-variant-numeric: tabular-nums;
+  display: block; font-size: 17pt; font-weight: 700; color: var(--ink); line-height: 1.2; font-variant-numeric: tabular-nums;
 }
-.content .metrics .metric-label { display: block; font-size: 8pt; color: var(--ink-soft); margin-top: 1mm; }
+.content .metrics .metric-label { display: block; font-size: 8.5pt; color: var(--ink-soft); margin-top: 1mm; }
 
-/* 가로 단계 흐름(3~5단계) */
-.content .phases { display: flex; gap: 3mm; margin: 4mm 0; page-break-inside: avoid; }
-.content .phases > .phase { flex: 1; border-top: 2pt solid var(--brand-primary); background: var(--brand-surface); padding: 2.5mm 3mm 3mm; }
-.content .phases .phase-no { display: block; font-size: 7.5pt; font-weight: 800; letter-spacing: 1.5px; color: var(--brand-primary); text-transform: uppercase; }
-.content .phases .phase-title { display: block; font-size: 10pt; font-weight: 700; color: var(--ink); margin: 1mm 0; }
-.content .phases .phase-body { display: block; font-size: 8.5pt; color: var(--ink-soft); line-height: 1.45; }
+/* 가로 단계 흐름(3~5단계). 단계 사이는 위쪽 선의 끊김으로 가른다 */
+.content .phases { display: flex; gap: 3mm; margin: 4mm 0; break-inside: avoid; }
+.content .phases > .phase { flex: 1; border-top: 1.5pt solid var(--ink); padding: 2.5mm 0 0; }
+.content .phases .phase-no { display: block; font-size: 8.5pt; font-weight: 600; color: var(--ink-soft); }
+.content .phases .phase-title { display: block; font-size: 10pt; font-weight: 700; margin: 0.5mm 0 1mm; }
+.content .phases .phase-body { display: block; font-size: 8.5pt; color: var(--ink-soft); line-height: 1.5; }
 .content .phases .phase-when { display: block; font-size: 8pt; color: var(--muted); margin-top: 1.5mm; }
 
 /* 따라 하는 절차 한 단계. 번호는 .step-no */
-.content .step {
-  position: relative; border-left: 3pt solid var(--brand-primary); background: var(--brand-surface);
-  padding: 2.5mm 4mm 2.5mm 12mm; margin: 2.5mm 0; page-break-inside: avoid;
-}
+.content .step { position: relative; padding: 0 0 0 9mm; margin: 4mm 0; break-inside: avoid; }
 .content .step > .step-no {
-  position: absolute; left: 3.5mm; top: 2.3mm; width: 5.5mm; height: 5.5mm; line-height: 5.5mm; text-align: center;
-  background: var(--brand-primary); color: #fff; font-size: 8pt; font-weight: 800; border-radius: 50%;
+  position: absolute; left: 0; top: 0.2mm; width: 6mm; height: 6mm; line-height: 5.4mm; text-align: center;
+  border: 0.75pt solid var(--ink); border-radius: 50%; font-size: 8.5pt; font-weight: 700;
 }
 
 /* 단서, 가정, 출처, 한계 */
-.content .note { font-size: 8.5pt; color: var(--ink-soft); border-top: 0.5pt dashed var(--line); padding-top: 2mm; margin-top: 3mm; }
+.content .note { font-size: 8.5pt; color: var(--ink-soft); border-top: 0.5pt solid var(--line); padding-top: 2mm; margin-top: 3mm; }
 
-/* 상태 배지(구현 예정, 합의 대기) */
+/* 상태 배지(구현 예정, 합의 대기). 칠하지 않은 작은 테두리 글자 */
 .content .badge {
-  display: inline-block; font-size: 7pt; font-weight: 800; letter-spacing: 0.5px; color: #fff;
-  background: var(--c-caution); border-radius: 1pt; padding: 0.4mm 1.6mm; margin-left: 1.5mm; vertical-align: middle;
+  display: inline-block; font-size: 7.5pt; font-weight: 600; color: var(--c-caution);
+  border: 0.5pt solid currentColor; border-radius: 1pt; padding: 0 1.4mm; margin-left: 1.5mm; vertical-align: 0.3mm;
 }
 
-/* API 엔드포인트 한 줄: 메서드 배지와 경로 */
+/* API 엔드포인트 한 줄: 메서드와 경로 */
 .content .endpoint {
   font-family: var(--c-mono); font-size: 9.5pt; margin: 5mm 0 2mm; padding-bottom: 1.2mm;
-  border-bottom: 0.5pt solid var(--line); page-break-after: avoid;
+  border-bottom: 0.5pt solid var(--line); break-after: avoid;
 }
 .content .endpoint .method {
-  display: inline-block; min-width: 14mm; text-align: center; font-size: 7.5pt; font-weight: 800; letter-spacing: 0.5px;
-  color: #fff; background: var(--brand-primary); border-radius: 1pt; padding: 0.6mm 2mm; margin-right: 2.5mm;
+  display: inline-block; min-width: 13mm; font-size: 8pt; font-weight: 700; margin-right: 2.5mm; color: var(--brand-primary);
 }
-.content .endpoint .method.get { background: var(--c-ok); }
-.content .endpoint .method.delete { background: var(--c-danger); }
-.content .endpoint .method.event { background: var(--muted); }
-.content .endpoint .path { font-weight: 700; color: var(--ink); }
+.content .endpoint .method.get { color: var(--c-ok); }
+.content .endpoint .method.delete { color: var(--c-danger); }
+.content .endpoint .method.event { color: var(--muted); }
+.content .endpoint .path { font-weight: 700; }
 .content .endpoint .badge { font-family: var(--brand-font); }
-.content pre { font-family: var(--c-mono); }
 
 /* 필드 표: 이름 열은 고정폭, 타입과 필수 열은 줄바꿈 없음 */
 .content table.fields td:first-child { font-family: var(--c-mono); font-size: 8.5pt; white-space: nowrap; }
 .content table.fields td:nth-child(2), .content table.fields td:nth-child(3) { white-space: nowrap; color: var(--ink-soft); }
 
-/* 금액 표: 마지막 열 우측 정렬, 마지막 행은 합계 */
-.content table.amounts td:last-child, .content table.amounts th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
-.content table.amounts tr:last-child td {
-  font-weight: 700; color: var(--ink); background: var(--brand-primary-tint);
-  border-top: 1pt solid var(--brand-primary); border-bottom: 1.5pt solid var(--brand-primary);
-}
-.content table.amounts tr:last-child td:last-child { color: var(--brand-primary); }
+/* 금액 표: 마지막 열 우측 정렬, 마지막 행은 합계(위 굵은 선과 굵은 글씨) */
+.content table.amounts td:last-child, .content table.amounts th:last-child { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.content table.amounts tr:last-child td { font-weight: 700; border-top: 1pt solid var(--ink); border-bottom: 1pt solid var(--ink); }
 
-/* 캡처와 그림은 본문 폭을 넘지 않는다 */
+/* 캡처와 그림은 본문 폭을 넘지 않고 비율을 지킨다 */
 .content img { max-width: 100%; height: auto; }
+.content figure { margin: 5mm 0; }
+.content figcaption { font-size: 8.5pt; color: var(--ink-soft); margin-top: 1.5mm; }
