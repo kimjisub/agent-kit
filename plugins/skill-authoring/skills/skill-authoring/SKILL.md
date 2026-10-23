@@ -1,6 +1,6 @@
 ---
 name: skill-authoring
-description: 스킬(SKILL.md 와 그 폴더)을 새로 만들거나 다듬는 방법론 — 골격, 파일을 가르는 이유와 폴더, READ 라우팅, 사고와 절차의 자리, 지시 형식, 기계 검증, 변경 기록. "스킬 만들어줘", "이 스킬 다듬어/리팩터", "스킬 일관성 점검", "SKILL.md 구조 잡아줘"류 요청과 SKILL.md 를 쓰거나 고칠 때 발동한다. (생성·eval 엔진은 skill-creator, 설치·배치·배포는 skill-management.)
+description: 스킬(SKILL.md 와 그 폴더)을 새로 만들거나 다듬는 방법론 — 골격, 파일을 가르는 이유와 폴더, READ 라우팅, 사고와 절차의 자리, 지시 형식, 기계 검증, 변경 기록. "스킬 만들어줘", "이 스킬 다듬어/리팩터", "스킬 일관성 점검", "SKILL.md 구조 잡아줘"류 요청과 SKILL.md 를 쓰거나 고칠 때 발동한다. (생성·eval 엔진은 skill-creator, 설치·배치·배포는 그 환경의 스킬 관리 규칙.)
 ---
 
 # skill-authoring — 스킬을 만들고 다듬는 법
