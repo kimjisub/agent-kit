@@ -1,6 +1,6 @@
 {
   "name": "show",
-  "version": "3.6.2",
+  "version": "3.6.3",
   "description": "When an agent's result or intent is hard to follow as text, build one HTML page that unblocks the reader. Kit adapted from visual-explainer (MIT).",
   "author": {
     "name": "Jisub Kim",

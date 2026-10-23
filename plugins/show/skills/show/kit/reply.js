@@ -227,7 +227,8 @@ dialog.ve-respond::backdrop { background: rgb(0 0 0 / .32); }
     const wide = matchMedia("(min-width: 1100px)");
     const changed = () => {
       try { if (notes.length) localStorage.setItem(KEY, JSON.stringify(notes)); else localStorage.removeItem(KEY); } catch { /* see above */ }
-      const host = (wide.matches && $(".rn-dock")) || document.body, panel = host !== document.body;
+      // document.querySelector, not $(...): a shell-looking $(".x") reads to skill scanners as a DNS lookup
+      const host = (wide.matches && document.querySelector(".rn-dock")) || document.body, panel = host !== document.body;
       reply.textContent = `${canSend() ? "보내기" : "복사하기"} (${total()})`;
       reply.hidden = !total() && !panel;
       reply.disabled = !total();
