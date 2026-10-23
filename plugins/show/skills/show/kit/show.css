@@ -145,7 +145,10 @@ h3 .n { color: var(--text-dim); margin-right: var(--s-2); font-variant-numeric: 
 
 /* 사진. 발견 카드와 전후 짝 안의 figure 는 kit 의 그림과 달리 테두리 없이 카드 폭을 다 쓴다 */
 .finding figure, .pair figure { margin: 0; background: var(--surface); border-top: 1px solid var(--border); position: relative; }
-.finding figure img, .pair figure img, figure.shot img { display: block; width: 100%; height: auto; }
+/* 사진은 비율을 지킨다. 세로로 긴 캡처(휴대폰 화면)는 --img-max 높이에서 멈추고 폭이 함께 줄어 가운데 선다.
+   width 나 height 하나만 덮어쓰면 비율이 깨지므로 크기는 --img-max 로만 바꾼다 */
+.finding figure img, .pair figure img, figure.shot img { display: block; width: auto; max-width: 100%; height: auto;
+  max-height: var(--img-max, 760px); margin-inline: auto; object-fit: contain; }
 .finding figure figcaption, .pair figure figcaption { background: var(--surface); margin: 0; max-width: none; font-size: var(--t-small); padding: var(--s-2) var(--s-5); border-bottom: 1px solid var(--border); }
 figure.shot img { border: 1px solid var(--border); border-radius: var(--r-2); }
 figure .lab { font-size: var(--t-label); font-weight: 700; padding: 5px var(--s-5); }

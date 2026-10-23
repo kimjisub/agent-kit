@@ -27,7 +27,10 @@
     '.cmp-bar .cmp-note{color:#777;margin-left:6px}',
     '.cmp-bar .cmp-legend span{display:inline-block;width:9px;height:9px;border-radius:2px;margin:0 3px 0 8px;vertical-align:-1px}',
     '.cmp-stage{position:relative;background:#101114;border-top:1px solid var(--line,#e5e5e0);user-select:none;-webkit-user-select:none;touch-action:pan-y;overflow:hidden}',
-    '.cmp-stage img,.cmp-stage canvas{display:block;width:100%;height:auto}',
+    // 겹쳐 보는 판은 사진 크기에 붙는다. 세로로 긴 사진(휴대폰 화면)이 짝 전체 폭으로 펼쳐지지 않도록 --img-max 높이에서 멈추고,
+    // 위에 얹는 사진(.cmp-top)과 선이 같은 상자를 쓰도록 판의 폭을 사진 폭에 맞춘다
+    '.cmp-stage{width:fit-content;max-width:100%;margin-inline:auto;justify-self:center}',
+    '.cmp-stage img,.cmp-stage canvas{display:block;width:auto;max-width:100%;height:auto;max-height:var(--img-max,760px)}',
     '.cmp-stage img{-webkit-user-drag:none;user-drag:none;pointer-events:none}',
     '.cmp-stage.slider:focus-visible{outline:2px solid #1d4ed8;outline-offset:-2px}',
     '.cmp-stage .cmp-top{position:absolute;inset:0;width:100%;height:100%}',

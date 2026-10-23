@@ -49,6 +49,19 @@ function measure(minLabel) {
     const px = parseFloat(getComputedStyle(t).fontSize) * Math.hypot(m.a, m.b);
     if (!smallest || px < smallest.px) smallest = { px: Math.round(px * 100) / 100, text: t.textContent.trim().slice(0, 40) };
   }
+  // images drawn at another aspect ratio than their pixels: a width or height rule overrode one side only
+  const squashed = [];
+  for (const img of document.querySelectorAll("main img")) {
+    if (!img.naturalWidth || !img.checkVisibility()) continue;
+    const box = img.getBoundingClientRect();
+    if (!box.width || !box.height) continue;
+    if (["contain", "cover", "scale-down"].includes(getComputedStyle(img).objectFit)) {
+      // object-fit keeps the picture's ratio inside the box; only the empty bands are wasted
+      continue;
+    }
+    const drift = Math.abs(box.width / box.height / (img.naturalWidth / img.naturalHeight) - 1);
+    if (drift > 0.02) squashed.push(`${(img.getAttribute("alt") || img.currentSrc.slice(0, 40)).slice(0, 40)} (${Math.round(drift * 100)}%)`);
+  }
   // before/after pairs whose two pictures cover different ranges: one was shot taller or wider, so what the
   // other shows below its edge reads as removed (2026-10-21: a 5000px "before" next to a 900px "after" looked like lost features)
   const unmatched = [];
@@ -67,6 +80,7 @@ function measure(minLabel) {
     small: smallest !== null && smallest.px < minLabel,
     figures: document.querySelectorAll("figure").length,
     prose,
+    squashed,
     unmatched,
     kit: document.documentElement.dataset.veKit === "ready",
   };
@@ -400,6 +414,7 @@ export async function lookAt(file, { sheet = true } = {}) {
     ...result.errors,
     ...WIDTHS.filter((w) => at[w].overflow).map((w) => `the page scrolls sideways at ${w}px`),
     ...WIDTHS.filter((w) => at[w].small).map((w) => `a diagram label renders at ${at[w].smallest.px}px at ${w}px ("${at[w].smallest.text}"); keep labels at ${MIN_LABEL}px or more`),
+    ...WIDTHS.flatMap((w) => (at[w].squashed || []).map((n) => `an image is stretched at ${w}px: ${n}; size images with --img-max, not width or height alone`)),
     ...(at[1280].unmatched || []).map((n) => `a before/after pair shows different ranges: ${n}; shoot both at the same viewport and scroll, or crop both to the same box`),
     ...(at[1280].kit ? [] : ["the kit's script did not run to its end"]),
     ...result.problems,

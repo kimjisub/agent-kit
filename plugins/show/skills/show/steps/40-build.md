@@ -25,6 +25,7 @@ node <스킬 폴더>/kit/render.mjs report.src.html --no-check # 쓰되 화면 �
 
 - 원본에 오류가 있으면 아무것도 쓰지 않고 줄 번호와 태그를 짚는다. 고치고 다시 돌린다
 - 이미지는 원본 기준 상대 경로(`images/x.png`)로 쓴다. 렌더가 data URI 로 넣는다. 없는 이미지는 오류다
+- 이미지 크기는 kit 에 맡긴다. 사진은 비율을 지키며 `--img-max`(기본 760px) 높이에서 멈춘다. 더 작게 하려면 그 그림에 `style="--img-max: 520px"` 를 준다. `width` 나 `height` 하나만 덮어쓰면 다른 쪽이 따라오지 않아 이미지가 찌그러지고, 화면 검사가 `an image is stretched` 로 막는다
 - `.pair[data-compare]` 가 있으면 `compare.js` 를, `<main>` 의 `h2` 가 둘 이상이면 `report-nav.js` 를 렌더가 넣는다. `<script src>` 로 따로 부르지 않는다
 - 렌더한 페이지를 다시 렌더해도 같다. 고칠 때는 언제나 원본을 고치고 다시 렌더한다
 - kit 은 렌더할 때 페이지 안에 들어간다. 스킬을 갱신해 kit 이 바뀌어도 이미 렌더한 페이지는 옛 kit 그대로다. 새 동작이 필요하면 원본을 다시 렌더해 다시 올린다
