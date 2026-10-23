@@ -1,0 +1,12 @@
+{
+  "name": "feedback-reply",
+  "version": "1.0.0",
+  "description": "Draft a first-person reply to team feedback, objections or review comments that answers every point: accept, already covered, reframe, or keep with reasons and concrete concessions.",
+  "author": {
+    "name": "Jisub Kim",
+    "url": "https://github.com/kimjisub"
+  },
+  "homepage": "https://github.com/kimjisub/agent-kit/tree/main/plugins/feedback-reply",
+  "repository": "https://github.com/kimjisub/agent-kit",
+  "license": "MIT"
+}

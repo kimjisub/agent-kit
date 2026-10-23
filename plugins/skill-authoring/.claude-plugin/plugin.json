@@ -1,0 +1,12 @@
+{
+  "name": "skill-authoring",
+  "version": "1.0.0",
+  "description": "A method for building and refining agent skills: skeleton, when to split files and where, READ routing, instruction shape, machine checks (link and sentence-snapshot scripts) and change logs.",
+  "author": {
+    "name": "Jisub Kim",
+    "url": "https://github.com/kimjisub"
+  },
+  "homepage": "https://github.com/kimjisub/agent-kit/tree/main/plugins/skill-authoring",
+  "repository": "https://github.com/kimjisub/agent-kit",
+  "license": "MIT"
+}

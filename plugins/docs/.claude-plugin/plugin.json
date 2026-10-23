@@ -1,0 +1,12 @@
+{
+  "name": "docs",
+  "version": "1.0.0",
+  "description": "Write proposals, quotes, reports, slide decks, manuals, specs and handbooks as one HTML file and render a PDF. Content kind, layout (A4, 16:9 slides, screen-first chapters) and brand are picked separately.",
+  "author": {
+    "name": "Jisub Kim",
+    "url": "https://github.com/kimjisub"
+  },
+  "homepage": "https://github.com/kimjisub/agent-kit/tree/main/plugins/docs",
+  "repository": "https://github.com/kimjisub/agent-kit",
+  "license": "MIT"
+}

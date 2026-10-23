@@ -1,0 +1,12 @@
+{
+  "name": "plain-korean",
+  "version": "1.0.0",
+  "description": "An output style for agents working in Korean: answer first, plain declarative sentences, actions and numbers instead of metaphors, keyboard-typable characters only, separate rules for chat, documents, UI copy and ghostwriting.",
+  "author": {
+    "name": "Jisub Kim",
+    "url": "https://github.com/kimjisub"
+  },
+  "homepage": "https://github.com/kimjisub/agent-kit/tree/main/plugins/plain-korean",
+  "repository": "https://github.com/kimjisub/agent-kit",
+  "license": "MIT"
+}

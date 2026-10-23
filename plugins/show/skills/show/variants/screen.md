@@ -245,7 +245,7 @@ console.log(await page.evaluate(() => [...document.querySelectorAll('[data-statu
 
 ## 확인
 
-찍은 것을 Read 로 전부 연다.
+찍은 것을 이미지로 전부 연다.
 
 - 표시 결과 줄에 `NOT FOUND` 가 없는가
 - 테두리가 강조 대상을 정확히 감쌌는가. 같은 글자의 다른 자리(다른 표의 같은 열 이름)를 물지 않았는가

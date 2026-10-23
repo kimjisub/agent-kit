@@ -2,3 +2,7 @@
 __pycache__/
 node_modules/
 .claude-plugin/types/
+
+# 변경 이력(intent)은 사례와 사용자 발언 원문이 담겨 공개 저장소에 두지 않는다. 원본은 비공개 스킬 저장소에 있다
+SKILL.intent.md
+plugins/*/skills/*/axes/*/intent.md

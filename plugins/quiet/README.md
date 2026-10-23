@@ -7,7 +7,7 @@ Hides tool call rows, running ones included, so the transcript shows only the co
 - `ctrl+o` still shows the full transcript, background task rows included
 
 ```
-/plugin install quiet --marketplace kimjisub/claude-code-kit
+/plugin install quiet --marketplace kimjisub/agent-kit
 ```
 
 Checked on Claude Code 2.1.304. It needs a Claude Code build with function hooks (`hooks/hooks.json` naming a `modules` entry).

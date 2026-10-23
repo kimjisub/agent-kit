@@ -1,0 +1,458 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
+/* ===================================================================
+   layouts/a4: A4 세로 흐름 문서의 스타일 (쪽, 표지, 본문, 컴포넌트)
+
+   색, 폰트는 브랜드 토큰으로만 참조한다:
+     - 본문/표지 등 일반 영역 -> CSS 변수 var(--brand-*)  (brands/<id>/brand.css 의 :root 가 정의)
+     - @page 머리말/꼬리말 등 CSS 변수를 못 쓰는 영역 -> BRAND placeholder (build.sh 가 brand.env 값으로 치환)
+
+   build.sh 가 cover.html 의 __STYLE__ 자리에 넣는다. 컴포넌트 카탈로그는 layout.md.
+   문서 하나에만 필요한 스타일은 그 문서 html 의 <style> 끝에 둔다.
+   =================================================================== */
+
+@page {
+  size: A4;
+  margin: 22mm 18mm 22mm 18mm;
+  @top-left {
+    /* 실제 로고 이미지(워드마크). build.sh 가 logo.svg 에 인쇄 크기를 주입해
+       data-URI 로 치환한다 - margin box 는 외부 경로, CSS 변수가 불안정해 인라인한다. */
+    content: url("__BRAND_LOGO_HEADER__");
+  }
+  @top-right {
+    content: "__DOC_HEADER__";
+    font-family: __BRAND_FONT_STACK__;
+    font-size: 8pt;
+    color: #888;
+  }
+  @bottom-center {
+    content: counter(page);
+    font-family: __BRAND_FONT_STACK__;
+    font-size: 8pt;
+    color: #888;
+  }
+  @bottom-right {
+    content: "__BRAND_PAGE_MARK__";
+    font-family: __BRAND_FONT_STACK__;
+    font-size: 7pt;
+    letter-spacing: 1px;
+    color: __BRAND_ACCENT_HEX__;
+  }
+}
+@page :first {
+  margin: 0;
+  @top-left { content: ""; }
+  @top-right { content: ""; }
+  @bottom-center { content: ""; }
+  @bottom-right { content: ""; }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--brand-font, 'Pretendard', 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, system-ui, sans-serif);
+  font-size: 10pt;
+  line-height: 1.55;
+  color: var(--ink, #1A202C);
+  -webkit-font-smoothing: antialiased;
+  /* 인쇄와 PDF 저장에서 배경색을 빼지 않는다 */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  /* 한글 어절을 음절 중간에서 끊지 않는다 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  /* Pretendard 는 -> 를 화살표 글리프로 합자한다. 자판 문자로 쓴 것이 그대로 보이게 끈다 */
+  font-variant-ligatures: none;
+}
+
+/* === 커버 페이지 === */
+.cover {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 0;
+  page-break-after: always;
+  position: relative;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+}
+
+.cover-band {
+  height: 12mm;
+  background: var(--brand-primary);
+}
+
+.cover-inner {
+  flex: 1;
+  padding: 35mm 28mm 30mm 28mm;
+  display: flex;
+  flex-direction: column;
+}
+
+.cover-logo {
+  width: 55mm;
+  height: auto;
+  margin-bottom: 8mm;
+}
+
+.cover-logo img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.cover-tagline {
+  font-size: 9pt;
+  letter-spacing: 3px;
+  color: #888;
+  text-transform: uppercase;
+  margin-bottom: 14mm;
+}
+
+.cover-accent {
+  width: 50mm;
+  height: 3pt;
+  background: var(--brand-accent);
+  margin-bottom: 10mm;
+}
+
+.cover-category {
+  font-size: 11pt;
+  letter-spacing: 5px;
+  color: #4A5568;
+  text-transform: uppercase;
+  margin-bottom: 8mm;
+}
+
+.cover-title {
+  font-size: 32pt;
+  font-weight: 800;
+  color: var(--brand-primary);
+  line-height: 1.25;
+  letter-spacing: -0.5pt;
+  margin-bottom: 6mm;
+}
+
+.cover-subtitle {
+  font-size: 14pt;
+  color: #4A5568;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.cover-meta {
+  margin-top: auto;
+  font-size: 9.5pt;
+  color: #4A5568;
+  line-height: 2.1;
+  border-top: 1pt solid #E2E8F0;
+  padding-top: 8mm;
+}
+
+.cover-meta-row {
+  display: flex;
+  align-items: baseline;
+}
+
+.cover-meta-label {
+  display: inline-block;
+  width: 60pt;
+  color: #999;
+  font-weight: 600;
+  font-size: 8.5pt;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.cover-meta-value {
+  color: #1A202C;
+  font-weight: 500;
+}
+
+.cover-footer {
+  margin-top: 8mm;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-size: 8pt;
+  color: #999;
+  letter-spacing: 1px;
+}
+
+.cover-confidentiality {
+  margin-top: 8mm;
+  padding: 4mm 5mm;
+  border: 0.5pt solid var(--brand-accent);
+  background: var(--brand-accent-tint);
+  font-size: 7.5pt;
+  color: #4A5568;
+  line-height: 1.55;
+}
+.cover-confidentiality strong {
+  display: block;
+  font-size: 8pt;
+  color: var(--brand-primary);
+  letter-spacing: 1.5px;
+  margin-bottom: 1.5mm;
+  text-transform: uppercase;
+}
+
+/* 값이 빈 표지 요소는 숨긴다. 브랜드나 표지 변수를 비워 두면 빈 줄 대신 자리가 사라진다.
+   cover.html 은 값을 공백 없이 요소 안에 바로 넣어야 :empty 가 맞는다. */
+.cover-meta-row:has(.cover-meta-value:empty),
+.cover-confidentiality:has(.cover-confidential-body:empty),
+.cover-logo:has(img[src=""]) { display: none; }
+.cover-tagline:empty, .cover-subtitle:empty, .cover-footer span:empty { display: none; }
+
+/* === 본문 === */
+.content { padding: 0; }
+
+.content h1 {
+  color: var(--ink);
+  font-size: var(--fs-h1);
+  font-weight: 800;
+  margin-top: 0;
+  margin-bottom: 6mm;
+  padding-bottom: 3mm;
+  border-bottom: 2pt solid var(--brand-primary);
+  page-break-before: always;
+  letter-spacing: -0.3pt;
+}
+
+.content h1:first-of-type {
+  page-break-before: auto;
+}
+
+.content h2 {
+  color: var(--ink);
+  font-size: var(--fs-h2);
+  font-weight: 700;
+  margin-top: 9mm;
+  margin-bottom: 3mm;
+  padding-left: 3mm;
+  border-left: 2.5pt solid var(--brand-primary);
+  letter-spacing: -0.2pt;
+}
+
+.content h3 {
+  color: var(--ink);
+  font-size: var(--fs-h3);
+  font-weight: 700;
+  margin-top: 6mm;
+  margin-bottom: 2mm;
+}
+
+.content h4 {
+  color: var(--ink-soft);
+  font-size: var(--fs-body);
+  font-weight: 700;
+  margin-top: 4mm;
+  margin-bottom: 1.5mm;
+}
+
+/* 본문은 콘텐츠 폭 전체를 쓴다. 설득 서사처럼 산문이 긴 절은 .prose 로 감싸 줄 길이 상한을 켠다. */
+.content p { margin: 0 0 3mm 0; }
+.content .prose p, .content .prose ul, .content .prose ol { max-width: var(--measure); }
+
+.content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 4mm 0;
+  font-size: 9pt;
+  page-break-inside: avoid;
+}
+
+.content table th {
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  padding: 2mm 3mm;
+  font-weight: 700;
+  font-size: 8.5pt;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  border-bottom: 1.2pt solid var(--ink);
+}
+
+.content table td {
+  padding: 2mm 3mm;
+  border-bottom: 0.5pt solid var(--line);
+  vertical-align: top;
+  font-variant-numeric: tabular-nums;
+  /* CJK는 어절 공백에 의존하지 않아, 지정이 없으면 좁은 셀에서 음절 단위로 끊긴다.
+     keep-all로 한글 어절을 보존하고, 긴 URL, 영문 토큰만 anywhere로 예외 처리해 셀 넘침을 막는다. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.content table tr:nth-child(even) td {
+  background: var(--brand-surface);
+}
+
+.content table tr:last-child td {
+  border-bottom: 1pt solid var(--ink);
+}
+
+.content blockquote {
+  border-left: 3pt solid var(--brand-accent);
+  background: var(--brand-accent-tint);
+  padding: 3mm 4mm;
+  margin: 4mm 0;
+  color: #2D3748;
+  font-size: 9.5pt;
+  page-break-inside: avoid;
+}
+
+.content blockquote p:last-child { margin-bottom: 0; }
+
+.content code {
+  font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, 'Pretendard', monospace;
+  background: var(--brand-surface);
+  padding: 0.3mm 1.5mm;
+  border-radius: 1mm;
+  font-size: 8.5pt;
+  color: var(--ink);
+}
+
+.content pre {
+  background: var(--brand-surface);
+  padding: 4mm;
+  border-radius: 2mm;
+  border-left: 3pt solid var(--brand-primary);
+  font-size: 8pt;
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 4mm 0;
+  page-break-inside: avoid;
+}
+
+.content pre code { background: none; padding: 0; color: #1A202C; font-size: 8pt; }
+
+.content ul, .content ol {
+  margin: 2mm 0 3mm 0;
+  padding-left: 6mm;
+}
+
+.content li { margin-bottom: 1mm; }
+
+.content hr {
+  border: none;
+  border-top: 0.5pt solid #E2E8F0;
+  margin: 6mm 0;
+}
+
+.content strong { color: var(--ink); font-weight: 700; }
+.content em { color: var(--ink-soft); }
+.content a { color: var(--ink); text-decoration: none; border-bottom: 0.5pt solid var(--brand-accent); }
+
+.content h1, .content h2, .content h3 { page-break-after: avoid; }
+.content table, .content pre, .content blockquote { page-break-inside: avoid; }
+
+/* =================================================================
+   컴포넌트. 내용 종류가 이름으로 부르는 상자와 표. 카탈로그는 layout.md
+   ================================================================= */
+.content {
+  --c-ok: var(--ok, #1A8F3C);        --c-ok-tint: var(--ok-tint, #EAF6EE);
+  --c-caution: var(--caution, #C2790A); --c-caution-tint: var(--caution-tint, #FDF4E6);
+  --c-danger: var(--danger, #B0413E);
+  --c-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, 'Pretendard', monospace;
+}
+
+/* 요약 상자(.summary)와 다음 단계 상자(.next). 라벨은 첫 줄의 .label */
+.content .summary, .content .next {
+  border: 0.5pt solid var(--brand-primary);
+  border-left: 4pt solid var(--brand-primary);
+  background: var(--brand-primary-tint);
+  padding: 4mm 5mm; margin: 0 0 6mm 0; font-size: 9.5pt; page-break-inside: avoid;
+}
+.content .next { border-color: var(--brand-accent); background: var(--brand-accent-tint); margin: 4mm 0; }
+.content .summary > .label, .content .next > .label {
+  display: block; font-size: 8pt; font-weight: 800; letter-spacing: 2px;
+  color: var(--brand-primary); text-transform: uppercase; margin-bottom: 2mm;
+}
+.content .next > .label { color: var(--brand-accent); }
+.content .summary > :last-child, .content .next > :last-child { margin-bottom: 0; }
+
+/* 한 줄 강조(.finding), 도움말(.tip), 주의(.warn), 미확정(.open). 머리표는 첫 요소의 .tag */
+.content .finding, .content .tip, .content .warn, .content .open {
+  border-left: 3pt solid var(--brand-accent); background: var(--brand-accent-tint);
+  padding: 2.5mm 4mm; margin: 3mm 0; font-size: 9pt; page-break-inside: avoid;
+}
+.content .tip  { border-left-color: var(--c-ok);      background: var(--c-ok-tint); }
+.content .warn, .content .open { border-left-color: var(--c-caution); background: var(--c-caution-tint); }
+.content .finding > .tag, .content .tip > .tag, .content .warn > .tag, .content .open > .tag {
+  font-size: 7.5pt; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-right: 2mm;
+  color: var(--brand-accent);
+}
+.content .tip > .tag  { color: var(--c-ok); }
+.content .warn > .tag, .content .open > .tag { color: var(--c-caution); }
+
+/* 지표 카드 줄 */
+.content .metrics { display: flex; gap: 4mm; margin: 4mm 0; page-break-inside: avoid; }
+.content .metrics > .metric {
+  flex: 1; border: 0.5pt solid var(--line); border-top: 2pt solid var(--brand-primary); padding: 3mm; text-align: center;
+}
+.content .metrics .metric-value {
+  display: block; font-size: 16pt; font-weight: 800; color: var(--brand-primary); line-height: 1.2; font-variant-numeric: tabular-nums;
+}
+.content .metrics .metric-label { display: block; font-size: 8pt; color: var(--ink-soft); margin-top: 1mm; }
+
+/* 가로 단계 흐름(3~5단계) */
+.content .phases { display: flex; gap: 3mm; margin: 4mm 0; page-break-inside: avoid; }
+.content .phases > .phase { flex: 1; border-top: 2pt solid var(--brand-primary); background: var(--brand-surface); padding: 2.5mm 3mm 3mm; }
+.content .phases .phase-no { display: block; font-size: 7.5pt; font-weight: 800; letter-spacing: 1.5px; color: var(--brand-primary); text-transform: uppercase; }
+.content .phases .phase-title { display: block; font-size: 10pt; font-weight: 700; color: var(--ink); margin: 1mm 0; }
+.content .phases .phase-body { display: block; font-size: 8.5pt; color: var(--ink-soft); line-height: 1.45; }
+.content .phases .phase-when { display: block; font-size: 8pt; color: var(--muted); margin-top: 1.5mm; }
+
+/* 따라 하는 절차 한 단계. 번호는 .step-no */
+.content .step {
+  position: relative; border-left: 3pt solid var(--brand-primary); background: var(--brand-surface);
+  padding: 2.5mm 4mm 2.5mm 12mm; margin: 2.5mm 0; page-break-inside: avoid;
+}
+.content .step > .step-no {
+  position: absolute; left: 3.5mm; top: 2.3mm; width: 5.5mm; height: 5.5mm; line-height: 5.5mm; text-align: center;
+  background: var(--brand-primary); color: #fff; font-size: 8pt; font-weight: 800; border-radius: 50%;
+}
+
+/* 단서, 가정, 출처, 한계 */
+.content .note { font-size: 8.5pt; color: var(--ink-soft); border-top: 0.5pt dashed var(--line); padding-top: 2mm; margin-top: 3mm; }
+
+/* 상태 배지(구현 예정, 합의 대기) */
+.content .badge {
+  display: inline-block; font-size: 7pt; font-weight: 800; letter-spacing: 0.5px; color: #fff;
+  background: var(--c-caution); border-radius: 1pt; padding: 0.4mm 1.6mm; margin-left: 1.5mm; vertical-align: middle;
+}
+
+/* API 엔드포인트 한 줄: 메서드 배지와 경로 */
+.content .endpoint {
+  font-family: var(--c-mono); font-size: 9.5pt; margin: 5mm 0 2mm; padding-bottom: 1.2mm;
+  border-bottom: 0.5pt solid var(--line); page-break-after: avoid;
+}
+.content .endpoint .method {
+  display: inline-block; min-width: 14mm; text-align: center; font-size: 7.5pt; font-weight: 800; letter-spacing: 0.5px;
+  color: #fff; background: var(--brand-primary); border-radius: 1pt; padding: 0.6mm 2mm; margin-right: 2.5mm;
+}
+.content .endpoint .method.get { background: var(--c-ok); }
+.content .endpoint .method.delete { background: var(--c-danger); }
+.content .endpoint .method.event { background: var(--muted); }
+.content .endpoint .path { font-weight: 700; color: var(--ink); }
+.content .endpoint .badge { font-family: var(--brand-font); }
+.content pre { font-family: var(--c-mono); }
+
+/* 필드 표: 이름 열은 고정폭, 타입과 필수 열은 줄바꿈 없음 */
+.content table.fields td:first-child { font-family: var(--c-mono); font-size: 8.5pt; white-space: nowrap; }
+.content table.fields td:nth-child(2), .content table.fields td:nth-child(3) { white-space: nowrap; color: var(--ink-soft); }
+
+/* 금액 표: 마지막 열 우측 정렬, 마지막 행은 합계 */
+.content table.amounts td:last-child, .content table.amounts th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.content table.amounts tr:last-child td {
+  font-weight: 700; color: var(--ink); background: var(--brand-primary-tint);
+  border-top: 1pt solid var(--brand-primary); border-bottom: 1.5pt solid var(--brand-primary);
+}
+.content table.amounts tr:last-child td:last-child { color: var(--brand-primary); }
+
+/* 캡처와 그림은 본문 폭을 넘지 않는다 */
+.content img { max-width: 100%; height: auto; }

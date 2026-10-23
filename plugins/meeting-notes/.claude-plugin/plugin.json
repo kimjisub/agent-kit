@@ -1,0 +1,12 @@
+{
+  "name": "meeting-notes",
+  "version": "1.0.0",
+  "description": "Turn a meeting recording transcript into one notes folder: agenda-ordered summary, decisions, actions, open items, PDF. Doubtful speakers and names go to a numbered question list instead of guesses.",
+  "author": {
+    "name": "Jisub Kim",
+    "url": "https://github.com/kimjisub"
+  },
+  "homepage": "https://github.com/kimjisub/agent-kit/tree/main/plugins/meeting-notes",
+  "repository": "https://github.com/kimjisub/agent-kit",
+  "license": "MIT"
+}

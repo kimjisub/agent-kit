@@ -1,0 +1,46 @@
+/* ===================================================================
+   기본 브랜드 토큰 (brands/default/brand.css)
+   레이아웃의 style.css 와 cover.html 이 참조하는 CSS 변수.
+   회사 양식은 brands/<id>/brand.css 에서 같은 토큰 이름으로 값만 바꾼다.
+
+   @page 머리말과 꼬리말은 CSS 변수를 못 받으므로 brand.env 의
+   BRAND_PRIMARY_HEX, BRAND_ACCENT_HEX, BRAND_FONT_STACK 으로 따로 둔다.
+   =================================================================== */
+
+:root {
+  /* 주색. 표지 밴드, 제목의 rule 과 바, 라벨, 지표 숫자 */
+  --brand-primary: #2F5B8F;
+  --brand-primary-dark: #22446B;
+
+  /* 보조색. 표지 accent bar, 기밀 상자, 인용, 링크 밑줄 */
+  --brand-accent: #9A8458;
+
+  /* 옅은 배경 */
+  --brand-primary-tint: #EEF3F9;
+  --brand-accent-tint: #F8F6F1;
+  --brand-surface: #F6F5F3;
+
+  --brand-font: 'Pretendard', 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+  /* 그레이스케일 */
+  --ink: #191817;
+  --ink-soft: #4F4B47;
+  --line: #E3DED8;
+  --muted: #8B847D;
+
+  /* 타입 스케일 (인쇄 pt). 인접 단계를 또렷이 벌린다 */
+  --fs-caption: 8pt; --fs-small: 9pt; --fs-body: 10pt; --fs-lead: 10.5pt;
+  --fs-h3: 12pt; --fs-h2: 14.5pt; --fs-h1: 19pt; --fs-display: 30pt;
+  --lh-tight: 1.2; --lh-body: 1.55; --lh-relaxed: 1.62;
+
+  /* 산문 한 줄 길이 상한 */
+  --measure: 160mm;
+
+  --space-1: 2mm; --space-2: 3mm; --space-3: 5mm; --space-4: 7mm; --space-5: 10mm; --space-6: 14mm;
+  --radius: 1.5mm;
+
+  /* 의미 색. 브랜드와 무관하게 상태를 뜻한다 */
+  --ok: #1A8F3C;      --ok-tint: #EAF6EE;
+  --caution: #C2790A; --caution-tint: #FDF4E6;
+  --danger: #B0413E;  --danger-tint: #F8ECEB;
+}

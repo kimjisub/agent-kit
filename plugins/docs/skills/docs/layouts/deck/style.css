@@ -1,0 +1,312 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
+/* ===================================================================
+   docs 엔진 - 16:9 프레젠테이션(deck) 베이스 CSS
+   layouts/deck 의 스타일. build.sh 가 cover.html 의 __STYLE__ 자리에 넣는다.
+
+   슬라이드는 1920x1080 고정 캔버스. 색, 폰트는 브랜드 토큰(var(--brand-*))으로만 참조하고,
+   brands/<id>/brand.css 의 :root 가 값을 정의한다. (--gray-* 중립 스케일은 deck 자체 정의)
+   =================================================================== */
+
+@page { size: 1920px 1080px; margin: 0; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --gray-900: #111118;
+    --gray-700: #353542;
+    --gray-500: #62627a;
+    --gray-300: #a0a0b8;
+    --gray-100: #ebebf0;
+    --gray-50: #f7f7f9;
+    --white: #ffffff;
+}
+
+body {
+    font-family: var(--brand-font, 'Pretendard', 'Apple SD Gothic Neo', sans-serif);
+    color: var(--gray-900);
+    line-height: 1.6;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    background: var(--white);
+    word-break: keep-all;
+    font-variant-ligatures: none;
+}
+
+/* ===================== SLIDE BASE ===================== */
+
+.slide {
+    width: 1920px; height: 1080px;
+    page-break-after: always; page-break-inside: avoid;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+    background: var(--white);
+}
+.slide:last-child { page-break-after: avoid; }
+
+/* ===================== FOOTER ===================== */
+
+.slide-footer {
+    height: 48px; padding: 0 100px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid var(--gray-100);
+    font-size: 13px; color: var(--gray-300); letter-spacing: 0.02em;
+    flex-shrink: 0;
+}
+.slide-footer .brand-logo-footer { height: 14px; width: auto; opacity: 0.6; }
+.slide-footer .footer-left { display: flex; align-items: center; gap: 8px; }
+
+/* ===================== COVER ===================== */
+
+.cover { background: var(--gray-900); color: var(--white); }
+.cover .cover-content {
+    flex: 1; display: flex; flex-direction: column;
+    justify-content: flex-end; padding: 0 100px 72px;
+}
+.cover .cover-top {
+    display: flex; align-items: center; gap: 24px;
+    padding: 64px 100px 0; flex-shrink: 0;
+}
+.cover .cover-logo {
+    width: 72px; height: 72px; object-fit: contain;
+    border-radius: 12px; background: rgba(255,255,255,0.1); padding: 8px;
+}
+.cover .cover-label {
+    font-size: 15px; font-weight: 500; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--brand-primary);
+}
+.cover h1 {
+    font-size: 72px; font-weight: 900; line-height: 1.1;
+    letter-spacing: -2px; margin-bottom: 24px; max-width: 1200px;
+}
+.cover .cover-company {
+    font-size: 28px; font-weight: 300; color: rgba(255,255,255,0.6);
+    margin-bottom: 48px;
+}
+.cover .cover-meta {
+    font-size: 15px; color: rgba(255,255,255,0.35);
+    letter-spacing: 0.04em;
+}
+.cover .cover-bar {
+    height: 4px; width: 80px; background: var(--brand-primary);
+    margin-bottom: 32px;
+}
+.cover .cover-footer {
+    height: 48px; width: 100%; display: flex; align-items: center;
+    justify-content: space-between; padding: 0 100px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 13px; color: rgba(255,255,255,0.25);
+    flex-shrink: 0;
+}
+.cover .cover-footer .brand-logo-footer { height: 14px; width: auto; opacity: 0.4; }
+.cover .cover-footer .footer-left { display: flex; align-items: center; gap: 8px; }
+
+/* ===================== CONTENT SLIDES ===================== */
+
+.slide-body {
+    flex: 1;
+    padding: 64px 100px 20px;
+    display: flex; flex-direction: column;
+}
+
+/* 본문 콘텐츠 래퍼 - 헤더 아래 남은 세로 공간을 받아 콘텐츠를 균형 배치한다.
+   슬라이드는 1080px 고정이라, 콘텐츠를 그냥 쌓으면 상단에 몰리고 하단이 텅 비어 어색하다.
+   헤더(.slide-header+.slide-rule) 다음 본문을 이 래퍼로 감싸면 빈 공간이 자연스럽게 흡수된다.
+   콘텐츠 양에 따라 정렬을 고른다:
+     기본(center) - 블록이 적을 때 수직 중앙
+     .spread      - 블록이 2~3개일 때 위아래로 고르게 분산
+     .top         - 목록이 길어(5~6개) 위에서부터 채울 때 */
+.slide-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 0;
+}
+.slide-content.spread { justify-content: space-between; }
+.slide-content.top    { justify-content: flex-start; }
+
+/* 섹션 진행 스테퍼 - 섹션 표지(divider) 슬라이드의 대안.
+   slide-body 첫 요소로 두면 우상단에 "문제 - 방법 - 결과 - 결론" 이름과 점으로 표시하고 현재 섹션의 점을 채운다.
+   현재 섹션 도트, 이름에만 .on 을 붙인다. divider 4장을 아끼고 전환은 발표 멘트로. */
+.stepper { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 14px; }
+.stepper .st { display: flex; align-items: center; }
+.stepper .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--gray-100); }
+.stepper .dot.on { width: 13px; height: 13px; background: var(--brand-primary); border: 4px solid var(--brand-primary-tint); box-sizing: content-box; }
+.stepper .nm { font-size: 16px; font-weight: 600; color: var(--gray-300); margin-left: 9px; }
+.stepper .nm.on { font-size: 17px; font-weight: 900; color: var(--gray-900); }
+.stepper .ln { width: 54px; height: 1.5px; background: var(--gray-100); margin: 0 12px; }
+
+.slide-header {
+    display: flex; align-items: baseline; gap: 20px;
+    margin-bottom: 12px;
+}
+.slide-number {
+    font-size: 13px; font-weight: 700; color: var(--brand-primary);
+    letter-spacing: 0.08em; min-width: 20px;
+}
+.slide-title {
+    font-size: 40px; font-weight: 900; color: var(--gray-900);
+    line-height: 1.2; letter-spacing: -0.5px;
+}
+.slide-subtitle {
+    font-size: 20px; color: var(--gray-500); line-height: 1.65;
+    margin-bottom: 40px; max-width: 1200px;
+}
+.slide-rule {
+    width: 100%; height: 1px; background: var(--gray-100);
+    margin-bottom: 16px;
+}
+
+/* ===================== LAYOUTS ===================== */
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; flex: 1; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 48px; flex: 1; }
+
+/* ===================== COMPONENTS ===================== */
+
+/* Section label */
+.section-label {
+    font-size: 13px; font-weight: 700; color: var(--gray-300);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 20px; padding-bottom: 12px;
+    border-bottom: 2px solid var(--gray-900);
+    display: inline-block;
+}
+
+/* Data table */
+.data-table { width: 100%; }
+.data-table tr { border-bottom: 1px solid var(--gray-100); }
+.data-table tr:last-child { border-bottom: none; }
+.data-table td {
+    padding: 14px 0; font-size: 20px; vertical-align: top;
+    line-height: 1.55;
+}
+.data-table .dt-label {
+    width: 120px; color: var(--gray-300); font-size: 14px;
+    font-weight: 500; letter-spacing: 0.02em; padding-right: 24px;
+}
+.data-table .dt-value { color: var(--gray-700); }
+
+/* Prose */
+.prose {
+    font-size: 20px; color: var(--gray-700); line-height: 1.8;
+}
+
+/* Bullet list */
+.bullet-list { list-style: none; padding: 0; }
+.bullet-list li {
+    padding: 12px 0; font-size: 20px; line-height: 1.6;
+    color: var(--gray-700); position: relative; padding-left: 20px;
+}
+.bullet-list li::before {
+    content: ''; position: absolute; left: 0; top: 22px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--gray-300);
+}
+
+/* Metric */
+.metric-row { display: flex; gap: 48px; margin-bottom: 40px; }
+.metric {
+    flex: 1; padding: 36px 0;
+    border-top: 3px solid var(--gray-900);
+}
+.metric .metric-value {
+    font-size: 48px; font-weight: 900; color: var(--gray-900);
+    line-height: 1.1; margin-bottom: 8px; word-break: keep-all;
+}
+.metric .metric-label {
+    font-size: 14px; color: var(--gray-300); font-weight: 500;
+    letter-spacing: 0.06em; text-transform: uppercase;
+}
+
+/* Tags */
+.tag-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 32px; }
+.tag {
+    display: inline-block; padding: 8px 20px;
+    border: 1px solid var(--gray-100); border-radius: 4px;
+    font-size: 16px; font-weight: 500; color: var(--gray-700);
+}
+
+/* Timeline */
+.timeline { display: flex; gap: 0; flex: 1; align-items: stretch; }
+.timeline-item {
+    flex: 1; padding: 36px 40px; position: relative;
+    border-left: 1px solid var(--gray-100);
+}
+.timeline-item:first-child { border-left: none; }
+.timeline-item .period {
+    font-size: 14px; font-weight: 700; color: var(--brand-primary);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 16px;
+}
+.timeline-item p { font-size: 20px; color: var(--gray-700); line-height: 1.7; }
+
+/* Grid (selling points, features) */
+.sp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; flex: 1; }
+.sp-item {
+    padding: 40px 48px;
+    border-bottom: 1px solid var(--gray-100);
+    border-right: 1px solid var(--gray-100);
+}
+.sp-item:nth-child(2n) { border-right: none; }
+.sp-item:nth-last-child(-n+2) { border-bottom: none; }
+.sp-icon { font-size: 32px; margin-bottom: 12px; }
+.sp-item h4 {
+    font-size: 22px; font-weight: 700; color: var(--gray-900);
+    margin-bottom: 10px;
+}
+.sp-item p { font-size: 19px; color: var(--gray-500); line-height: 1.65; }
+
+/* News list */
+.news-list { list-style: none; padding: 0; }
+.news-list li {
+    padding: 20px 0; border-bottom: 1px solid var(--gray-100);
+    font-size: 19px; line-height: 1.6;
+}
+.news-list li:last-child { border-bottom: none; }
+.news-list li strong {
+    color: var(--gray-900); display: block; margin-bottom: 4px;
+    font-size: 20px; font-weight: 700;
+}
+.news-list li span { color: var(--gray-500); }
+
+/* CTA */
+.cta-bar {
+    margin-top: auto; padding: 24px 0 0; text-align: center;
+    border-top: 1px solid var(--gray-100);
+}
+.cta-bar p { font-size: 18px; color: var(--gray-500); }
+.cta-bar .cta-link { color: var(--brand-primary); font-weight: 700; }
+
+/* Misc */
+.bottom-paragraph {
+    margin-top: auto; font-size: 19px; color: var(--gray-500);
+    line-height: 1.75; padding-top: 16px;
+}
+.product-image {
+    width: 100%; max-height: 320px; object-fit: contain;
+    border-radius: 4px; margin-top: 20px;
+}
+
+/* === 본문 슬라이드 footer 로고를 CSS 로 주입 ===
+   본문 슬라이드에 빈 <span class="footer-left"></span> 만 두면 로고가 붙는다.
+   본문은 scaffold 이후에 쓰여 __LOGO_PATH__ 를 직접 못 쓰므로 CSS 로 처리한다. */
+.slide:not(.cover) .slide-footer .footer-left::before {
+  content: ''; display: inline-block; height: 14px; width: 66px;
+  background: url('__LOGO_PATH__') left center / contain no-repeat; opacity: 0.6;
+}
+.cover .cover-footer .footer-left::before {
+  content: ''; display: inline-block; height: 14px; width: 66px;
+  background: url('__LOGO_WHITE_PATH__') left center / contain no-repeat; opacity: 0.5;
+}
+
+/* 값이 빈 표지 요소는 숨긴다.
+   값은 공백 없이 요소 안에 바로 넣어야 :empty 가 맞는다. */
+.cover .cover-label:empty,
+.cover .cover-company:empty,
+.cover .cover-meta:empty { display: none; }
+.cover .cover-logo[alt=""] { display: none; }
+
+/* .slide-content 안의 격자와 타임라인은 제 높이만 쓰고 가운데 놓인다.
+   칸 사이 세로 괘선을 바닥까지 늘일 때만 style="flex:1" 을 준다. */
+.slide-content > .two-col, .slide-content > .three-col,
+.slide-content > .timeline, .slide-content > .sp-grid { flex: none; }

@@ -1,0 +1,113 @@
+</div>
+</div>
+</main>
+</div>
+<script>
+/* handbook 조립 스크립트. 본문의 section.chapter 와 h2[id] 를 읽어 다음을 채운다.
+   - 장 번호(.ch-num), 파트 이름(.ch-part), 절 번호(h2 .n), 장별 목차(nav.ch-toc)
+   - 사이드 목차(nav.side), 0장 문서 지도(ol.guide-toc 가 비어 있을 때)
+   - 스크롤 위치에 맞춘 사이드 목차 강조
+   장 속성: data-part="파트 이름", data-num="00" 처럼 번호를 직접 줄 수 있다(숫자가 아니면 절 번호를 달지 않는다),
+   data-summary="문서 지도에 쓸 한 줄". 이미 .ch-num, .n, .ch-toc 가 있으면 건드리지 않는다. */
+(function () {
+  var chapters = Array.prototype.slice.call(document.querySelectorAll('section.chapter'));
+  var pad = function (n) { return n < 10 ? '0' + n : String(n); };
+  var esc = function (t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML; };
+  var seq = 0, lastPart = null, idn = 0;
+  var navList = document.querySelector('nav.side > ol');
+  var guide = document.querySelector('ol.guide-toc');
+  var fillGuide = guide && !guide.children.length;
+
+  chapters.forEach(function (ch) {
+    if (!ch.id) ch.id = 'ch-' + (++idn);
+    var head = ch.querySelector('.ch-head') || ch;
+    var h1 = head.querySelector('h1');
+    var title = h1 ? h1.textContent.trim() : '';
+    var given = ch.getAttribute('data-num');
+    var label, numeric;
+    if (given !== null) { label = given; numeric = /^\d+$/.test(given); }
+    else { seq += 1; label = pad(seq); numeric = true; }
+    var short = numeric ? String(parseInt(label, 10)) : label;
+
+    if (!head.querySelector('.ch-num') && h1) {
+      var num = document.createElement('div'); num.className = 'ch-num'; num.textContent = label;
+      h1.parentNode.insertBefore(num, h1);
+    }
+    var part = ch.getAttribute('data-part');
+    if (part && !head.querySelector('.ch-part')) {
+      var pp = document.createElement('div'); pp.className = 'ch-part'; pp.textContent = part;
+      var first = head.querySelector('.ch-num') || h1;
+      first.parentNode.insertBefore(pp, first);
+    }
+
+    var secs = [];
+    Array.prototype.forEach.call(ch.querySelectorAll('h2'), function (h2, i) {
+      if (!h2.id) h2.id = ch.id + '-' + (i + 1);
+      var n = h2.querySelector('.n');
+      var sn = n ? n.textContent.trim() : (numeric && short !== '0' ? short + '.' + (i + 1) : '');
+      if (!n && sn) { n = document.createElement('span'); n.className = 'n'; n.textContent = sn; h2.insertBefore(n, h2.firstChild); }
+      var text = Array.prototype.filter.call(h2.childNodes, function (x) { return !(x.classList && x.classList.contains('n')); })
+        .map(function (x) { return x.textContent; }).join('').trim();
+      secs.push({ id: h2.id, n: sn, text: text });
+    });
+
+    if (secs.length > 1 && !ch.querySelector('.ch-toc')) {
+      var toc = document.createElement('nav'); toc.className = 'ch-toc';
+      toc.innerHTML = secs.map(function (s, i) { return '<a href="#' + s.id + '"><span>' + (i + 1) + '</span>' + esc(s.text) + '</a>'; }).join(' ');
+      head.parentNode === ch ? ch.insertBefore(toc, head.nextSibling) : head.appendChild(toc);
+    }
+
+    if (part && part !== lastPart) {
+      if (navList) navList.insertAdjacentHTML('beforeend', '<li class="part-h">' + esc(part) + '</li>');
+      if (fillGuide) guide.insertAdjacentHTML('beforeend', '<li class="part-h">' + esc(part) + '</li>');
+      lastPart = part;
+    }
+    if (navList) {
+      var li = document.createElement('li'); li.className = 'ch';
+      li.innerHTML = '<a href="#' + ch.id + '"><span>' + esc(short) + '</span>' + esc(title) + '</a>' +
+        '<div class="secs-w"><ol class="secs">' + secs.map(function (s) {
+          return '<li><a href="#' + s.id + '"><span>' + esc(s.n) + '</span>' + esc(s.text) + '</a></li>';
+        }).join('') + '</ol></div>';
+      navList.appendChild(li);
+    }
+    if (fillGuide && ch !== guide.closest('section.chapter')) {
+      guide.insertAdjacentHTML('beforeend', '<li><span class="no">' + esc(short) + '</span><span class="tt"><a href="#' + ch.id + '">' +
+        esc(title) + '</a></span><span class="ds">' + esc(ch.getAttribute('data-summary') || '') + '</span></li>');
+    }
+  });
+
+  /* 사이드 목차 강조 */
+  var nav = document.querySelector('nav.side');
+  if (!nav) return;
+  var links = {};
+  nav.querySelectorAll('a[href^="#"]').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
+  var targets = Array.prototype.filter.call(document.querySelectorAll('section[id], h2[id]'), function (el) { return links[el.id]; });
+  if (!targets.length) return;
+  var activeLink = null, currentCh = null, ticking = false, settle = 0;
+  function keepVisible(a) {
+    var r = a.getBoundingClientRect(), nr = nav.getBoundingClientRect();
+    if (r.top < nr.top + 60 || r.bottom > nr.bottom - 60) nav.scrollTo({ top: nav.scrollTop + (r.top - nr.top) - nav.clientHeight / 3, behavior: 'smooth' });
+  }
+  function update() {
+    ticking = false;
+    var line = window.innerHeight * 0.3, cur = targets[0];
+    for (var i = 0; i < targets.length; i++) { if (targets[i].getBoundingClientRect().top <= line) cur = targets[i]; else break; }
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) cur = targets[targets.length - 1];
+    var a = links[cur.id];
+    if (a === activeLink) return;
+    if (activeLink) activeLink.classList.remove('is-active');
+    activeLink = a; a.classList.add('is-active');
+    var li = a.closest('li.ch');
+    if (currentCh !== li) {
+      if (currentCh) currentCh.classList.remove('is-current');
+      currentCh = li; if (li) li.classList.add('is-current');
+      clearTimeout(settle); settle = setTimeout(function () { keepVisible(activeLink); }, 320);
+    } else { keepVisible(a); }
+  }
+  window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+})();
+</script>
+</body>
+</html>

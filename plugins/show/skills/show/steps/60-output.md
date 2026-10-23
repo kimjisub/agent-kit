@@ -84,7 +84,7 @@ kit 과 show.css 는 세 보기를 따로 맞춘다.
 bash scripts/check_print.sh <작업 폴더>/report.html     # 확인용 PDF 와 쪽마다 PNG
 ```
 
-PNG 를 전부 Read 로 연다. 그림이 쪽 사이에서 잘렸는지, 빈 쪽이 끼었는지, 쪽 아래가 크게 비었는지, 펼쳐진 `<details>` 가 종이에 나와도 되는 것인지 본다. 좁은 화면은 렌더의 화면 검사가 390px 로 이미 열어 시트에 첫 화면을 싣는다. 더 아래가 걱정되면 브라우저 도구로 폭을 390 으로 두고 전체를 찍어 연다. headless Chrome 의 `--window-size` 는 500 아래로 줄지 않으니 그것으로 재지 않는다.
+PNG 를 이미지로 전부 연다. 그림이 쪽 사이에서 잘렸는지, 빈 쪽이 끼었는지, 쪽 아래가 크게 비었는지, 펼쳐진 `<details>` 가 종이에 나와도 되는 것인지 본다. 좁은 화면은 렌더의 화면 검사가 390px 로 이미 열어 시트에 첫 화면을 싣는다. 더 아래가 걱정되면 브라우저 도구로 폭을 390 으로 두고 전체를 찍어 연다. headless Chrome 의 `--window-size` 는 500 아래로 줄지 않으니 그것으로 재지 않는다.
 
 ## 결정 받기
 
@@ -158,7 +158,7 @@ node <스킬 폴더>/scripts/show.mjs publish report.html --project <프로젝�
 공용 공간에 올린 세션은 답을 기다리며 다른 일을 한다. 받는 사람이 「보내기」 를 누르면 서버가 `~/.show/pages/<id>/replies/0001.json` 에 남기고(묶인 Markdown, 결정마다 값과 「그러면」, 의견), 기다리던 명령이 그 답을 낸다.
 
 ```bash
-node <스킬 폴더>/scripts/show.mjs wait <id> --timeout 3600     # Bash 를 백그라운드로 건다. 답이 오면 끝나며 알림이 온다
+node <스킬 폴더>/scripts/show.mjs wait <id> --timeout 3600     # 백그라운드로 건다(Claude Code 면 Bash 의 run_in_background). 답이 오면 끝나며 알림이 온다
 node <스킬 폴더>/scripts/show.mjs take <id> <seq>              # 가져갔다. 페이지에 「가져감」
 node <스킬 폴더>/scripts/show.mjs done <id> <seq> --note "목록과 상세를 같은 값으로 맞춤"   # 반영했다. 페이지에 「반영됨」
 ```
@@ -182,4 +182,4 @@ for (let i = 0; i < 20; i++) { if (await page.evaluate(() => [...document.images
 console.log(await page.evaluate(() => [...document.images].filter(i => !i.naturalWidth).length), '장 깨짐');
 ```
 
-깨진 것이 0 이면 카드 서너 곳으로 스크롤해 찍고 Read 로 연다. 사진과 캡션의 번호가 맞는지, 표가 넘치지 않는지 본다.
+깨진 것이 0 이면 카드 서너 곳으로 스크롤해 찍고 이미지로 연다. 사진과 캡션의 번호가 맞는지, 표가 넘치지 않는지 본다.

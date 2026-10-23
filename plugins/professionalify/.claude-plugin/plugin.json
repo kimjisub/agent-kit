@@ -1,0 +1,9 @@
+{
+  "name": "professionalify",
+  "version": "1.0.0",
+  "description": "Measure and raise the professionalism of documents, slides, charts, diagrams and UI copy along 16 axes, and learn from every correction. Skill docs are in Korean.",
+  "author": { "name": "Jisub Kim", "url": "https://github.com/kimjisub" },
+  "homepage": "https://github.com/kimjisub/agent-kit/tree/main/plugins/professionalify",
+  "repository": "https://github.com/kimjisub/agent-kit",
+  "license": "MIT"
+}

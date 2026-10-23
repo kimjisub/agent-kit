@@ -5,7 +5,7 @@ AI output mostly arrives as text, and the reader has to redraw it in their head 
 Skill docs, verdict words and templates are in Korean.
 
 ```
-/plugin install show --marketplace kimjisub/claude-code-kit
+/plugin install show --marketplace kimjisub/agent-kit
 ```
 
 Installed as a plugin it runs as `/show:show`. Copied to `~/.claude/skills/show`, it runs as `/show`.
