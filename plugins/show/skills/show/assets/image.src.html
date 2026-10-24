@@ -1,0 +1,38 @@
+<!doctype html>
+<!-- 이미지 골격. 메신저나 채팅에 PNG 로 붙일 한 장이다(steps/40-build.md §이미지로 건넬 페이지).
+     글자 크기: data-image(항목 3~6개) / data-image="mid"(7~12개) / data-image="dense"(13개 이상).
+     렌더: node <스킬 폴더>/kit/render.mjs image.src.html --png   -> image.html, image.png -->
+<html lang="ko" data-image>
+<head>
+<title>{{결론을 말하는 제목}}</title>
+<link rel="stylesheet" href="kit.css" data-ve-kit>
+<style>/* 이 그림에만 쓰는 CSS. kit 의 토큰만 쓰고, 높이를 고정하지 않는다 */</style>
+</head>
+<body><main>
+  <header>
+    <h1>{{결론을 말하는 제목}}</h1>
+    <p class="lead">{{답 한 문장. 받는 사람이 여기서 멈춰도 된다}}</p>
+    <p class="meta">{{지표의 정의, 대상, 기준 시각과 시간대}}</p>
+  </header>
+
+  <!-- 큰 숫자. 칸은 같은 폭이고 라벨과 숫자는 한 줄이다. 넷을 넘으면 셋씩 두 줄 -->
+  <div class="stats">
+    <div class="stat"><span class="l">{{무엇}}</span><span class="n">{{수}}<small>{{단위}}</small></span><span class="d">{{비교 기준 대비}}</span></div>
+    <div class="stat"><span class="l">{{무엇}}</span><span class="n">{{수}}<small>{{단위}}</small></span><span class="d">{{비교 기준 대비}}</span></div>
+    <div class="stat"><span class="l">{{무엇}}</span><span class="n">{{수}}<small>{{단위}}</small></span><span class="d">{{비교 기준 대비}}</span></div>
+  </div>
+
+  <!-- 그림 하나에 주장 하나. viewBox 폭은 그려질 폭(약 1280)에 맞추고 라벨은 22 단위 이상, 가장 높은 막대는 그림 높이의 80% 까지 -->
+  <figure>
+    <div class="frame"><svg class="ve-svg" viewBox="0 0 1280 480" aria-label="{{그림이 보이는 것 한 문장}}">
+    </svg></div>
+    <figcaption><span class="fig-n">그림 1</span>{{이 그림의 주장 한 문장}}</figcaption>
+  </figure>
+
+  <!-- 각주와 출처. 맨 아래, 18px 이상 -->
+  <div class="foot">
+    <p>{{출처, 뽑은 시각, 시간대}}</p>
+    <p>{{확인 못 한 것, 추정}}</p>
+  </div>
+</main></body>
+</html>

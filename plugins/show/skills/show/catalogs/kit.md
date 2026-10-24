@@ -70,6 +70,7 @@
 | diff | `<!--diff:id--><!--/diff:id-->` 자리에 `scripts/diff-html.py --into` 가 `.df` 조각을 넣는다. 구간 위 이유 한 줄은 `<p class="why">` | 바뀐 코드와 문서([figures §diff](figures.md#diff)) |
 | 참조 코드, 절 번호 | `<span class="rc">R-1</span>`, `<h2><span class="n">2.</span>...</h2>`, `<h3><span class="n">2-1</span>...</h3>`, 절 부제 `<p class="sub">` | 보고([document §참조 코드](../steps/20-document.md#참조-코드)) |
 | 작업자용 절 | `<section id="internal">`. 골격 끝의 스크립트가 `?internal` 없이 열면 지운다 | 받는 사람이 둘일 때 |
+| 이미지 페이지 | `<html data-image[="mid"\|"dense"]>`. 큰 숫자는 `.stat` 에 `.l`, `.n`(단위 `<small>`), `.d`(비교 기준), 각주는 `<div class="foot">`, 번호는 `<span class="no">1</span>`(`kit/image.css`) | PNG 로 건넬 한 장([build §이미지로 건넬 페이지](../steps/40-build.md#이미지로-건넬-페이지)) |
 
 ## 데이터 태그
 

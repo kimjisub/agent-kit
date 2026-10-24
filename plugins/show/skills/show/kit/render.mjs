@@ -9,6 +9,7 @@
 //   show.css 를 늘 넣고, .pair[data-compare] 가 있으면 compare.js, main 의 h2 가 둘 이상이면 report-nav.js 를 넣는다.
 //   상대 경로 이미지를 data URI 로 넣어 결과가 파일 하나로 닫히게 했다. plan 페이지 갈래는 뺐다. lang 기본값은 ko.
 //   인쇄용으로 <title> 을 둘째 쪽부터의 쪽 머리(@page @top-left)로 넣고, 글이 곧 주소인 바깥 링크에 .bare 를 단다(show.css 가 그 밖의 링크 뒤에 주소를 적는다).
+//   이미지 페이지(<html data-image>)는 image.css 와 글꼴 ShowKo(kit/fonts)를 넣고, 목차와 겹쳐 보기 스크립트는 넣지 않는다. --png 면 png.mjs 로 한 장을 찍는다.
 import { lstatSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { basename, dirname, join, resolve, sep } from "node:path";
@@ -20,6 +21,7 @@ import { TAGS as KIT_TAGS } from "./tags.mjs";
 import { FORMS } from "./forms.mjs";
 import { lookAtProse } from "./prose.mjs";
 import { PeleError, render as drawMermaid } from "./vendor/pele.mjs";
+import { fontFaceCss, IMAGE_MIN_TEXT, PNG_SCALE, PNG_WIDTH } from "./png.mjs";
 // show: kit 의 태그(막대, 와플, 쌓기)에 show 의 태그(forms.mjs)를 더한다
 const TAGS = { ...KIT_TAGS, ...FORMS };
 const hasPlan = () => false;
@@ -29,6 +31,8 @@ const here = dirname(fileURLToPath(import.meta.url));
 
 // The registers the kit and show.css style. Fonts come from show.css (local fonts only, no request leaves the page).
 const FONTS = { ledger: 1, instrument: 1, blueprint: 1, paper: 1, editorial: 1 };
+// show: 이미지 페이지의 글자 단계. 값 없음은 항목 3~6개의 기본(image.css)
+const IMAGE = { "": 1, mid: 1, dense: 1 };
 const IMG = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", svg: "image/svg+xml", webp: "image/webp" };
 
 /** Figures, figures without a caption, expanded tags and flows, and prose words outside figures. */
@@ -71,6 +75,9 @@ export function renderPage(source, { sendBack = false, base = process.cwd() } = 
   if (links.length > 1) errors.push(`${links.length} <link data-ve-kit> elements; keep one in <head>`);
   const register = find(doc, (n) => n.name === "html")[0]?.attrs["data-register"] || "ledger";
   if (!FONTS[register]) errors.push(`data-register="${register}" is not a register; use ${Object.keys(FONTS).join(", ")}`);
+  const imageAttr = find(doc, (n) => n.name === "html")[0]?.attrs["data-image"];
+  const image = imageAttr !== undefined;
+  if (image && !Object.hasOwn(IMAGE, imageAttr)) errors.push(`data-image="${imageAttr}" is not a size; use data-image (3-6 items), data-image="mid" (7-12), or data-image="dense" (13 or more)`);
   const body = find(doc, (n) => n.name === "body")[0];
   if (!body) errors.push("the page has no <body>");
   // a box or arrow keeps the data-ref and data-s it was written with, so it lights with its terms and its steps
@@ -84,6 +91,7 @@ export function renderPage(source, { sendBack = false, base = process.cwd() } = 
     const main = find(doc, (n) => n.name === "main")[0];
     const inMain = new Set(main ? find(main, (n) => n.name === "ve-ask") : []);
     for (const a of asks) if (!inMain.has(a)) errors.push(`${where(a)}: <ve-ask> must be inside <main>, where the reader's reply is collected`);
+    if (image) errors.push(`${where(asks[0])}: a picture cannot take a decision back; send this page as a link (drop data-image), or write the decision as a line under the picture`);
   }
   const ids = new Map();
   for (const t of charts) t.html = t.name === "ve-flow" ? expandFlow(t, { errors, warnings, where, ref, page: true }) : TAGS[t.name](t, { errors, warnings, where });
@@ -150,11 +158,11 @@ export function renderPage(source, { sendBack = false, base = process.cwd() } = 
   const bare = (u) => u.replace(/^https?:\/\//i, "").replace(/\/$/, "");
   for (const a of find(doc, (n) => n.name === "a" && /^https?:/i.test(n.attrs.href ?? ""))) if (!hasClass(a, "bare") && bare(textOf(a).trim()).includes(bare(a.attrs.href))) addClass(a, "bare");
   const forms = charts.some((t) => Object.hasOwn(FORMS, t.name));
-  const css = ["kit.css", ...(asks.length ? ["ask.css"] : []), ...(mermaids.length ? ["mermaid.css"] : []), ...(forms ? ["forms.css"] : []), "show.css"].map((f) => readFileSync(join(here, f), "utf8")).join("") + running;
+  const css = ["kit.css", ...(asks.length ? ["ask.css"] : []), ...(mermaids.length ? ["mermaid.css"] : []), ...(forms ? ["forms.css"] : []), "show.css", ...(image ? ["image.css"] : [])].map((f) => readFileSync(join(here, f), "utf8")).join("") + running + (image ? fontFaceCss() : "");
   const compares = find(doc, (n) => hasClass(n, "pair") && "data-compare" in n.attrs).length;
   const mainEl = find(doc, (n) => n.name === "main")[0];
   const sections = mainEl ? find(mainEl, (n) => n.name === "h2" && n.attrs["data-nav"] !== "skip").length : 0;
-  const js = ["reply.js", ...(asks.length ? ["ask.js"] : []), "kit.js", ...(compares ? ["compare.js"] : []), ...(sections >= 2 ? ["report-nav.js"] : [])].map((f) => readFileSync(join(here, f), "utf8")).join("\n").replace(/<\/script/gi, "<\\/script");
+  const js = ["reply.js", ...(asks.length ? ["ask.js"] : []), "kit.js", ...(compares && !image ? ["compare.js"] : []), ...(sections >= 2 && !image ? ["report-nav.js"] : [])].map((f) => readFileSync(join(here, f), "utf8")).join("\n").replace(/<\/script/gi, "<\\/script");
   const script = `<script data-ve-kit${sendBack ? " data-send-back" : ""}>\n${js}</script>`;
   // without a charset, Firefox and Safari garble · and — (prepareRenderedHtml adds the viewport)
   const charset = find(doc, (n) => n.name === "meta" && ("charset" in n.attrs || /^content-type$/i.test(n.attrs["http-equiv"] ?? ""))).length ? "" : '<meta charset="utf-8">\n';
@@ -171,7 +179,7 @@ ${css}</style>`;
     scripts[0].html = script;
     for (const s of scripts.slice(1)) s.html = "";
   } else body.children.push({ html: `${script}\n` });
-  return { html: serialize(doc), kit: true, errors, warnings, report: { ...count(doc, charts), inlined }, prose: lookAtProse(doc) };
+  return { html: serialize(doc), kit: true, image, errors, warnings, report: { ...count(doc, charts), inlined }, prose: lookAtProse(doc) };
 }
 
 const favicon = '<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 64 64\'%3E%3Crect width=\'64\' height=\'64\' rx=\'14\' fill=\'%230f172a\'/%3E%3Cpath d=\'M18 40V24l14-8 14 8v16l-14 8-14-8Z\' fill=\'none\' stroke=\'%23fbbf24\' stroke-width=\'4\' stroke-linejoin=\'round\'/%3E%3Ccircle cx=\'32\' cy=\'32\' r=\'5\' fill=\'%2338bdf8\'/%3E%3C/svg%3E">';
@@ -229,9 +237,9 @@ async function main() {
   const argv = process.argv.slice(2);
   const flag = (name) => argv.includes(name);
   const value = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
-  const input = argv.find((a, i) => !a.startsWith("-") && !["-o", "--root"].includes(argv[i - 1]));
+  const input = argv.find((a, i) => !a.startsWith("-") && !["-o", "--root", "--width", "--scale"].includes(argv[i - 1]));
   if (!input) {
-    console.error("usage: node render.mjs page.src.html [-o page.html] [--root <repo>] [--lint] [--open] [--no-check]");
+    console.error("usage: node render.mjs page.src.html [-o page.html] [--root <repo>] [--lint] [--open] [--no-check] [--png [--width 1400] [--scale 2]]");
     process.exit(2);
   }
   const output = value("-o") ?? (/\.src\.html?$/i.test(input) ? input.replace(/\.src(\.html?)$/i, "$1") : null);
@@ -262,12 +270,23 @@ async function main() {
     process.exitCode = 1;
   }
   // a kit page is looked at in a browser, so the agent reads one report and one sheet instead of scripting its own screenshots
+  // show: an image page is looked at only at the width it is taken at, with the image's text floor, and the PNG is what to open
+  const png = flag("--png"), width = +(value("--width") ?? PNG_WIDTH), scale = +(value("--scale") ?? PNG_SCALE);
   if (result.kit && !hasPlan(source) && !flag("--no-check")) {
     const { lookAt, lookLines } = await import("./look.mjs");
-    const looked = await lookAt(output);
+    const looked = await lookAt(output, result.image ? { widths: [width], minLabel: IMAGE_MIN_TEXT, sheet: !png } : { sheet: !png });
     for (const line of lookLines(looked)) console.log(`  ${line}`);
     if (looked.problems.length) {
       console.log(`✗ ${looked.problems.length} visual problem(s); the page was written. Fix them and render again.`);
+      process.exitCode = 1;
+    }
+  }
+  if (png) {
+    const { toPng, pngLines } = await import("./png.mjs");
+    const shot = await toPng(output, { width, scale });
+    for (const line of pngLines(shot)) console.log(`  ${line}`);
+    if (shot.skipped || shot.problems.length) {
+      if (!shot.skipped) console.log(`✗ ${shot.problems.length} image problem(s); the PNG was written. Fix them and render again.`);
       process.exitCode = 1;
     }
   }

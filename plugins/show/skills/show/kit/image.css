@@ -1,0 +1,40 @@
+/* image.css - 이미지로 건네는 페이지(<html data-image>). render.mjs 가 show.css 뒤에 넣고, 글꼴 ShowKo 를 함께 넣는다.
+   받는 사람은 메신저에서 폭 1400px(배율 2) 그림을 휴대폰 폭으로 줄여 본다. 그래서 링크용 문서보다 글자가 두 배쯤 크다.
+   글자 크기는 항목 수로 고른다: data-image(기본, 항목 3~6개) 30px, data-image="mid"(7~12개) 25px, data-image="dense"(13개 이상) 22px.
+   여러 장으로 쪼개기보다 한 단계 작게 해서 한 장에 담는다. 높이는 내용이 정한다. 높이를 고정하지 않는다 */
+html[data-image] { font-size: 30px; }
+html[data-image="mid"] { font-size: 25px; }
+html[data-image="dense"] { font-size: 22px; }
+html[data-image] {
+  --t-label: max(18px, .75rem); --t-small: max(18px, .85rem); --t-lead: 1.1rem;
+  --t-h1: 1.6rem; --t-h2: 1.15rem;
+}
+html[data-image] body { line-height: 1.55; word-break: keep-all; overflow-wrap: break-word; }
+/* 그림 한 장이 곧 문서다. 한 단을 폭 끝까지 쓰고 글줄 폭 제한을 푼다 */
+html[data-image] main { max-width: none; padding: 1.4rem 1.6rem 1.6rem; gap: 1rem; }
+html[data-image] :is(main, section, header) > :is(p, ul, ol, h1, h2), html[data-image] .sec-head > h2,
+html[data-image] figcaption, html[data-image] .lead, html[data-image] h1 { max-width: none; }
+html[data-image] header { gap: .4rem; }
+html[data-image] header + figure { margin-top: 0; }
+html[data-image] h1 { line-height: 1.3; }
+html[data-image] section > h2 { margin-bottom: .5rem; }
+html[data-image] .frame { padding: .6rem; }
+
+/* 큰 숫자 카드. 칸은 같은 폭(항목 수만큼 한 줄), 라벨과 숫자는 줄을 바꾸지 않는다. 넘치면 png.mjs 가 짚는다 */
+html[data-image] .stats { grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)); gap: .5rem; }
+html[data-image] .stats:has(> :nth-child(1):last-child) { --cols: 1; }
+html[data-image] .stats:has(> :nth-child(2):last-child) { --cols: 2; }
+html[data-image] .stats:has(> :nth-child(3):last-child) { --cols: 3; }
+html[data-image] .stats:has(> :nth-child(5):last-child), html[data-image] .stats:has(> :nth-child(6):last-child) { --cols: 3; }
+html[data-image] .stat { padding: .5rem .6rem; display: grid; gap: .15rem; align-content: start; }
+html[data-image] .stat .l { white-space: nowrap; font-size: .8rem; }
+html[data-image] .stat .n { white-space: nowrap; font-size: 1.6rem; line-height: 1.15; }
+html[data-image] .stat .n small { font-size: .5em; font-weight: 500; color: var(--text-dim); margin-left: .1em; }
+html[data-image] .stat .d { font-size: .8rem; color: var(--text-dim); }
+
+/* 각주와 출처. 그림 맨 아래에 두고, 작아도 18px 아래로 내려가지 않는다 */
+html[data-image] .foot { font-size: var(--t-small); color: var(--text-dim); border-top: 1px solid var(--border); padding-top: .4rem; }
+html[data-image] .foot p + p { margin-top: .2rem; }
+
+/* 번호는 글리프(①, ▲)가 아니라 CSS 원으로 그린다. 기기마다 글리프가 다르거나 □ 가 된다 */
+html[data-image] .no { display: inline-grid; place-items: center; width: 1.3em; height: 1.3em; border-radius: 50%; background: var(--accent); color: #fff; font-size: .8em; font-weight: 700; margin-right: .3em; vertical-align: .08em; }

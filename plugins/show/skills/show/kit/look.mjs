@@ -14,7 +14,7 @@ const SHEET_W = 1200, SHEET_H = 960, PAD = 16, GAP = 12, LABEL = 22, MAX_SHEETS 
 // a font still downloading after load must not hold the render; a late font only shifts glyphs slightly
 const fontsReady = () => Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 5000))]);
 
-async function launch() {
+export async function launch() {
   let chromium;
   try {
     ({ chromium } = await import("playwright-core"));
@@ -293,7 +293,9 @@ async function drawSheets(browser, sheets, outBase) {
  * Looks at a rendered page. Returns { problems, sheets, widths, errors } or { skipped } when there is no browser.
  * With `sheet`, writes <name>.sheet.png (and -2, -3 … when one would be too small to read) beside the page, replacing older ones.
  */
-export async function lookAt(file, { sheet = true } = {}) {
+export async function lookAt(file, { sheet = true, widths = WIDTHS, minLabel = MIN_LABEL } = {}) {
+  // show: an image page is looked at only at the width it is taken at, with its larger label floor (png.mjs)
+  const wide = Math.max(...widths), narrow = Math.min(...widths);
   const got = await launch();
   if (got.skipped) return { skipped: got.skipped, problems: [], sheets: [] };
   const { browser } = got;
@@ -309,7 +311,7 @@ export async function lookAt(file, { sheet = true } = {}) {
   };
   try {
     // as a reader opens it, at each width
-    for (const width of WIDTHS) {
+    for (const width of widths) {
       const page = await browser.newPage({ viewport: { width, height: 900 } });
       page.on("console", (m) => {
         if (m.type() !== "error") return;
@@ -321,12 +323,12 @@ export async function lookAt(file, { sheet = true } = {}) {
       await page.goto(url, { waitUntil: "load", timeout: 15000 });
       await page.evaluate(fontsReady);
       await page.waitForTimeout(300);
-      result.widths[width] = await page.evaluate(measure, MIN_LABEL);
+      result.widths[width] = await page.evaluate(measure, minLabel);
       await page.close();
     }
 
     // the final state without motion: geometry, every step, and the crops for the sheet
-    const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: "reduce", colorScheme: "light" });
+    const context = await browser.newContext({ viewport: { width: wide, height: 900 }, reducedMotion: "reduce", colorScheme: "light" });
     const items = [];
     try {
       const page = await context.newPage();
@@ -336,15 +338,18 @@ export async function lookAt(file, { sheet = true } = {}) {
       note(await page.evaluate(inspect, null));
       const gaps = await page.evaluate(headings, MIN_HEADING_GAP);
       const desktop = sheet ? await page.screenshot() : null;
-      await page.setViewportSize({ width: 390, height: 900 });
-      await page.waitForTimeout(100);
-      gaps.push(...await page.evaluate(headings, MIN_HEADING_GAP));
-      const phone = sheet ? await page.screenshot() : null;
-      await page.setViewportSize({ width: 1280, height: 900 });
-      await page.evaluate(() => scrollTo(0, 0));
-      await page.waitForTimeout(100);
+      let phone = null;
+      if (narrow !== wide) {
+        await page.setViewportSize({ width: narrow, height: 900 });
+        await page.waitForTimeout(100);
+        gaps.push(...await page.evaluate(headings, MIN_HEADING_GAP));
+        phone = sheet ? await page.screenshot() : null;
+        await page.setViewportSize({ width: wide, height: 900 });
+        await page.evaluate(() => scrollTo(0, 0));
+        await page.waitForTimeout(100);
+      }
       result.problems.push(...new Set(gaps));
-      if (sheet) items.push({ kind: "overview", cells: [{ png: desktop, ...pngSize(desktop), label: "First screen · 1280" }, { png: phone, ...pngSize(phone), label: "390" }] });
+      if (sheet) items.push({ kind: "overview", cells: [{ png: desktop, ...pngSize(desktop), label: `First screen · ${wide}` }, ...(phone ? [{ png: phone, ...pngSize(phone), label: `${narrow}` }] : [])] });
 
       // figures below the first screen, steppers aside (their steps follow)
       const figs = await page.$$("main figure");
@@ -412,11 +417,11 @@ export async function lookAt(file, { sheet = true } = {}) {
   const shapes = [...geometry].map(([key, steps]) => (steps.length ? `${key} (step${steps.length > 1 ? "s" : ""} ${steps.join(", ")})` : key));
   result.problems = [
     ...result.errors,
-    ...WIDTHS.filter((w) => at[w].overflow).map((w) => `the page scrolls sideways at ${w}px`),
-    ...WIDTHS.filter((w) => at[w].small).map((w) => `a diagram label renders at ${at[w].smallest.px}px at ${w}px ("${at[w].smallest.text}"); keep labels at ${MIN_LABEL}px or more`),
-    ...WIDTHS.flatMap((w) => (at[w].squashed || []).map((n) => `an image is stretched at ${w}px: ${n}; size images with --img-max, not width or height alone`)),
-    ...(at[1280].unmatched || []).map((n) => `a before/after pair shows different ranges: ${n}; shoot both at the same viewport and scroll, or crop both to the same box`),
-    ...(at[1280].kit ? [] : ["the kit's script did not run to its end"]),
+    ...widths.filter((w) => at[w].overflow).map((w) => `the page scrolls sideways at ${w}px`),
+    ...widths.filter((w) => at[w].small).map((w) => `a diagram label renders at ${at[w].smallest.px}px at ${w}px ("${at[w].smallest.text}"); keep labels at ${minLabel}px or more`),
+    ...widths.flatMap((w) => (at[w].squashed || []).map((n) => `an image is stretched at ${w}px: ${n}; size images with --img-max, not width or height alone`)),
+    ...(at[wide].unmatched || []).map((n) => `a before/after pair shows different ranges: ${n}; shoot both at the same viewport and scroll, or crop both to the same box`),
+    ...(at[wide].kit ? [] : ["the kit's script did not run to its end"]),
     ...result.problems,
     ...shapes,
   ];
@@ -429,7 +434,7 @@ export function lookLines(r) {
   const shown = r.problems.slice(0, 12);
   const lines = shown.length
     ? [...shown.map((p) => `✗ ${p}`), ...(r.problems.length > shown.length ? [`✗ … and ${r.problems.length - shown.length} more`] : [])]
-    : [`✓ Visual check: no problems · smallest label ${WIDTHS.map((w) => `${r.widths[w].smallest?.px ?? "—"}px at ${w}`).join(", ")}`];
+    : [`✓ Visual check: no problems · smallest label ${Object.keys(r.widths).map((w) => `${r.widths[w].smallest?.px ?? "—"}px at ${w}`).join(", ")}`];
   if (r.sheets.length) lines.push(`Look at: ${r.sheets.join(", ")}${r.omitted ? ` (${r.omitted} more crops left out)` : ""}`);
   return lines;
 }

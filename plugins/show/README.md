@@ -1,6 +1,6 @@
 # show
 
-AI output mostly arrives as text, and the reader has to redraw it in their head as screens, structure, order and size. Where that redrawing stalls is the bottleneck this skill looks for. It then builds one HTML page that draws it instead: a structure diagram, step playback, a figure you can change, a trend line, before and after values, a timeline, a tree, a matrix, a 2x2, a sequence diagram, real screenshots side by side, a drawing, or a diff. The renderer points at numbers, arrows and versions still written as sentences. When nothing in the kit fits, it builds the part inside the page. Reports for other people get counted verdicts, decisions collected on the page, a phone layout and A4 print.
+AI output mostly arrives as text, and the reader has to redraw it in their head as screens, structure, order and size. Where that redrawing stalls is the bottleneck this skill looks for. It then builds one HTML page that draws it instead: a structure diagram, step playback, a figure you can change, a trend line, before and after values, a timeline, a tree, a matrix, a 2x2, a sequence diagram, real screenshots side by side, a drawing, or a diff. The renderer points at numbers, arrows and versions still written as sentences. When nothing in the kit fits, it builds the part inside the page. Reports for other people get counted verdicts, decisions collected on the page, a phone layout and A4 print. For a messenger, the same page can go out as one PNG with large text and a bundled Korean font, so it reads on a phone and renders on a server without Korean fonts.
 
 Skill docs, verdict words and templates are in Korean.
 
@@ -12,14 +12,14 @@ Installed as a plugin it runs as `/show:show`. Copied to `~/.claude/skills/show`
 
 ---
 
-AI 가 한 일과 낸 결과, 그 의도를 글만으로는 이해하기 어려울 때 쓰는 스킬입니다. 읽는 사람이 어디서 막히는지 먼저 찾고, 그 자리를 푸는 HTML 한 장을 만듭니다. 형식은 정해 두지 않습니다. 직접 그린 구조도와 흐름도, 단계 재생, 값을 바꿔 보는 그림, 막대와 와플, 추세선, 전후 값, 타임라인, 나무, 행렬, 2x2, 순서도, 실제로 띄워 찍은 화면, 같은 범위로 뽑은 도면, 바뀐 코드의 diff 가운데 맞는 것을 고르고, 맞는 것이 없으면 페이지 안에 직접 만듭니다. 그림이 받을 숫자, 화살표, 버전이 문장에 남아 있으면 렌더러가 그 자리를 짚습니다. 받는 사람은 문장을 골라 의견을 달고 결정을 골라 답을 묶어 회신합니다. 남에게 건네는 보고라면 판정을 셉니다. 휴대폰에서 읽히고 브라우저 인쇄로 A4 PDF 가 나옵니다.
+AI 가 한 일과 낸 결과, 그 의도를 글만으로는 이해하기 어려울 때 쓰는 스킬입니다. 읽는 사람이 어디서 막히는지 먼저 찾고, 그 자리를 푸는 HTML 한 장을 만듭니다. 형식은 정해 두지 않습니다. 직접 그린 구조도와 흐름도, 단계 재생, 값을 바꿔 보는 그림, 막대와 와플, 추세선, 전후 값, 타임라인, 나무, 행렬, 2x2, 순서도, 실제로 띄워 찍은 화면, 같은 범위로 뽑은 도면, 바뀐 코드의 diff 가운데 맞는 것을 고르고, 맞는 것이 없으면 페이지 안에 직접 만듭니다. 그림이 받을 숫자, 화살표, 버전이 문장에 남아 있으면 렌더러가 그 자리를 짚습니다. 받는 사람은 문장을 골라 의견을 달고 결정을 골라 답을 묶어 회신합니다. 남에게 건네는 보고라면 판정을 셉니다. 휴대폰에서 읽히고 브라우저 인쇄로 A4 PDF 가 나옵니다. 메신저에서 바로 읽을 사람에게는 같은 페이지를 글자를 키워 PNG 한 장(`kit/render.mjs <원본> --png`)으로 건넵니다. 한글 글꼴을 페이지에 넣어 찍으므로 한글 글꼴이 없는 서버에서도 □ 로 깨지지 않습니다.
 
 ## 쓰려면
 
 | 필요한 것 | 쓰는 곳 |
 |---|---|
 | Node.js 18 이상 | 페이지 렌더(`kit/render.mjs`)와 공용 공간 서버(`scripts/show.mjs`). 설치할 패키지는 없습니다 |
-| Playwright | 렌더 뒤 화면 검사, 화면 촬영(`scripts/shot.mjs`), 만든 장치를 눌러 보는 확인. 보고서 작업 폴더에서 `npm i -D playwright` 를 한 번 합니다. Playwright 브라우저를 받지 않으면 설치된 Chrome 으로 띄웁니다 |
+| Playwright | 렌더 뒤 화면 검사, 화면 촬영(`scripts/shot.mjs`), PNG 출구(`kit/png.mjs`), 만든 장치를 눌러 보는 확인. 보고서 작업 폴더에서 `npm i -D playwright` 를 한 번 합니다. Playwright 브라우저를 받지 않으면 설치된 Chrome 으로 띄웁니다 |
 | Python 3 | diff 그리기(`scripts/diff-html.py`) |
 | Pillow | 긴 화면 이어 붙이기, 브라우저 밖 이미지에 표시 그리기 |
 | Chrome | 인쇄 확인(`scripts/check_print.sh`). `pdftoppm` 이 있으면 쪽마다 PNG 도 뽑습니다 |
@@ -32,4 +32,4 @@ Playwright 대신 다른 브라우저 자동화 도구를 써도 됩니다. 페�
 
 ## 라이선스
 
-MIT. `skills/show/kit/` 의 kit(CSS, 스크립트, 렌더러, 화면 검사)과 그림 원칙, 스타일 가이드, 페이지 레시피는 [visual-explainer](https://github.com/nicobailon/visual-explainer) v0.14.0(MIT, Copyright (c) 2025 Nico Bailon)에서 가져와 고쳤습니다. 원 고지는 `skills/show/kit/LICENSE` 에 있습니다.
+MIT. `skills/show/kit/` 의 kit(CSS, 스크립트, 렌더러, 화면 검사)과 그림 원칙, 스타일 가이드, 페이지 레시피는 [visual-explainer](https://github.com/nicobailon/visual-explainer) v0.14.0(MIT, Copyright (c) 2025 Nico Bailon)에서 가져와 고쳤습니다. 원 고지는 `skills/show/kit/LICENSE` 에 있습니다. PNG 출구에 넣는 글꼴 ShowKo 는 [Pretendard](https://github.com/orioncactus/pretendard) 1.3.9 의 500, 700 굵기를 줄이고 이름을 바꾼 것이고 SIL OFL 1.1 을 따릅니다(`skills/show/kit/fonts/OFL.txt`).
