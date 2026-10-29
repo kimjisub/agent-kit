@@ -10,17 +10,19 @@
 //   상대 경로 이미지를 data URI 로 넣어 결과가 파일 하나로 닫히게 했다. plan 페이지 갈래는 뺐다. lang 기본값은 ko.
 //   인쇄용으로 <title> 을 둘째 쪽부터의 쪽 머리(@page @top-left)로 넣고, 글이 곧 주소인 바깥 링크에 .bare 를 단다(show.css 가 그 밖의 링크 뒤에 주소를 적는다).
 //   이미지 페이지(<html data-image>)는 image.css 와 글꼴 ShowKo(kit/fonts)를 넣고, 목차와 겹쳐 보기 스크립트는 넣지 않는다. --png 면 png.mjs 로 한 장을 찍는다.
+//   <figure> 안의 <script type="application/vnd.vegalite+json"> 을 vega.mjs 로 SVG 로 그려 넣고, 그 페이지에 vega.css 를 넣는다.
 import { lstatSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { basename, dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { addClass, decode, esc, find, hasClass, inner, kids, parseHtml, serialize, textOf, words } from "./html.mjs";
+import { addClass, decode, esc, find, hasClass, inner, kids, parseHtml, rawText, serialize, textOf, words } from "./html.mjs";
 import { expandFlow } from "./flow.mjs";
 import { expandAsk } from "./ask.mjs";
 import { TAGS as KIT_TAGS } from "./tags.mjs";
 import { FORMS } from "./forms.mjs";
 import { lookAtProse } from "./prose.mjs";
 import { PeleError, render as drawMermaid } from "./vendor/pele.mjs";
+import { drawCharts, VEGA_TYPE } from "./vega.mjs";
 import { fontFaceCss, IMAGE_MIN_TEXT, PNG_SCALE, PNG_WIDTH } from "./png.mjs";
 // show: kit 의 태그(막대, 와플, 쌓기)에 show 의 태그(forms.mjs)를 더한다
 const TAGS = { ...KIT_TAGS, ...FORMS };
@@ -68,6 +70,7 @@ export function renderPage(source, { sendBack = false, base = process.cwd() } = 
   const asks = tags.filter((t) => t.name === "ve-ask"), charts = tags.filter((t) => t.name !== "ve-ask");
   // Mermaid is drawn on kit pages only; a deck or another page without the kit keeps its <pre> as written
   const mermaids = links.length ? find(doc, (n) => n.name === "pre" && hasClass(n, "mermaid")) : [];
+  const vegas = links.length ? find(doc, (n) => n.name === "script" && (n.attrs.type ?? "").trim().toLowerCase() === VEGA_TYPE) : [];
   if (!links.length && !tags.length && !mermaids.length) return { html: source, kit: false, errors, warnings, report: count(doc, charts) };
   const lineOf = (pos) => source.slice(0, pos).split("\n").length;
   const where = (n) => `line ${lineOf(n.pos)} <${n.name}${n.attrs.id ? `#${n.attrs.id}` : ""}>`;
@@ -121,6 +124,29 @@ export function renderPage(source, { sendBack = false, base = process.cwd() } = 
     const svg = (r, cls) => r.svg.replace(' role="graphics-document document"', ` role="img" aria-label="${esc(label)}"`).replace('class="pele ', `class="pele${cls} `).replace('style="', `style="min-width:${r.width}px;`);
     pre.html = `<div class="ve-mermaid"${pre.attrs.id ? ` id="${esc(pre.attrs.id)}"` : ""}>${svg(wide, both ? " is-wide" : "")}${both ? svg(narrow, " is-narrow") : ""}</div>`;
   }
+  // Vega-Lite becomes plain SVG too (vega.mjs), all of a page's charts in one child process so this stays synchronous.
+  // A chart sits in a <figure>, so its claim is the caption and the prose check counts it as a figure.
+  if (vegas.length) {
+    const inFigure = new Set(find(doc, (n) => n.name === "figure").flatMap((f) => find(f, (n) => vegas.includes(n))));
+    const jobs = [], nodes = [];
+    for (const [i, s] of vegas.entries()) {
+      const label = s.attrs["aria-label"];
+      if (!label) { errors.push(`${where(s)}: add aria-label="…" saying what the chart shows`); continue; }
+      if (!inFigure.has(s)) { errors.push(`${where(s)}: put the chart in a <figure> with a <figcaption> that says its claim`); continue; }
+      let spec;
+      try { spec = JSON.parse(rawText(s)); } catch (e) { errors.push(`${where(s)}: the Vega-Lite spec is not JSON: ${e.message}`); continue; }
+      if (!spec || typeof spec !== "object" || Array.isArray(spec)) { errors.push(`${where(s)}: the Vega-Lite spec must be one JSON object`); continue; }
+      if (spec.title) warnings.push(`${where(s)}: the spec has a title; say the chart's claim in <figcaption> and drop the title`);
+      jobs.push({ spec, label: esc(label), id: `ve-v${i}`, image, tz: s.attrs["data-tz"] });
+      nodes.push(s);
+    }
+    for (const [k, r] of drawCharts(jobs, { base }).entries()) {
+      const s = nodes[k];
+      if (r.error) { errors.push(`${where(s)}: ${r.error}`); continue; }
+      for (const w of r.warnings) warnings.push(`${where(s)}: Vega-Lite: ${w}`);
+      s.html = `<div class="ve-vega"${s.attrs.id ? ` id="${esc(s.attrs.id)}"` : ""}>${r.svg}</div>`;
+    }
+  }
   // Each drawing says what it shows, and a viewBox wider than 816 gets the min-width that keeps 14-unit labels at 12 px.
   const drawings = [];
   const top = (n) => { for (const c of kids(n)) if (c.name === "svg") drawings.push(c); else top(c); };
@@ -158,7 +184,7 @@ export function renderPage(source, { sendBack = false, base = process.cwd() } = 
   const bare = (u) => u.replace(/^https?:\/\//i, "").replace(/\/$/, "");
   for (const a of find(doc, (n) => n.name === "a" && /^https?:/i.test(n.attrs.href ?? ""))) if (!hasClass(a, "bare") && bare(textOf(a).trim()).includes(bare(a.attrs.href))) addClass(a, "bare");
   const forms = charts.some((t) => Object.hasOwn(FORMS, t.name));
-  const css = ["kit.css", ...(asks.length ? ["ask.css"] : []), ...(mermaids.length ? ["mermaid.css"] : []), ...(forms ? ["forms.css"] : []), "show.css", ...(image ? ["image.css"] : [])].map((f) => readFileSync(join(here, f), "utf8")).join("") + running + (image ? fontFaceCss() : "");
+  const css = ["kit.css", ...(asks.length ? ["ask.css"] : []), ...(mermaids.length ? ["mermaid.css"] : []), ...(vegas.length ? ["vega.css"] : []), ...(forms ? ["forms.css"] : []), "show.css", ...(image ? ["image.css"] : [])].map((f) => readFileSync(join(here, f), "utf8")).join("") + running + (image ? fontFaceCss() : "");
   const compares = find(doc, (n) => hasClass(n, "pair") && "data-compare" in n.attrs).length;
   const mainEl = find(doc, (n) => n.name === "main")[0];
   const sections = mainEl ? find(mainEl, (n) => n.name === "h2" && n.attrs["data-nav"] !== "skip").length : 0;

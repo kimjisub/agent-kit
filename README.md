@@ -44,7 +44,7 @@ plugins/<name>/skills/<name>/     the skill itself (SKILL.md and its folders)
 
 ## License
 
-MIT. Third-party parts keep their own notice next to them (`plugins/show/skills/show/kit/LICENSE`, `plugins/professionalify/skills/professionalify/axes/01-ai-slop/sources/LICENSE-humanize-korean`).
+MIT. Third-party parts keep their own notice next to them (`plugins/show/skills/show/kit/LICENSE`, `plugins/show/skills/show/kit/vendor/VEGA-LICENSE`, `plugins/professionalify/skills/professionalify/axes/01-ai-slop/sources/LICENSE-humanize-korean`).
 
 ---
 

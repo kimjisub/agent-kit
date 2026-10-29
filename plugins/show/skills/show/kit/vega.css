@@ -1,0 +1,21 @@
+/* Vega-Lite drawn at render time (vega.mjs): the kit's palette, and a phone layout below 640 px when the chart is one view.
+   A chart never shrinks below the width it was drawn at (its labels would fall under 12 px); the figure scrolls instead.
+   Categories follow the Okabe-Ito colors (Okabe & Ito 2008), which stay apart under the common color-vision deficiencies,
+   with the page's accent first. --ve-muted is the gray for what is not the point of the chart */
+:root {
+  --ve-c1: var(--accent); --ve-c2: #d55e00; --ve-c3: #009e73; --ve-c4: #cc79a7; --ve-c5: #e69f00; --ve-c6: #56b4e9; --ve-c7: #6b6b6b;
+  --ve-muted: #c9ccd1;
+}
+.ve-vega { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.ve-vega > svg { display: block; height: auto; }
+.ve-vega > .is-narrow { display: none; }
+@media (max-width: 640px) {
+  .ve-vega > .is-wide { display: none; }
+  .ve-vega > .is-narrow { display: block; }
+}
+@media print {
+  .ve-vega { overflow: visible; }
+  .ve-vega > svg { min-width: 0 !important; max-width: 100%; }
+  .ve-vega > .is-wide { display: block !important; }
+  .ve-vega > .is-narrow { display: none !important; }
+}

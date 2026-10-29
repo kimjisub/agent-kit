@@ -76,7 +76,7 @@ python3 scripts/diff-html.py old.md new.md > data/doc-diff.html                 
 
 ### 숫자 차트
 
-값은 재료 파일에서 만든다([data](../variants/data.md)). 크기는 `<ve-bars>`, 몫은 `<ve-waffle>` 과 `<ve-stack>`, 전후는 `<ve-shift>`, 추세는 `<ve-line>` 이다([forms §수치](forms.md#수치)). 막대는 0 에서 시작하고, 단위와 기준 시각을 라벨이나 캡션에 적는다. 막대 옆에 숫자를 함께 둬 인쇄에서도 읽히게 한다.
+값은 재료 파일에서 만든다([data](../variants/data.md)). 크기는 `<ve-bars>`, 몫은 `<ve-waffle>` 과 `<ve-stack>`, 전후는 `<ve-shift>`, 추세는 `<ve-line>` 이다([forms §수치](forms.md#수치)). 막대는 0 에서 시작하고, 단위와 기준 시각을 라벨이나 캡션에 적는다. 막대 옆에 숫자를 함께 둬 인쇄에서도 읽히게 한다. 태그에 안 맞는 차트(산점도, 분포, 계열이 여럿인 추세, 작은 그림 여럿, 히트맵)와 행이 많은 재료 파일은 Vega-Lite 스펙으로 쓴다([vega-lite](vega-lite.md)).
 
 ### 수치 추이
 

@@ -104,6 +104,10 @@
 
 표시는 `key`, `hot`, `async`, `new`, `gone`. `data-s` 와 `data-ref` 는 직접 그린 부분과 같이 동작하고, `data-s` 가 있는 화살표마다 재생 점이 생긴다. 화살표 라벨은 12자 안팎까지. 렌더 오류는 줄을 짚는다(`line 42 <ve-bar>: value="-3" is negative`).
 
+## Vega-Lite 차트
+
+`<figure>` 안에 `<script type="application/vnd.vegalite+json" aria-label="…">` 로 스펙을 쓰면 렌더가 정적 SVG 로 그려 넣는다. 데이터는 `data.url` 로 `data/` 의 파일을 읽는다. 언제 쓰나, 레시피, 함정은 [vega-lite](vega-lite.md).
+
 ## show 데이터 태그 (forms.mjs)
 
 글로 쓰면 문장이 되는 정보를 값만 적어 그림으로 바꾼다. 좌표는 렌더러가 계산한다. 어느 정보에 어느 태그인지는 [forms](forms.md). 모두 `<figure>` 안에 두고 `label` 을 단다. `data-ref`, `data-s` 는 그린 부분에 그대로 옮겨진다.
