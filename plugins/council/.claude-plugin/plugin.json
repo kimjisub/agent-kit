@@ -1,7 +1,7 @@
 {
   "name": "council",
-  "version": "1.0.0",
-  "description": "Ask the same question to several model CLIs (Codex, Antigravity, Gemini, Grok, Cursor) and the session model, have the external models rank the anonymized answers, then synthesize one answer as chair. Inspired by karpathy/llm-council.",
+  "version": "1.1.0",
+  "description": "Ask the same question to several model CLIs usable on this machine (Codex, Antigravity, Grok, Cursor, Gemini) and the session model, have the external models rank the anonymized answers, then synthesize one answer as chair. Inspired by karpathy/llm-council.",
   "author": {
     "name": "Jisub Kim",
     "url": "https://github.com/kimjisub"

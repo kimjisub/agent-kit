@@ -1,58 +1,81 @@
 ---
 name: council
-description: 같은 질문을 Codex, Antigravity, Gemini, Grok, Cursor CLI 와 Claude 에게 각자 답하게 하고, 출처를 가린 답변들을 외부 모델끼리 순위 매기게 한 뒤 Claude 가 의장으로 하나의 답으로 종합한다(karpathy/llm-council 의 3단계를 로컬 CLI 구독으로 옮긴 것). "council 돌려줘", "위원회에 물어봐", "여러 모델한테 물어봐", "모델들 의견 모아줘", "다른 모델들은 뭐래", "llm council", "교차 검증해줘", "모델끼리 평가시켜" 류 요청에 발동합니다. (역할을 나눠 모델마다 다른 질문을 맡기는 오케스트레이션이나 페르소나별 리뷰와는 다르다. 여기서는 모두에게 같은 질문을 준다.)
+description: 같은 질문을 이 기기에서 로그인돼 쓸 수 있는 모델 CLI(Codex, Antigravity, Grok, Cursor, Gemini)와 세션 모델에게 각자 답하게 하고, 출처를 가린 답변들을 외부 모델끼리 순위 매기게 한 뒤 세션 모델이 의장으로 하나의 답으로 종합한다(karpathy/llm-council 의 3단계를 로컬 CLI 구독으로 옮긴 것). 위원은 실제 호출로 로그인, 버전, 플랜을 재서 쓸 수 있고 모델 계열이 겹치지 않는 것만 고른다. "council 돌려줘", "위원회에 물어봐", "여러 모델한테 물어봐", "모델들 의견 모아줘", "다른 모델들은 뭐래", "llm council", "교차 검증해줘", "모델끼리 평가시켜", "council 위원 상태", "어느 모델 CLI 가 로그인돼 있어" 류 요청에 발동합니다. (역할을 나눠 모델마다 다른 질문을 맡기는 오케스트레이션이나 페르소나별 리뷰와는 다르다. 여기서는 모두에게 같은 질문을 준다.)
 ---
 
 # council - 여러 모델의 독립 답변, 익명 상호 평가, 의장 종합
 
-**로드 시점 - 한 질문에 대해 여러 모델의 답을 받아 비교하고 하나로 종합하고 싶을 때.** 역할을 나눠 모델마다 다른 질문을 주는 일은 그런 오케스트레이션 스킬(예: oh-my-claudecode 의 `ccg`)의 몫이고, 이 스킬은 모두에게 같은 질문을 주고 서로 평가시킨다.
+**로드 시점 - 한 질문에 대해 여러 모델의 답을 받아 비교하고 하나로 종합하고 싶을 때.** 역할을 나눠 모델마다 다른 질문을 주는 일은 오케스트레이션 스킬의 몫이고, 이 스킬은 모두에게 같은 질문을 주고 서로 평가시킨다.
 
 ## 목적
 
 **같은 질문에 대한 여러 모델의 답을 출처를 가린 채 서로 평가시켜, 어느 답이 왜 나은지를 근거로 최종 답을 만드는 절차다.** 답을 나란히 놓기만 하면 읽는 사람이 모델 이름에 끌려 판단한다. 출처를 가리고 모델끼리 순위를 매기게 하면 어느 답이 실제로 나은지, 어디서 의견이 갈리는지가 드러나고, 의장은 그 신호를 보고 종합한다.
 
-원본 karpathy/llm-council 은 OpenRouter API 로 모델을 부른다. 이 스킬은 이 기기에 로그인된 CLI 를 읽기 전용으로 부르므로 API 키가 필요 없고 각 구독 한도 안에서 돈다. 역할 셋(위원, 익명 평가자, 의장)과 순위 형식은 원본을 따랐고, 프롬프트 문구는 원본 저장소에 라이선스가 없어 새로 썼다.
+원본 karpathy/llm-council 은 OpenRouter API 로 모델을 부른다. 이 스킬은 이 기기에 로그인된 CLI 를 읽기 전용으로 부르므로 API 키가 필요 없고 각 구독 한도 안에서 돈다. 어느 CLI 가 깔려 있고 로그인돼 있고 어떤 플랜인지는 기기와 사람마다 다르므로, 시작할 때 실제로 불러 보고 쓸 수 있는 위원만 고른다. 역할 셋(위원, 익명 평가자, 의장)과 순위 형식은 원본을 따랐고, 프롬프트 문구는 원본 저장소에 라이선스가 없어 새로 썼다.
 
-아래에서 Claude 는 이 절차를 돌리는 세션의 모델을 가리킨다. Hermes 나 Codex 에서 돌리면 그 세션의 모델이 Claude 자리(독립 답 하나와 의장)에 서고, 같은 CLI 는 `--members` 에서 빼 위원이 겹치지 않게 한다.
+아래에서 의장은 이 절차를 돌리는 세션의 모델을 가리킨다. Claude Code 면 Claude, Codex 면 GPT, Hermes 면 그 설정의 모델이다. 의장은 독립 답 하나를 쓰고 마지막에 종합한다.
 
 ## 핵심 원칙
 
-1. **질문은 대화를 모르는 사람이 읽어도 서야 한다.** 외부 CLI 는 이 대화를 못 본다. "이거", "아까 그 함수" 가 남은 질문을 보내면 Claude 만 맥락을 가진 채 답하고, 순위는 맥락 유무를 잰 것이 된다. 필요한 배경, 파일 경로, 제약을 질문 안에 적는다. 적용 -> Step 1
-2. **Claude 의 답은 다른 답을 보기 전에 쓴다.** 남의 답을 본 뒤 쓰면 독립 답이 아니라 종합이 되고, 평가에서 그 답이 유리해진다. 적용 -> Step 2
-3. **의장은 평가에 끼지 않는다.** Claude 는 출처를 가려도 자기 답을 알아본다. 순위는 외부 위원만 매긴다. 외부 위원은 자기 답이 섞인 줄 모르는 채 평가하므로 원본처럼 그대로 둔다. 적용 -> Step 4
+1. **질문은 대화를 모르는 사람이 읽어도 서야 한다.** 외부 CLI 는 이 대화를 못 본다. "이거", "아까 그 함수" 가 남은 질문을 보내면 의장만 맥락을 가진 채 답하고, 순위는 맥락 유무를 잰 것이 된다. 필요한 배경, 파일 경로, 제약을 질문 안에 적는다. 적용 -> Step 1
+2. **의장의 답은 다른 답을 보기 전에 쓴다.** 남의 답을 본 뒤 쓰면 독립 답이 아니라 종합이 되고, 평가에서 그 답이 유리해진다. 적용 -> Step 2
+3. **의장은 평가에 끼지 않는다.** 의장은 출처를 가려도 자기 답을 알아본다. 순위는 외부 위원만 매긴다. 외부 위원은 자기 답이 섞인 줄 모르는 채 평가하므로 원본처럼 그대로 둔다. 적용 -> Step 4
 4. **순위는 신호이고 정답이 아니다.** 1위 답을 그대로 옮기지 않는다. 평가문에서 여러 위원이 같이 짚은 결함, 한 위원만 짚은 지적, 위원 간에 갈린 사실 판단을 나눠 보고, 갈린 사실은 직접 확인한 뒤 최종 답에 넣는다. 적용 -> Step 5
-5. **빠진 위원을 숨기지 않는다.** 로그인이 안 됐거나 시간 초과로 빠진 위원은 이유와 함께 보고한다. 위원이 둘이면 셋일 때와 같은 무게로 읽히면 안 된다. 적용 -> Step 3, Step 5
-
-## 전제 - 시작하기 전에 있어야 하는 것
-
-| 전제 | 확인 | 없으면 |
-|---|---|---|
-| 위원 CLI 가 깔려 있다 | `which codex agy gemini grok cursor-agent` | 없는 위원은 `missing_cli` 로 빠진다. 둘 이상 남으면 진행한다 |
-| 위원 CLI 가 로그인돼 있다 | Step 3 결과의 `auth_required` | 사용자에게 `gemini`, `grok login`, `cursor-agent login` 을 직접 실행해 달라고 한다(Claude Code 면 프롬프트에 `!` 를 붙여 그 세션에서 돌린다). 기다리지 않고 남은 위원으로 진행한다 |
-| 외부 위원이 하나 이상 답했다 | Step 3 의 `ok` 수 | 0 이면 council 이 아니다. 실패 이유를 보고하고 멈춘다 |
+5. **빠진 위원을 숨기지 않는다.** 로그인이 안 됐거나 시간 초과로 빠진 위원은 이유와 함께 보고한다. 위원이 둘이면 셋일 때와 같은 무게로 읽히면 안 된다. 적용 -> Step 0, Step 3, Step 5
+6. **위원끼리, 그리고 의장과 모델 계열이 겹치지 않는다.** 같은 모델이 두 자리에 앉으면 순위가 한 모델의 의견을 두 번 센 것이 된다. cursor 의 무료 플랜은 다른 회사 모델로 돌고, agy 는 Claude 모델도 고를 수 있어 겹치기 쉽다. 스크립트가 계열을 보고 뒤 순위 위원을 뺀다. 적용 -> Step 0
 
 ## 절차
 
 ```
+0. 위원 파악       scripts/council.py members  - 실제 호출로 로그인, 버전, 플랜, 모델 계열
 1. 질문 세우기     run 폴더와 question.md
-2. Claude 답       stage1/claude.md
-3. 1차 답변        scripts/council.py stage1   - 외부 위원 병렬, 읽기 전용
+2. 의장 답         stage1/claude.md
+3. 1차 답변        scripts/council.py stage1   - 쓸 수 있는 외부 위원 병렬, 읽기 전용
 4. 익명 평가       scripts/council.py stage2   - 라벨 섞기, 외부 위원이 순위
 5. 의장 종합       final.md 와 보고
 ```
 
-산출물은 run 폴더 하나에 모인다.
+산출물은 run 폴더 하나에 모인다. 위원 파악 결과는 기기마다 하나인 캐시에 남는다.
 
 ```
+~/.council/members.json              Step 0, 위원별 상태와 모델. 6시간 동안 재사용
 ~/.council/runs/<YYYYMMDD-HHMM>-<영문 슬러그>/
   question.md            Step 1
-  stage1/claude.md       Step 2
+  stage1/claude.md       Step 2 (의장이 누구든 파일 이름은 claude.md)
   stage1/<위원>.md       Step 3, status.json 에 위원별 결과
   labels.json            Step 4, Response A.. 와 위원 대응
   stage2/<위원>.md       Step 4, 평가문
   ranking.json           Step 4, 평균 순위와 위원별 순위
   final.md               Step 5
 ```
+
+### Step 0. 위원 파악 - 이 기기에서 쓸 수 있는 위원
+
+```bash
+timeout 400 python3 <이 스킬>/scripts/council.py members [--chair claude]
+```
+
+1. 위원마다 한 단어 질문을 읽기 전용으로 실제로 던진다. CLI 의 로그인 상태 명령은 토큰이 만료돼도 로그인됐다고 답하므로 믿지 않는다. 병렬이라 20초 안팎이다.
+2. 위원별로 쓸 모델을 고른다. agy 는 Gemini 계열, cursor 는 Composer 를 고른다. 각 CLI 의 기본값이 다른 회사 모델로 갈 수 있어서다. `--model cursor=<id>` 로 바꿀 수 있다.
+3. `--chair` 에 의장 계열(`claude`, `gpt`, `gemini`, `grok`)을 준다. 기본은 `claude` 다. 의장과 같은 계열 위원, 그리고 우선순위(codex, antigravity, grok, cursor, gemini)에서 앞 위원과 계열이 겹치는 위원은 `skip` 이 된다.
+4. 결과는 `use`/`skip` 줄과 `fix:` 줄로 나온다. `fix` 는 사용자가 할 일이다.
+
+| status | 뜻 | fix |
+|---|---|---|
+| `ok` | 답을 받았다 | - |
+| `auth_required` | 로그인 안 됨. 인증 화면이 떠서 즉시 끊었다 | 그 CLI 의 로그인 명령 |
+| `auth_expired` | 로그인 기록은 있지만 서버가 401 로 거부 | 다시 로그인 |
+| `outdated` | 서버가 CLI 버전을 거부(426 등) | CLI 업데이트 |
+| `plan_limited` | 플랜 밖 모델. cursor 무료 플랜은 모델 지정 자체가 막혀 `auto` 만 된다 | 플랜을 올리거나 그 위원을 뺀다 |
+| `missing_cli` | CLI 없음 | 설치 |
+| `timeout`, `error`, `empty` | 그 밖의 실패. `empty` 는 한 번 다시 묻고도 비었을 때다 | `~/.council/members.json` 의 `detail` 을 본다 |
+| `same_family:<계열>` (skip 사유) | 의장이나 앞 위원과 모델 계열이 같다 | 의도한 것이 아니면 `--model` 로 다른 계열을 고른다 |
+
+`fix` 가 로그인이면 사용자에게 그 명령을 직접 실행해 달라고 한다(Claude Code 면 프롬프트에 `!` 를 붙여 그 세션에서 돌린다). 기다리지 않고 쓸 수 있는 위원으로 진행한다. CLI 설치, 화면 없는 기기에서의 로그인, CLI 별 함정은 `references/member-cli-setup.md` 에 있다.
+
+끝나면 `use` 가 하나 이상이다. 0 이면 council 이 아니다. `fix` 를 보고하고 멈춘다.
+
+Step 3 은 캐시가 없거나 6시간이 지났으면 이 단계를 스스로 먼저 돈다. 사용자가 방금 로그인했으면 `members --only <위원>` 으로 그 위원만 다시 잰다.
 
 ### Step 1. 질문 세우기 - 맥락 없이 읽히는 질문
 
@@ -64,9 +87,9 @@ description: 같은 질문을 Codex, Antigravity, Gemini, Grok, Cursor CLI 와 C
 
 끝나면 `question.md` 하나만 읽고도 답할 수 있다.
 
-### Step 2. Claude 답 - 남의 답을 보기 전에
+### Step 2. 의장 답 - 남의 답을 보기 전에
 
-1. `stage1/claude.md` 에 Claude 의 답을 쓴다. 다른 위원과 같은 조건이 되도록 `question.md` 에 적힌 것을 기준으로 답한다.
+1. `stage1/claude.md` 에 의장의 답을 쓴다. 다른 위원과 같은 조건이 되도록 `question.md` 에 적힌 것을 기준으로 답한다.
 2. 이 파일은 Step 3 이 덮지 않는다.
 
 끝나면 `stage1/claude.md` 가 있고, 그때까지 외부 위원의 답을 하나도 열지 않았다. -> 핵심 원칙 2
@@ -74,24 +97,16 @@ description: 같은 질문을 Codex, Antigravity, Gemini, Grok, Cursor CLI 와 C
 ### Step 3. 1차 답변 - 외부 위원 병렬 호출
 
 ```bash
-timeout 1900 python3 <이 스킬>/scripts/council.py stage1 "$RUN" --cwd <질문이 가리키는 폴더>
+timeout 1900 python3 <이 스킬>/scripts/council.py stage1 "$RUN" --cwd <질문이 가리키는 폴더> [--chair claude]
 ```
 
 1. 백그라운드로 돌리고(Claude Code 면 Bash 의 `run_in_background`) 완료 알림을 기다린다. 위원 하나당 기본 900초(`--timeout`)이고 바깥 `timeout` 이 전체 상한이다.
-2. 위원을 줄이려면 `--members codex,antigravity` 처럼 준다. 기본은 다섯 모두다.
-3. stderr 의 위원별 한 줄과 마지막 요약 JSON 을 본다. `ok` 가 아닌 위원은 `status.json` 의 `detail` 로 이유를 확인한다.
+2. `--members` 를 안 주면 Step 0 캐시에서 `use` 인 위원만 부른다. `--members codex,grok` 처럼 주면 캐시를 거치지 않고 그 위원을 부른다. 한 위원만 다시 돌릴 때 쓴다.
+3. stderr 의 위원별 한 줄과 마지막 요약 JSON 을 본다. `ok` 가 아닌 위원은 `status.json` 의 `detail` 로 이유를 확인한다. 로그인, 버전, 플랜 문제로 실패한 위원은 캐시에도 반영돼 다음 실행에서 빠진다.
 
-위원은 모두 읽기 전용 모드로 불린다(codex `-s read-only`, agy `--mode plan --sandbox`, gemini `--approval-mode plan`, grok `--permission-mode plan`, cursor 는 `--force` 없는 print). 인증 화면이 뜨면 스크립트가 즉시 끊고 `auth_required` 로 남긴다.
+위원은 모두 읽기 전용 모드로 불린다(codex `-s read-only`, agy `--mode plan --sandbox`, gemini `--approval-mode plan`, grok `--permission-mode plan`, cursor `--mode ask`). cursor 의 `--trust` 는 작업 폴더를 신뢰한다는 확인을 건너뛸 뿐 쓰기 권한을 주지 않는다. 쓰기와 명령 실행은 `--force` 가 있어야 하고 쓰지 않는다. status 의 뜻은 Step 0 표와 같다.
 
-| status | 뜻 | 할 일 |
-|---|---|---|
-| `ok` | 답을 받았다 | - |
-| `auth_required` | 로그인 안 됨 | 전제 표대로 사용자에게 로그인을 부탁하고 진행 |
-| `timeout` | 상한 안에 안 끝남 | 질문이 너무 넓은지 본다. 다시 돌릴 때는 그 위원만 `--members` 로 |
-| `error`, `empty` | CLI 오류 또는 빈 답 | `detail` 을 보고, 버전 문제면 보고에 적는다 |
-| `missing_cli` | CLI 없음 | 보고에 적는다 |
-
-끝나면 `stage1/` 에 Claude 를 포함해 답이 둘 이상 있다. 외부 `ok` 가 0 이면 멈춘다.
+끝나면 `stage1/` 에 의장을 포함해 답이 둘 이상 있다. 외부 `ok` 가 0 이면 멈춘다.
 
 ### Step 4. 익명 평가 - 외부 위원의 순위
 
@@ -99,7 +114,7 @@ timeout 1900 python3 <이 스킬>/scripts/council.py stage1 "$RUN" --cwd <질문
 timeout 1900 python3 <이 스킬>/scripts/council.py stage2 "$RUN" --cwd <Step 3 과 같은 폴더>
 ```
 
-1. 스크립트가 답의 순서를 섞어 `Response A..` 로 가리고 `labels.json` 에 대응을 남긴다. Claude 의 답도 섞인다.
+1. 스크립트가 답의 순서를 섞어 `Response A..` 로 가리고 `labels.json` 에 대응을 남긴다. 의장의 답도 섞인다.
 2. Step 3 에서 `ok` 였던 외부 위원만 평가한다. 평가 프롬프트는 `prompts/reviewer.md` 이고 원본 llm-council 의 순위 형식을 따른다.
 3. 각 평가문 끝의 `FINAL RANKING:` 을 읽어 `ranking.json` 에 평균 순위(`average_rank`, 낮을수록 좋다)와 위원별 순위를 쓴다.
 
@@ -124,7 +139,7 @@ timeout 1900 python3 <이 스킬>/scripts/council.py stage2 "$RUN" --cwd <Step 3
 
 - 합의: <여러 위원이 같이 짚은 것>
 - 갈린 지점: <무엇이 갈렸고 의장이 어느 쪽을 왜 택했나>
-- 빠진 위원: <위원, 이유>
+- 빠진 위원: <위원, 이유, fix>
 - 기록: `<run 폴더>`
 ```
 
@@ -132,10 +147,10 @@ timeout 1900 python3 <이 스킬>/scripts/council.py stage2 "$RUN" --cwd <Step 3
 
 ## 산출
 
-run 폴더 하나(`~/.council/runs/<...>/`)와 사용자에게 하는 보고. 스킬 저장소에는 아무것도 쓰지 않는다.
+run 폴더 하나(`~/.council/runs/<...>/`), 위원 캐시(`~/.council/members.json`), 사용자에게 하는 보고. 스킬 저장소에는 아무것도 쓰지 않는다.
 
 ## 스킬 생태계에서의 위치
 
-- **역할을 나누는 오케스트레이션**(예: oh-my-claudecode 의 `ccg`) - 요청을 나눠 모델마다 다른 질문을 주고 종합한다. 상호 평가가 없다. 관점을 나눠 받고 싶으면 그쪽, 같은 질문의 답을 견주고 싶으면 이 스킬이다.
+- **역할을 나누는 오케스트레이션** - 요청을 나눠 모델마다 다른 질문을 주고 종합한다. 상호 평가가 없다. 관점을 나눠 받고 싶으면 그쪽, 같은 질문의 답을 견주고 싶으면 이 스킬이다.
 - **페르소나별 리뷰** - 산출물을 면접관, CTO 같은 페르소나로 리뷰받는 일이다. 이 스킬은 페르소나 없이 같은 질문을 준다.
 - **원본 karpathy/llm-council** - 웹앱과 OpenRouter. 역할 셋과 순위 형식, 순위 파싱 규칙(`parse_ranking`)을 따랐다.

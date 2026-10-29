@@ -48,7 +48,7 @@
       "name": "council",
       "source": "./plugins/council",
       "description": "Ask one question to several model CLIs, have them rank the anonymized answers, and synthesize one answer as chair. Docs are in Korean.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "category": "productivity"
     },
     {
