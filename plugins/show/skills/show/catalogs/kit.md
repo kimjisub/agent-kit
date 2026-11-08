@@ -160,6 +160,17 @@
 - **2x2 `<ve-quad>`**: `at="x y"` 는 0~100. `x`, `y` 는 낮은 쪽과 높은 쪽 이름, `q` 는 왼쪽 위, 오른쪽 위, 왼쪽 아래, 오른쪽 아래 칸 이름. 점 이름은 그 점이 든 칸 안에서 다른 점과 이름을 피해 놓인다
 - **순서도 `<ve-seq>`**: `<ve-actor>` 가 쓴 순서로 열이 되고 `<ve-msg>` 가 쓴 순서로 아래로 내려간다. 자기에게 보내면 고리, `back` 이나 `async` 는 점선, `hot` 은 강조. 메시지 라벨이 두 열 사이보다 길면 경고가 난다
 
+## 화면 캔버스 - `<ve-canvas>`
+
+화면을 거쳐 가는 흐름을 문서 안에 끼운다. 캔버스 폴더는 `scripts/canvas/canvas.mjs build` 로 먼저 만든다. 쓰는 법과 제약은 [canvas §문서에 끼우기](../variants/canvas.md#4-문서에-끼우기).
+
+```html
+<figure>
+  <ve-canvas src="canvas" label="가입부터 첫 주문까지 단계별 실제 화면" height="720"></ve-canvas>
+  <figcaption><span class="fig-n">그림 2</span>...</figcaption>
+</figure>
+```
+
 ## 결정 - `<ve-ask>`
 
 받는 사람이 고를 것을 묻는다. 답은 그 사람이 묶는 답에 함께 실린다.

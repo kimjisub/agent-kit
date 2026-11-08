@@ -4,7 +4,8 @@
 //
 // 사용
 //   node show.mjs ensure                       서버가 떠 있는지 보고, 없으면 띄운다. 주소를 낸다
-//   node show.mjs publish <렌더한.html | 폴더> [--id <id>] [--project <이름>]   폴더면 index.html 과 그 아래 파일을 함께 올린다(화면 캔버스)
+//   node show.mjs publish <렌더한.html | 폴더> [--id <id>] [--project <이름>]   폴더면 index.html 과 그 아래 파일을 함께 올린다(화면 캔버스).
+//     페이지에 끼운 캔버스(<ve-canvas>)가 있으면 그 폴더도 같은 상대 경로로 함께 올린다
 //                                              공용 공간에 올린다. 같은 id 로 다시 올리면 페이지만 바뀌고 답은 남는다
 //   node show.mjs wait <id> [--timeout 3600]   답이 올 때까지 기다린다. 아직 안 가져간 답이 있으면 곧바로 낸다.
 //                                              답이면 exit 0, 기한을 넘기면 TIMEOUT 과 exit 3. 세션은 백그라운드로 건다
@@ -267,16 +268,29 @@ async function main() {
     const q = new URLSearchParams({ project, host: os.hostname(), cwd: process.cwd() });
     const index = isDir ? path.join(file, 'index.html') : file;
     await api(`/api/pages/${id}?${q}`, { method: 'PUT', headers: { 'content-type': 'text/html; charset=utf-8' }, body: fs.readFileSync(index) });
-    if (isDir) {
-      // raw/ 는 뜬 원본이라 올리지 않는다. 화면과 자산(screens/)만 페이지가 읽는다
-      const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => e.isDirectory() ? (e.name === 'raw' ? [] : walk(path.join(d, e.name))) : [path.join(d, e.name)]);
-      const files = walk(file).filter((f) => path.resolve(f) !== path.resolve(index));
+    // raw/ 는 뜬 원본이라 올리지 않는다. 화면과 자산(screens/)만 캔버스가 읽는다
+    const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => e.isDirectory() ? (e.name === 'raw' ? [] : walk(path.join(d, e.name))) : [path.join(d, e.name)]);
+    const put = async (root, prefix, skip) => {
+      const files = walk(root).filter((f) => !skip || path.resolve(f) !== path.resolve(skip));
       for (const f of files) {
-        const rel = path.relative(file, f).split(path.sep).map(encodeURIComponent).join('/');
+        const rel = [...prefix, ...path.relative(root, f).split(path.sep)].map(encodeURIComponent).join('/');
         await api(`/api/pages/${id}/files/${rel}`, { method: 'PUT', headers: { 'content-type': 'application/octet-stream' }, body: fs.readFileSync(f) });
       }
-      console.log(`FILES ${files.length}`);
+      return files.length;
+    };
+    let uploaded = 0;
+    if (isDir) uploaded += await put(file, [], index);
+    // 문서에 끼운 캔버스(<ve-canvas>)는 페이지 옆 폴더를 iframe 으로 연다. 그 폴더를 같은 상대 경로로 올린다
+    const embeds = [...new Set([...fs.readFileSync(index, 'utf8').matchAll(/data-ve-canvas-src="([^"]+)"/g)].map((m) => m[1]))];
+    for (const src of embeds) {
+      const parts = path.normalize(src).split(/[\\/]/).filter(Boolean);
+      if (path.isAbsolute(src) || parts.includes('..')) throw new Error(`캔버스 경로는 페이지 옆이어야 합니다: ${src}`);
+      const root = path.resolve(path.dirname(path.resolve(index)), src);
+      if (!fs.existsSync(path.join(root, 'index.html'))) throw new Error(`끼운 캔버스가 없습니다: ${root}/index.html. canvas.mjs build 를 먼저 돌립니다`);
+      uploaded += await put(root, parts);
+      console.log(`CANVAS ${src}`);
     }
+    if (uploaded) console.log(`FILES ${uploaded}`);
     console.log(`ID ${id}`); console.log(`URL ${BASE}/p/${id}/`); if (publicBase()) console.log(`PUBLIC ${publicBase()}/p/${id}/`);
     console.log(`답 기다리기: node ${fileURLToPath(import.meta.url)} wait ${id} --timeout 3600`);
     return;

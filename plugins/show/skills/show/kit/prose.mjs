@@ -7,7 +7,7 @@ import { decode, find, hasClass, kids, parseHtml } from "./html.mjs";
 
 export const LIMITS = { paragraph: 60, section: 90, perFigure: 140, numbers: 3, arrows: 2, versions: 3, list: 7 };
 
-const VISUAL_TAGS = new Set(["figure", "svg", "img", "table", "pre", "canvas", "ve-bars", "ve-waffle", "ve-stack", "ve-flow", "ve-line", "ve-shift", "ve-timeline", "ve-tree", "ve-matrix", "ve-quad", "ve-seq"]);
+const VISUAL_TAGS = new Set(["figure", "svg", "img", "table", "pre", "canvas", "ve-bars", "ve-waffle", "ve-stack", "ve-flow", "ve-line", "ve-shift", "ve-timeline", "ve-tree", "ve-matrix", "ve-quad", "ve-seq", "ve-canvas", "iframe"]);
 const VISUAL_CLASSES = ["frame", "kpis", "cases", "items", "pair", "stats", "ve-table", "tw", "df", "evidence", "ve-tl", "ve-tree", "ve-matrix", "ve-mermaid"];
 const isVisual = (n) => VISUAL_TAGS.has(n.name) || VISUAL_CLASSES.some((c) => hasClass(n, c));
 const skipped = (n) => "data-prose" in n.attrs || hasClass(n, "sources") || n.attrs.id === "internal" || ["nav", "script", "style", "details", "fieldset", "ve-ask", "aside", "footer"].includes(n.name) || hasClass(n, "ve-dock");

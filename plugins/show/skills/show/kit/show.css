@@ -214,6 +214,12 @@ figure .lab.a { background: color-mix(in srgb, var(--accent) 9%, var(--surface))
   size: A4; margin: 20mm;
   @bottom-right { content: counter(page) " / " counter(pages); font: 8pt -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; color: #777; }
 }
+/* 문서에 끼운 화면 캔버스(<ve-canvas>). 캔버스 안에서 휠과 끌기가 돌아야 하니 프레임은 넉넉한 높이로 둔다 */
+.ve-canvas { display: grid; gap: var(--s-2, 8px); }
+.ve-canvas iframe { width: 100%; height: var(--ve-canvas-h, 680px); border: 1px solid var(--border); border-radius: var(--r-2); background: #fafafa; }
+.ve-canvas-open { margin: 0; font-size: .875rem; }
+@media (max-width: 700px) { .ve-canvas iframe { height: min(var(--ve-canvas-h, 680px), 70vh); } }
+
 @media print {
   :root { --border: #cfcfcf; --border-bright: #8c8c8c; --text: #111; --text-dim: #555; }
   html { -webkit-print-color-adjust: exact; print-color-adjust: exact; font-size: 10pt; }
@@ -238,6 +244,8 @@ figure .lab.a { background: color-mix(in srgb, var(--accent) 9%, var(--surface))
   thead { display: table-header-group; }
   /* 종이에서는 열 수 없으니 접힌 것을 편다. 빼려면 .no-print */
   details::details-content { content-visibility: visible; }
+  /* 종이에서는 캔버스를 움직일 수 없어 프레임을 빼고 여는 주소만 남긴다 */
+  .ve-canvas iframe { display: none; }
   details > summary { list-style: none; font-weight: 600; }
   details > summary::-webkit-details-marker { display: none; }
   /* 바깥 주소는 글 뒤에 적는다. 글이 곧 주소인 링크는 render.mjs 가 .bare 를 단다 */

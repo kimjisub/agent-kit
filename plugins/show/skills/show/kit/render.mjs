@@ -11,6 +11,7 @@
 //   인쇄용으로 <title> 을 둘째 쪽부터의 쪽 머리(@page @top-left)로 넣고, 글이 곧 주소인 바깥 링크에 .bare 를 단다(show.css 가 그 밖의 링크 뒤에 주소를 적는다).
 //   이미지 페이지(<html data-image>)는 image.css 와 글꼴 ShowKo(kit/fonts)를 넣고, 목차와 겹쳐 보기 스크립트는 넣지 않는다. --png 면 png.mjs 로 한 장을 찍는다.
 //   <figure> 안의 <script type="application/vnd.vegalite+json"> 을 vega.mjs 로 SVG 로 그려 넣고, 그 페이지에 vega.css 를 넣는다.
+//   <ve-canvas> 는 페이지 옆의 화면 캔버스 폴더를 iframe 으로 연다(canvas-embed.mjs). 그 폴더는 publish 가 함께 올린다.
 import { lstatSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { basename, dirname, join, resolve, sep } from "node:path";
@@ -20,12 +21,14 @@ import { expandFlow } from "./flow.mjs";
 import { expandAsk } from "./ask.mjs";
 import { TAGS as KIT_TAGS } from "./tags.mjs";
 import { FORMS } from "./forms.mjs";
+import { expandCanvas } from "./canvas-embed.mjs";
 import { lookAtProse } from "./prose.mjs";
 import { PeleError, render as drawMermaid } from "./vendor/pele.mjs";
 import { drawCharts, VEGA_TYPE } from "./vega.mjs";
 import { fontFaceCss, IMAGE_MIN_TEXT, PNG_SCALE, PNG_WIDTH } from "./png.mjs";
 // show: kit 의 태그(막대, 와플, 쌓기)에 show 의 태그(forms.mjs)를 더한다
 const TAGS = { ...KIT_TAGS, ...FORMS };
+const CANVAS = "ve-canvas";
 const hasPlan = () => false;
 const renderPlanForHost = () => null;
 
@@ -66,7 +69,7 @@ export function renderPage(source, { sendBack = false, base = process.cwd() } = 
   const errors = [], warnings = [];
   const doc = parseHtml(source);
   const links = find(doc, (n) => n.name === "link" && "data-ve-kit" in n.attrs);
-  const tags = find(doc, (n) => Object.hasOwn(TAGS, n.name) || n.name === "ve-flow" || n.name === "ve-ask");
+  const tags = find(doc, (n) => Object.hasOwn(TAGS, n.name) || n.name === "ve-flow" || n.name === "ve-ask" || n.name === CANVAS);
   const asks = tags.filter((t) => t.name === "ve-ask"), charts = tags.filter((t) => t.name !== "ve-ask");
   // Mermaid is drawn on kit pages only; a deck or another page without the kit keeps its <pre> as written
   const mermaids = links.length ? find(doc, (n) => n.name === "pre" && hasClass(n, "mermaid")) : [];
@@ -97,7 +100,8 @@ export function renderPage(source, { sendBack = false, base = process.cwd() } = 
     if (image) errors.push(`${where(asks[0])}: a picture cannot take a decision back; send this page as a link (drop data-image), or write the decision as a line under the picture`);
   }
   const ids = new Map();
-  for (const t of charts) t.html = t.name === "ve-flow" ? expandFlow(t, { errors, warnings, where, ref, page: true }) : TAGS[t.name](t, { errors, warnings, where });
+  if (image) for (const t of charts.filter((c) => c.name === CANVAS)) errors.push(`${where(t)}: a picture cannot hold a live canvas; send this page as a link, or link the canvas under the picture`);
+  for (const t of charts) t.html = t.name === "ve-flow" ? expandFlow(t, { errors, warnings, where, ref, page: true }) : t.name === CANVAS ? expandCanvas(t, { errors, where, base }) : TAGS[t.name](t, { errors, warnings, where });
   // Mermaid becomes plain SVG here, so the page draws offline, follows the theme through CSS, and is checked like any drawing.
   // A phone gets its own layout when Pele can make one narrower. Neither layout shrinks below its natural width (the frame
   // scrolls instead), and Pele draws some labels smaller than its base size, so the base grows until the smallest is 12 px.
