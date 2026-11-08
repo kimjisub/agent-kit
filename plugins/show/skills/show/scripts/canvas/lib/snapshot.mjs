@@ -89,7 +89,9 @@ const ASSET_SCRIPT = [
 
 export async function snapshot(config, options = {}) {
   const out = join(process.cwd(), config.out, "raw");
-  const screens = config.depths.flatMap((depth) => depth.screens);
+  /* --only 로 일부만 다시 뜬다. 나머지는 raw 에 있는 것을 그대로 쓴다(앞에서 끊긴 실행을 이을 때) */
+  const only = options.only ? new Set(options.only.split(",").map((id) => id.trim())) : null;
+  const screens = config.depths.flatMap((depth) => depth.screens).filter((screen) => !only || only.has(screen.id));
   const browser = await openBrowser(options.browser);
 
   mkdirSync(out, { recursive: true });

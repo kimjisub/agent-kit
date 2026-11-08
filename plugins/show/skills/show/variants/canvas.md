@@ -60,6 +60,7 @@ depths: [
 ```bash
 node <스킬 폴더>/scripts/canvas/canvas.mjs snap     # 개발 서버가 떠 있어야 한다
 node <스킬 폴더>/scripts/canvas/canvas.mjs build    # 브라우저 없이 몇 초. 설정을 고치고 다시 돌리기 가볍다
+node <스킬 폴더>/scripts/canvas/canvas.mjs snap --only a,b   # 그 화면만 다시 뜬다. 앞에서 끊긴 snap 을 이을 때
 ```
 
 브라우저는 있는 것을 고른다(`agent-browser`, 없으면 Playwright). `--browser playwright` 로 못 박는다.

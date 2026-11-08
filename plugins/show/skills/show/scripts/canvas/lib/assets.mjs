@@ -38,6 +38,8 @@ const rewritten = new Set();
 
 /** 한 번 실패한 것은 다시 말하지 않습니다. 같은 자산이 화면마다 걸리기 때문입니다. */
 const complained = new Set();
+/* 이번 실행에서 새로 받은 파일. 스타일시트 고치기는 이것만 대상으로 한다 */
+const fetched = new Set();
 
 function complain(path, reason) {
   if (complained.has(path)) return;
@@ -74,6 +76,7 @@ export async function collect(config, id, dirs) {
       }
 
       writeFileSync(file, Buffer.from(await response.arrayBuffer()));
+      fetched.add(file);
     } catch (error) {
       complain(path, error.message);
     }
@@ -91,7 +94,11 @@ export async function collect(config, id, dirs) {
   for (const path of paths.filter((entry) => entry.includes(".css"))) {
     const file = join(dirs.assets, flatName(path));
 
-    if (!existsSync(file) || rewritten.has(file)) continue;
+    /*
+     * 이번에 받은 것만 고친다. 앞선 build 가 이미 고쳐 둔 파일을 또 고치면 바꿔 둔 평평한 이름을
+     * 상대 경로로 읽어 글꼴 주소가 엉뚱한 자리로 간다(다시 build 할 때마다 글꼴이 빠졌다).
+     */
+    if (!fetched.has(file) || rewritten.has(file)) continue;
 
     rewritten.add(file);
 

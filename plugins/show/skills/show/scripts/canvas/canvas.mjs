@@ -10,6 +10,7 @@
  * 설정은 실행하는 폴더의 `canvas.config.mjs`에서 읽습니다. `--config <경로>`로 다른
  * 파일을 줄 수도 있습니다. 브라우저는 있는 것을 골라 쓰고, `--browser playwright`로
  * 못 박을 수 있습니다.
+ * `--only a,b` 는 그 화면만 다시 뜨고 나머지는 앞서 뜬 것을 그대로 둡니다.
  *
  * 의존성이 없습니다. `node` 하나로 돕니다.
  */
@@ -78,7 +79,7 @@ if (command === "snap" || command === "all") {
   }
 
   console.info(`화면을 뜹니다 -> ${join(config.out, "raw")}`);
-  await snapshot(config, { browser: option("browser") });
+  await snapshot(config, { browser: option("browser"), only: option("only") });
 }
 
 if (command === "build" || command === "all") {
