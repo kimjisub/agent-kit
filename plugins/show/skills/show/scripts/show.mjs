@@ -6,6 +6,7 @@
 //   node show.mjs ensure                       서버가 떠 있는지 보고, 없으면 띄운다. 주소를 낸다
 //   node show.mjs publish <렌더한.html | 폴더> [--id <id>] [--project <이름>]   폴더면 index.html 과 그 아래 파일을 함께 올린다(화면 캔버스).
 //     페이지에 끼운 캔버스(<ve-canvas>)가 있으면 그 폴더도 같은 상대 경로로 함께 올린다
+//     render --pdf 로 단 PDF 링크가 있으면 그 PDF 도 함께 올린다
 //                                              공용 공간에 올린다. 같은 id 로 다시 올리면 페이지만 바뀌고 답은 남는다
 //   node show.mjs wait <id> [--timeout 3600]   답이 올 때까지 기다린다. 아직 안 가져간 답이 있으면 곧바로 낸다.
 //                                              답이면 exit 0, 기한을 넘기면 TIMEOUT 과 exit 3. 세션은 백그라운드로 건다
@@ -128,7 +129,7 @@ async function handle(req, res) {
     if (file.includes('..') || /^(meta\.json|replies)/.test(file)) return send(res, 404, { error: 'not found' });
     const f = path.join(dir, file);
     if (!fs.existsSync(f) || !fs.statSync(f).isFile()) return send(res, 404, '없는 페이지입니다', 'text/plain; charset=utf-8');
-    const type = { html: 'text/html; charset=utf-8', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', ico: 'image/x-icon', svg: 'image/svg+xml', json: 'application/json', css: 'text/css; charset=utf-8', js: 'text/javascript; charset=utf-8', mjs: 'text/javascript; charset=utf-8', woff: 'font/woff', woff2: 'font/woff2', ttf: 'font/ttf', otf: 'font/otf' }[f.split('.').pop().toLowerCase()] || 'application/octet-stream';
+    const type = { html: 'text/html; charset=utf-8', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', ico: 'image/x-icon', svg: 'image/svg+xml', json: 'application/json', css: 'text/css; charset=utf-8', js: 'text/javascript; charset=utf-8', mjs: 'text/javascript; charset=utf-8', woff: 'font/woff', woff2: 'font/woff2', ttf: 'font/ttf', otf: 'font/otf', pdf: 'application/pdf' }[f.split('.').pop().toLowerCase()] || 'application/octet-stream';
     return send(res, 200, fs.readFileSync(f), type);
   }
   if (u.pathname === '/api/pages' && req.method === 'GET') return send(res, 200, { pages: pages() });
@@ -289,6 +290,16 @@ async function main() {
       if (!fs.existsSync(path.join(root, 'index.html'))) throw new Error(`끼운 캔버스가 없습니다: ${root}/index.html. canvas.mjs build 를 먼저 돌립니다`);
       uploaded += await put(root, parts);
       console.log(`CANVAS ${src}`);
+    }
+    // render --pdf 가 단 링크(data-show-pdf)가 가리키는 PDF 를 페이지 옆에서 찾아 함께 올린다
+    const pdfHref = fs.readFileSync(index, 'utf8').match(/<a [^>]*data-show-pdf[^>]*href="([^"]+)"/)?.[1]
+      ?? fs.readFileSync(index, 'utf8').match(/<a [^>]*href="([^"]+)"[^>]*data-show-pdf/)?.[1];
+    if (pdfHref) {
+      if (pdfHref.includes('/') || pdfHref.includes('..')) throw new Error(`PDF 는 페이지 옆 파일이어야 합니다: ${pdfHref}`);
+      const pdfFile = path.join(path.dirname(path.resolve(index)), pdfHref);
+      if (!fs.existsSync(pdfFile)) throw new Error(`페이지가 가리키는 PDF 가 없습니다: ${pdfFile}. render.mjs --pdf 로 다시 렌더합니다`);
+      await api(`/api/pages/${id}/files/${encodeURIComponent(pdfHref)}`, { method: 'PUT', headers: { 'content-type': 'application/pdf' }, body: fs.readFileSync(pdfFile) });
+      console.log(`PDF ${pdfHref}`);
     }
     if (uploaded) console.log(`FILES ${uploaded}`);
     console.log(`ID ${id}`); console.log(`URL ${BASE}/p/${id}/`); if (publicBase()) console.log(`PUBLIC ${publicBase()}/p/${id}/`);

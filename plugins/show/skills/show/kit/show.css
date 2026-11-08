@@ -62,6 +62,10 @@ figure + figure { margin-top: var(--s-6); }
 @media screen and (max-width: 1099px) { body.has-rn main { padding-top: calc(var(--s-7) + 24px); } }
 section > h2 { margin-bottom: var(--s-5); }
 .frame { background: var(--surface); padding: var(--s-4); }
+/* render --pdf 가 main 맨 위에 다는 내려받기 링크. 제목 줄 위 오른쪽에 작게 두고, 인쇄와 PDF 에는 나오지 않는다 */
+.show-pdf { align-self: flex-end; justify-self: end; font-size: var(--t-small); color: var(--text-dim); text-decoration: none;
+  border: 1px solid var(--border); border-radius: 4px; padding: 2px 10px; margin-bottom: calc(-1 * var(--s-5)); }
+.show-pdf:hover { color: var(--text); border-color: var(--border-bright); }
 figcaption { font-size: .9375rem; }
 .fig-n { font-size: var(--t-small); }
 /* 그림: 흰 상자에 가는 테두리. 강조는 굵은 테두리와 강조색 선 하나 */
@@ -221,6 +225,7 @@ figure .lab.a { background: color-mix(in srgb, var(--accent) 9%, var(--surface))
 @media (max-width: 700px) { .ve-canvas iframe { height: min(var(--ve-canvas-h, 680px), 70vh); } }
 
 @media print {
+  .show-pdf { display: none !important; }
   :root { --border: #cfcfcf; --border-bright: #8c8c8c; --text: #111; --text-dim: #555; }
   html { -webkit-print-color-adjust: exact; print-color-adjust: exact; font-size: 10pt; }
   body { background: #fff; line-height: 1.6; }

@@ -11,6 +11,8 @@
    - 왼쪽(첫 figure)이 기준(전), 오른쪽(둘째 figure)이 비교 대상(후)이다. 머리 띠(.lab) 글자를 그대로 쓴다.
    - 슬라이더: 그림 어디든 누르거나 끌어 경계를 옮긴다. 그림을 누르면 고른 상태가 되어 방향키(Shift 는 10칸)도 된다.
      경계 왼쪽이 전, 오른쪽이 후다. 그림 요소의 기본 끌기는 막는다(켜 두면 끌기가 pointercancel 로 끊긴다).
+     그림 위에는 얇은 경계선만 둔다. 손잡이, 전후 뱃지, 조작 안내 글은 그리지 않는다 - 그림을 가리고, 전후는 짝의
+     머리 띠(.lab)와 캡션이 이미 말한다.
    - 차이: 같은 픽셀은 흐린 회색, 다른 픽셀만 진하게 칠한다. 전에만 진한 것(지운 것)은 빨강, 후에만 진한 것(더한 것)은
      초록, 둘 다 바뀐 것은 자주. 바뀐 픽셀 비율을 막대에 적는다. canvas 를 못 읽는 환경(file:// 로 연 원본 등)에서는
      CSS 차이 합성으로 대신 보여 준다(같으면 검정, 다르면 색).
@@ -37,10 +39,6 @@
     '.cmp-stage.slider{cursor:ew-resize;touch-action:pan-y}',
     '.cmp-stage.slider.dragging{cursor:grabbing}',
     '.cmp-stage .cmp-line{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.45);pointer-events:none}',
-    '.cmp-stage .cmp-knob{position:absolute;top:50%;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.35);pointer-events:none;display:flex;align-items:center;justify-content:center;gap:6px;font:700 13px/1 system-ui,sans-serif;color:#1f2328}',
-    '.cmp-stage.dragging .cmp-knob{transform:scale(1.08)}',
-    '.cmp-stage .cmp-tag{position:absolute;top:8px;padding:2px 8px;font-size:11px;font-weight:700;border-radius:3px;background:rgba(0,0,0,.6);color:#fff;pointer-events:none}',
-    '.cmp-stage .cmp-tag.l{left:8px}.cmp-stage .cmp-tag.r{right:8px}',
     '.pair.cmp-hide-img figure img{display:none}',
     '@media print{.cmp-bar,.cmp-stage{display:none!important}.pair.cmp-hide-img figure img{display:block!important}}'
   ].join('\n');
@@ -84,15 +82,15 @@
       var base = el('img'); base.src = ia.src; base.alt = ia.alt;
       var top = el('img', 'cmp-top'); top.src = ib.src; top.alt = ib.alt;
       base.draggable = top.draggable = false;     // 그림의 기본 끌기가 시작되면 pointercancel 로 끌기가 끊긴다
-      var line = el('div', 'cmp-line'), knob = el('div', 'cmp-knob', '<span>&lt;</span><span>&gt;</span>');
+      var line = el('div', 'cmp-line');
       stage.tabIndex = 0;
       stage.setAttribute('role', 'slider');
       stage.setAttribute('aria-label', la + ' 와 ' + lb + ' 경계');
       stage.setAttribute('aria-valuemin', '0'); stage.setAttribute('aria-valuemax', '100');
-      stage.append(base, top, line, knob, el('div', 'cmp-tag l', la), el('div', 'cmp-tag r', lb));
+      stage.append(base, top, line);
       function apply() {
         top.style.clipPath = 'inset(0 0 0 ' + pos + '%)';
-        line.style.left = knob.style.left = pos + '%';
+        line.style.left = pos + '%';
         stage.setAttribute('aria-valuenow', String(Math.round(pos)));
       }
       function at(ev) {
@@ -181,14 +179,13 @@
         note.innerHTML = '바뀐 픽셀 ' + (diffRatio * 100).toFixed(1) + '%<span class="cmp-legend"><span style="background:#d72828"></span>' +
           la + '에만<span style="background:#14aa3c"></span>' + lb + '에만<span style="background:#aa28be"></span>둘 다 바뀜</span>';
       }
-      stage.append(el('div', 'cmp-tag l', la + ' vs ' + lb));
     }
 
     function show(mode) {
       Object.keys(btn).forEach(function (k) { btn[k].setAttribute('aria-pressed', String(k === mode)); });
       if (mode === 'side') { stage.hidden = true; pair.classList.remove('cmp-hide-img'); note.textContent = aligned ? '' : note.dataset.why; return; }
       stage.hidden = false; pair.classList.add('cmp-hide-img');
-      if (mode === 'slider') { note.textContent = '그림 어디든 누르거나 끌어 경계를 옮깁니다. 방향키도 됩니다 (왼쪽 ' + la + ', 오른쪽 ' + lb + ')'; buildSlider(); }
+      if (mode === 'slider') { note.textContent = ''; buildSlider(); }
       else buildDiff();
     }
 

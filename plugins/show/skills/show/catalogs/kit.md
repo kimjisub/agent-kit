@@ -64,7 +64,7 @@
 | 센 수 | `.stats` 안 `.stat` 에 `.n`(수)과 `.l`(무엇을 센 수) | 보고 첫 장의 센 판정 |
 | 항목 목록 | `.items` 안 `.item`: `.key`(`.code`, `.name`)와 `.val`(사실, `.act` 에 조치나 판정). 묶음은 `.grp` 에 `.gh`(그룹 이름)와 `.glist` 의 `.row` | 개선 보고와 명세 대조의 목록([document §표를 쓸 자리](../steps/20-document.md#표를-쓸-자리와-쓰지-말-자리)) |
 | 발견 카드 | `<article class="finding">`: `<header>` 에 `.sev`(`s1` 심각, `s2` 중요, `ok` 기준)와 `<h3>`, 사진, `.body` 의 `<dl>`(무엇이, 근거, 겪는 장면, 처방), 끝에 `<ve-ask>` | 발견 하나가 카드 하나 |
-| 전후 짝 | `<div class="pair" [data-compare]>` 안 `<figure>` 둘: `.lab.b`(전), `.lab.a`(후), `<img>`, `<figcaption>` | 같은 범위로 찍은 두 장. `data-compare` 면 나란히, 슬라이더, 차이 막대가 생긴다([output §겹쳐 보기](../steps/60-output.md#겹쳐-보기---나란히-슬라이더-차이)) |
+| 전후 짝 | `<div class="pair" [data-compare]>` 안 `<figure>` 둘: `.lab.b`(전), `.lab.a`(후), `<img>`, `<figcaption>` | 같은 범위로 찍은 두 장. `data-compare` 는 같은 화면을 옛 버전과 새 버전으로 찍은 짝에만 단다(조작 전후 짝에는 달지 않는다). 달면 나란히, 슬라이더, 차이 막대가 생긴다([output §겹쳐 보기](../steps/60-output.md#겹쳐-보기---나란히-슬라이더-차이)) |
 | 화면 한 장 | `<figure class="shot"><img ...><figcaption>...</figcaption></figure>` | 비교 없는 실제 화면 |
 | 근거 칸 | `<div class="evidence">DB    orders.status = PAID\n화면  data-status="PENDING"</div>` | 저장된 값과 화면 값, 파일과 줄 |
 | diff | `<!--diff:id--><!--/diff:id-->` 자리에 `scripts/diff-html.py --into` 가 `.df` 조각을 넣는다. 구간 위 이유 한 줄은 `<p class="why">` | 바뀐 코드와 문서([figures §diff](figures.md#diff)) |

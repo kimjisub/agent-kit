@@ -10,6 +10,7 @@
 //   상대 경로 이미지를 data URI 로 넣어 결과가 파일 하나로 닫히게 했다. plan 페이지 갈래는 뺐다. lang 기본값은 ko.
 //   인쇄용으로 <title> 을 둘째 쪽부터의 쪽 머리(@page @top-left)로 넣고, 글이 곧 주소인 바깥 링크에 .bare 를 단다(show.css 가 그 밖의 링크 뒤에 주소를 적는다).
 //   이미지 페이지(<html data-image>)는 image.css 와 글꼴 ShowKo(kit/fonts)를 넣고, 목차와 겹쳐 보기 스크립트는 넣지 않는다. --png 면 png.mjs 로 한 장을 찍는다.
+//   --pdf 면 페이지에 PDF 링크를 달고 pdf.mjs 로 A4 PDF 를 페이지 옆에 쓴다(publish 가 함께 올린다).
 //   <figure> 안의 <script type="application/vnd.vegalite+json"> 을 vega.mjs 로 SVG 로 그려 넣고, 그 페이지에 vega.css 를 넣는다.
 //   <ve-canvas> 는 페이지 옆의 화면 캔버스 폴더를 iframe 으로 연다(canvas-embed.mjs). 그 폴더는 publish 가 함께 올린다.
 import { lstatSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
@@ -269,7 +270,7 @@ async function main() {
   const value = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
   const input = argv.find((a, i) => !a.startsWith("-") && !["-o", "--root", "--width", "--scale"].includes(argv[i - 1]));
   if (!input) {
-    console.error("usage: node render.mjs page.src.html [-o page.html] [--root <repo>] [--lint] [--open] [--no-check] [--png [--width 1400] [--scale 2]]");
+    console.error("usage: node render.mjs page.src.html [-o page.html] [--root <repo>] [--lint] [--open] [--no-check] [--png [--width 1400] [--scale 2]] [--pdf]");
     process.exit(2);
   }
   const output = value("-o") ?? (/\.src\.html?$/i.test(input) ? input.replace(/\.src(\.html?)$/i, "$1") : null);
@@ -290,7 +291,11 @@ async function main() {
   if (flag("--lint")) { console.log(`✓ ${summary}${report}`); return; }
   const temp = `${output}.${process.pid}.tmp`;
   // a plan and an ordinary page are written as given; a kit page gets what the hosts add
-  writeFileSync(temp, result.kit ? prepareRenderedHtml(result.html) : result.html);
+  const pdf = flag("--pdf");
+  let written = result.kit ? prepareRenderedHtml(result.html) : result.html;
+  // show: --pdf 면 페이지에 PDF 링크를 단 뒤에 쓴다. PDF 는 그 HTML 을 인쇄해 뽑으므로 링크는 인쇄 규칙이 숨긴다
+  if (pdf) { const { withPdfLink, pdfName } = await import("./pdf.mjs"); written = withPdfLink(written, basename(pdfName(output))); }
+  writeFileSync(temp, written);
   renameSync(temp, output);
   console.log(`✓ ${resolve(output)}  ${summary}${result.warnings.length ? ` · ${result.warnings.length} warning(s)` : ""}${report}`);
   // show: 그림으로 실을 정보가 글에 남은 자리. 페이지는 쓰였고, 고쳐서 다시 렌더한다
@@ -319,6 +324,12 @@ async function main() {
       if (!shot.skipped) console.log(`✗ ${shot.problems.length} image problem(s); the PNG was written. Fix them and render again.`);
       process.exitCode = 1;
     }
+  }
+  if (pdf) {
+    const { toPdf, pdfLines } = await import("./pdf.mjs");
+    const doc = await toPdf(output);
+    for (const line of pdfLines(doc)) console.log(`  ${line}`);
+    if (doc.skipped || doc.problems.length) process.exitCode = 1;
   }
   if (flag("--open")) openFile(resolve(output));
 }
