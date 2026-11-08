@@ -1,6 +1,6 @@
 # 바뀐 코드와 문서
 
-**로드 시점 - Step 1 에서 재료가 바뀐 코드, 문서, 설정일 때.** 바뀐 것이 화면에 드러나면 [screen](screen.md) 도 함께 연다. diff 를 페이지에 그리는 법은 [figures §diff](../catalogs/figures.md#diff).
+**로드 시점 - Step 1 에서 재료가 바뀐 코드, 문서, 설정일 때.** 먼저 받는 사람이 이 코드를 리뷰하거나 고칠 사람인지 본다. 아니면 diff 는 본문이 아니다. 그 사람이 보는 것(동작, 화면, 결과, 정할 것)을 그리고 diff 는 맨 아래 `<details>` 에 접어 둔다. 커밋 해시와 파일 경로도 그 칸이나 근거 절로 간다(SKILL 핵심 원칙 9). 바뀐 것이 화면에 드러나면 [screen](screen.md) 도 함께 연다. diff 를 페이지에 그리는 법은 [figures §diff](../catalogs/figures.md#diff).
 
 | 부모(SKILL.md 절차) | 이 문서 |
 |---|---|

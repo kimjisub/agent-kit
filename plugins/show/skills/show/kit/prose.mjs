@@ -1,6 +1,7 @@
 // show: 그림으로 실을 정보가 글에 남은 자리를 찾는다. render 가 페이지를 쓴 뒤 부르고, 찾은 줄은 화면 검사 문제처럼 ✗ 로 나온다.
 //   문장 하나에 단위가 붙은 숫자가 셋 이상, 화살표가 둘 이상, 버전이 셋 이상이면 그 정보는 그림의 몫이다
 //   문단이 길거나, 절에 그림이 하나도 없거나, 페이지 전체에 그림 하나당 글이 많으면 글이 그림을 대신하고 있다
+//   첫 화면(<main> 의 <header>)에 코드 식별자(<code>)나 커밋 해시가 있으면 처음 보는 사람이 결론을 못 읽는다
 // 접힌 원자료(<details>), 근거 절(.sources), 작업자용 절(#internal), 결정 블록, 그리고 data-prose 를 단 곳은 세지 않는다.
 // 글이 주인공인 페이지(에세이, 대필 초안)는 그 절이나 <main> 에 data-prose 를 단다.
 import { decode, find, hasClass, kids, parseHtml } from "./html.mjs";
@@ -18,6 +19,7 @@ const UNIT = "%|퍼센트|ms|초|분|시간|일|주|개월|달|년|건|개|명|�
 const NUM = new RegExp(`(?<![\\w.:/#-])[-+]?\\d[\\d,]*(?:\\.\\d+)?\\s?(?:${UNIT})(?![A-Za-z])`, "g");
 const ARROW = /->|=>|→|⇒|⟶/g;
 const VERSION = /(?<![\w.])(?:v\d+(?:\.\d+)*|\d+\.\d+\.\d+)(?![\w.])/g;
+const HASH = /(?<![\w./-])(?=[0-9a-f]*\d)(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}(?![\w.-])/g;
 const wordsOf = (s) => s.trim().split(/\s+/).filter(Boolean).length;
 const clip = (s) => { const t = s.replace(/\s+/g, " ").trim(); return t.length > 36 ? `${t.slice(0, 36)}...` : t; };
 
@@ -54,6 +56,18 @@ export function lookAtProse(html) {
     }
   };
   walk(main, null);
+  // 첫 화면(머리말)은 처음 보는 사람이 반드시 지나는 자리다. 코드 식별자와 커밋 해시는 쓴 사람만 아는 말이라
+  // 거기 있으면 결론이 안 읽힌다. 근거 절이나 접힌 칸으로 보내고, 첫 화면은 받는 사람의 말로 쓴다
+  const header = kids(main).find((k) => k.name === "header");
+  if (header) {
+    // 출처 줄(.meta)과 머리표(.eyebrow)는 기준 커밋과 범위를 적으라고 골격이 둔 자리라 세지 않는다
+    const provenance = (n) => hasClass(n, "meta") || hasClass(n, "eyebrow");
+    const raw = (n) => (n.text !== undefined ? (n.comment ? "" : decode(n.text)) : provenance(n) ? " " : n.children.map(raw).join(" "));
+    const codes = find(header, (n) => n.name === "code").filter((n) => !find(header, provenance).some((m) => find(m, (k) => k === n).length)).map((n) => raw(n).trim()).filter(Boolean);
+    const hashes = raw(header).match(HASH) ?? [];
+    const ids = [...new Set([...codes, ...hashes])];
+    if (ids.length) found.push(`the first screen carries code identifiers (${ids.slice(0, 4).join(", ")}): a reader who was not in the work cannot read them. Say what each one is in the reader's words, and move the identifiers to the sources or a <details>`);
+  }
   for (const s of sections.values()) if (!s.visuals && s.words > LIMITS.section) found.push(`the section "${clip(s.title)}" has ${s.words} words and no figure`);
   if (!visuals && words > LIMITS.section) found.push(`the page has ${words} words and no figure`);
   else if (visuals && words / visuals > LIMITS.perFigure) found.push(`${Math.round(words / visuals)} words per figure across the page (${words} words, ${visuals} figures); draw what the prose is carrying, or cut it`);
