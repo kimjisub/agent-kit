@@ -4,7 +4,7 @@
 //
 // 사용
 //   node show.mjs ensure                       서버가 떠 있는지 보고, 없으면 띄운다. 주소를 낸다
-//   node show.mjs publish <렌더한.html> [--id <id>] [--project <이름>]
+//   node show.mjs publish <렌더한.html | 폴더> [--id <id>] [--project <이름>]   폴더면 index.html 과 그 아래 파일을 함께 올린다(화면 캔버스)
 //                                              공용 공간에 올린다. 같은 id 로 다시 올리면 페이지만 바뀌고 답은 남는다
 //   node show.mjs wait <id> [--timeout 3600]   답이 올 때까지 기다린다. 아직 안 가져간 답이 있으면 곧바로 낸다.
 //                                              답이면 exit 0, 기한을 넘기면 TIMEOUT 과 exit 3. 세션은 백그라운드로 건다
@@ -127,7 +127,7 @@ async function handle(req, res) {
     if (file.includes('..') || /^(meta\.json|replies)/.test(file)) return send(res, 404, { error: 'not found' });
     const f = path.join(dir, file);
     if (!fs.existsSync(f) || !fs.statSync(f).isFile()) return send(res, 404, '없는 페이지입니다', 'text/plain; charset=utf-8');
-    const type = { html: 'text/html; charset=utf-8', png: 'image/png', jpg: 'image/jpeg', svg: 'image/svg+xml', json: 'application/json' }[f.split('.').pop()] || 'application/octet-stream';
+    const type = { html: 'text/html; charset=utf-8', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', ico: 'image/x-icon', svg: 'image/svg+xml', json: 'application/json', css: 'text/css; charset=utf-8', js: 'text/javascript; charset=utf-8', mjs: 'text/javascript; charset=utf-8', woff: 'font/woff', woff2: 'font/woff2', ttf: 'font/ttf', otf: 'font/otf' }[f.split('.').pop().toLowerCase()] || 'application/octet-stream';
     return send(res, 200, fs.readFileSync(f), type);
   }
   if (u.pathname === '/api/pages' && req.method === 'GET') return send(res, 200, { pages: pages() });
@@ -150,6 +150,16 @@ async function handle(req, res) {
         created: old.created || now, updated: now };
       writeJson(path.join(dir, 'meta.json'), meta);
       return send(res, 200, { ok: true, id, path: `/p/${id}/`, meta });
+    }
+    // 폴더로 올린 페이지(화면 캔버스)의 나머지 파일. index.html 을 먼저 올린 뒤에만 받는다
+    if (parts[3] === 'files' && parts.length > 4 && req.method === 'PUT') {
+      if (!fs.existsSync(path.join(dir, 'index.html'))) return send(res, 404, { error: 'no such page' });
+      const rel = parts.slice(4).join('/');
+      if (rel.includes('..') || /^(meta\.json|replies|index\.html)/.test(rel)) return send(res, 400, { error: 'bad path' });
+      const f = path.join(dir, rel);
+      fs.mkdirSync(path.dirname(f), { recursive: true });
+      fs.writeFileSync(f, await body(req, 80 * 1024 * 1024));
+      return send(res, 200, { ok: true });
     }
     if (!fs.existsSync(path.join(dir, 'index.html'))) return send(res, 404, { error: 'no such page' });
     if (parts.length === 3 && req.method === 'GET') return send(res, 200, { ...readJson(path.join(dir, 'meta.json'), {}), replies: replies(id) });
@@ -246,15 +256,27 @@ async function main() {
   if (cmd === 'ensure') { await ensure(); console.log(`URL ${BASE}/`); if (publicBase()) console.log(`PUBLIC ${publicBase()}/`); return; }
   if (cmd === 'publish') {
     const file = argv.find((a, i) => !a.startsWith('--') && !argv[i - 1]?.startsWith('--'));
-    if (!file) throw new Error('사용: publish <렌더한.html> [--id <id>] [--project <이름>]');
+    if (!file) throw new Error('사용: publish <렌더한.html | 폴더> [--id <id>] [--project <이름>]');
+    const isDir = fs.statSync(file).isDirectory();
     let project = flag(argv, '--project');
     if (!project) { try { project = path.basename(execFileSync('git', ['-C', path.dirname(path.resolve(file)), 'rev-parse', '--show-toplevel'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim()); } catch { project = path.basename(path.dirname(path.resolve(file))); } }
     const slug = (s) => s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-    const id = flag(argv, '--id') || [slug(project), slug(path.basename(file).replace(/(\.src)?\.html?$/i, ''))].filter(Boolean).join('-').slice(0, 80);
+    const id = flag(argv, '--id') || [slug(project), slug(path.basename(path.resolve(file)).replace(/(\.src)?\.html?$/i, ''))].filter(Boolean).join('-').slice(0, 80);
     if (!ID.test(id)) throw new Error(`id 는 소문자 영문, 숫자, - 만 됩니다: ${id}`);
     await ensure();
     const q = new URLSearchParams({ project, host: os.hostname(), cwd: process.cwd() });
-    await api(`/api/pages/${id}?${q}`, { method: 'PUT', headers: { 'content-type': 'text/html; charset=utf-8' }, body: fs.readFileSync(file) });
+    const index = isDir ? path.join(file, 'index.html') : file;
+    await api(`/api/pages/${id}?${q}`, { method: 'PUT', headers: { 'content-type': 'text/html; charset=utf-8' }, body: fs.readFileSync(index) });
+    if (isDir) {
+      // raw/ 는 뜬 원본이라 올리지 않는다. 화면과 자산(screens/)만 페이지가 읽는다
+      const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => e.isDirectory() ? (e.name === 'raw' ? [] : walk(path.join(d, e.name))) : [path.join(d, e.name)]);
+      const files = walk(file).filter((f) => path.resolve(f) !== path.resolve(index));
+      for (const f of files) {
+        const rel = path.relative(file, f).split(path.sep).map(encodeURIComponent).join('/');
+        await api(`/api/pages/${id}/files/${rel}`, { method: 'PUT', headers: { 'content-type': 'application/octet-stream' }, body: fs.readFileSync(f) });
+      }
+      console.log(`FILES ${files.length}`);
+    }
     console.log(`ID ${id}`); console.log(`URL ${BASE}/p/${id}/`); if (publicBase()) console.log(`PUBLIC ${publicBase()}/p/${id}/`);
     console.log(`답 기다리기: node ${fileURLToPath(import.meta.url)} wait ${id} --timeout 3600`);
     return;
