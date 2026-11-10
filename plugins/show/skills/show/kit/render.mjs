@@ -99,6 +99,9 @@ export function renderPage(source, { sendBack = false, base = process.cwd() } = 
   if (!FONTS[register]) errors.push(`data-register="${register}" is not a register; use ${Object.keys(FONTS).join(", ")}`);
   const imageAttr = find(doc, (n) => n.name === "html")[0]?.attrs["data-image"];
   const image = imageAttr !== undefined;
+  // data-image mid 처럼 따옴표 없이 쓰면 data-image="" 와 mid 두 속성이 되어 글자 단계가 기본으로 남는다
+  const htmlAttrs = find(doc, (n) => n.name === "html")[0]?.attrs ?? {};
+  for (const k of ["mid", "dense"]) if (k in htmlAttrs) errors.push(`<html ... ${k}> is a separate attribute; write data-image="${k}"`);
   if (image && !Object.hasOwn(IMAGE, imageAttr)) errors.push(`data-image="${imageAttr}" is not a size; use data-image (3-6 items), data-image="mid" (7-12), or data-image="dense" (13 or more)`);
   const body = find(doc, (n) => n.name === "body")[0];
   if (!body) errors.push("the page has no <body>");

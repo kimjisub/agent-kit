@@ -10,6 +10,9 @@ html[data-image] {
   --t-h1: 1.6rem; --t-h2: 1.15rem;
 }
 html[data-image] body { line-height: 1.55; word-break: keep-all; overflow-wrap: break-word; }
+/* 줄 끝에 낱말 하나만 떨어지지 않게 마지막 줄을 고르게 나눈다(메신저에서 줄인 그림에서 가장 눈에 띄는 흠) */
+html[data-image] :is(p, li, figcaption, .lead, td) { text-wrap: pretty; }
+html[data-image] :is(h1, h2, h3) { text-wrap: balance; }
 /* 출처 줄(show.css 의 .8125rem)이 dense 에서 png 검사의 18px 바닥 아래로 내려가지 않게 작은 글자 단계를 따른다 */
 html[data-image] .meta { font-size: var(--t-small); }
 /* 그림 한 장이 곧 문서다. 한 단을 폭 끝까지 쓰고 글줄 폭 제한을 푼다 */
