@@ -188,6 +188,7 @@ node <스킬 폴더>/kit/render.mjs report.src.html --pdf  # report.html 에 PDF
 | 받는 사람이 "응답 보냈어"라고 대화로 알려 준다 | `wait` 기한이 지난 뒤에 답이 왔다. `inbox --hook` 훅이 걸려 있으면 다음 발화에 실린다. 안 걸려 있으면 `inbox` 로 찾고 훅을 건다([output §답 받기](steps/60-output.md#답-받기)) |
 | Orca 채팅 보기인데 그림 대신 링크나 긴 글을 건넸다 | 보기가 바뀐 것을 몰랐다. `show.mjs surface` 로 자리를 보고, 훅(`inbox --hook`)을 걸면 보기가 바뀔 때마다 다음 발화에 실린다 |
 | 건넨 링크가 안 열린다(바깥 주소가 502) | 기기를 다시 켜서 떼어 띄운 서버가 사라졌다. `show.mjs ensure` 로 다시 띄우고, 링크를 건네 두는 기기면 사용자에게 묻고 `show.mjs service install` 로 상주시킨다 |
+| 사진 같은 그림(프로필 사진, 실사 시안, 홍보 사진)을 부탁받았다 | show 는 정보를 그리는 도구라 도형과 아이콘까지만 된다. 이미지 생성 수단이 연결돼 있는지 먼저 보고, 없으면 그렇다고 말하고 연결이나 외부 도구용 프롬프트를 제안한다. 도형 아이콘을 만들어 놓고 완성이라고 하지 않는다 |
 | 렌더가 아무것도 안 쓴다 | 원본 오류다. `✗` 줄이 줄 번호와 태그를 짚는다. 태그 속성, 빠진 `aria-label`, `<main>` 밖의 `<ve-ask>` 가 흔하다 |
 | 화면 검사가 건너뛰어진다 | 작업 폴더에 playwright 가 없다. `npm i -D playwright` |
 | 라벨이 겹친다, 테두리에 걸린다 | 격자 간격이 좁다. 상자 사이 40단위, 라벨 9단위 위로 다시 잡는다([draw §격자 위에 계획하기](steps/50-draw.md#격자-위에-계획하기)) |
@@ -223,6 +224,7 @@ node <스킬 폴더>/kit/render.mjs report.src.html --pdf  # report.html 에 PDF
 | `scripts/diff-html.py` | 두 파일이나 `git diff` 출력을 좌우 대조나 한 줄 diff 로 그리고 바뀐 단어를 칠해 원본의 표시 자리에 넣는다 | HTML 조각, 바뀐 줄 수 |
 | `scripts/shot.mjs`, `scripts/mark.js` | 촬영 목록대로 화면을 열고 표시를 그려 찍는다. `mark.js` 는 다른 브라우저 도구에서 eval 로 넣는다 | png, 표시 결과 한 줄씩 |
 | `scripts/stitch.py` | 나눠 찍은 조각을 잇고 이름별 좌표로 잘라 낸다 | png, 크기 한 줄씩 |
+| `scripts/osm-map.py` | OpenStreetMap 타일을 data URI 로 넣은 SVG 지도에 핀, 라벨, 길을 얹는다. 중심과 zoom 을 빼면 핀이 모두 들어오게 맞춘다. 표준 라이브러리만, 새 타일 사이 1초, 캐시 `~/.cache/show/osm`([figures §실제 지도](catalogs/figures.md#실제-지도)) | `map.svg`, 핀마다 화면 좌표 |
 | `scripts/grid_overlay.py`, `scripts/annotate.py` | 브라우저 밖 이미지에 좌표 격자를 얹고 박스와 번호, 범례를 그린다 | 주석 이미지 |
 | `kit/pdf.mjs` | 렌더한 페이지를 인쇄 규칙(show.css 의 `@page`) 그대로 A4 PDF 로 뽑는다. 글꼴은 ShowKo 를 넣어 기기와 상관없이 같다. render 의 `--pdf` 가 부르고, 페이지 `<main>` 맨 위에 `a.show-pdf[data-show-pdf]` 내려받기 링크를 단다(인쇄에는 숨긴다). `node kit/pdf.mjs page.html` 로 따로도 돈다 | `*.pdf`, 쪽수, `✗` 줄 |
 | `scripts/check_print.sh` | 브라우저 인쇄와 같은 경로로 확인용 A4 PDF 를 임시 폴더에 뽑는다. 건네는 PDF 는 `--pdf` 다 | PDF 경로, 쪽수, 쪽마다 PNG |
