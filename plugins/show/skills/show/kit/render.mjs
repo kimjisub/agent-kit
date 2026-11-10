@@ -34,6 +34,21 @@ const hasPlan = () => false;
 const renderPlanForHost = () => null;
 
 const here = dirname(fileURLToPath(import.meta.url));
+// CSS 에서 선택자에 쓰인 클래스 이름만 뽑는다. 선언 블록, 주석, url() 을 걷어 내 .5rem 같은 값은 들어오지 않는다
+function cssClasses(css) {
+  let t = css.replace(/\/\*[\s\S]*?\*\//g, "").replace(/url\([^)]*\)/g, "");
+  for (let prev = ""; prev !== t; ) { prev = t; t = t.replace(/\{[^{}]*\}/g, ";"); }
+  return new Set([...t.matchAll(/\.(-?[A-Za-z_][\w-]*)/g)].map((m) => m[1]));
+}
+let KIT_CLASSES = null;
+function kitClasses() {
+  if (KIT_CLASSES) return KIT_CLASSES;
+  KIT_CLASSES = new Set();
+  for (const f of ["kit.css", "show.css", "image.css", "forms.css", "ask.css", "vega.css", "mermaid.css"]) {
+    try { for (const c of cssClasses(readFileSync(join(here, f), "utf8"))) KIT_CLASSES.add(c); } catch { /* 없는 파일은 건너뛴다 */ }
+  }
+  return KIT_CLASSES;
+}
 
 // The registers the kit and show.css style. Fonts come from show.css (local fonts only, no request leaves the page).
 const FONTS = { ledger: 1, instrument: 1, blueprint: 1, paper: 1, editorial: 1 };
@@ -102,6 +117,11 @@ export function renderPage(source, { sendBack = false, base = process.cwd() } = 
   }
   const ids = new Map();
   if (image) for (const t of charts.filter((c) => c.name === CANVAS)) errors.push(`${where(t)}: a picture cannot hold a live canvas; send this page as a link, or link the canvas under the picture`);
+  // 원본 <style> 이 kit 의 클래스 이름(.row, .grp, .tag ...)을 다시 쓰면 kit 규칙과 섞여 줄이 밀리거나 칸이 끊긴다. 화면 검사는 이것을 겹침으로 못 잡는다
+  for (const st of find(doc, (n) => n.name === "style")) {
+    const reused = [...cssClasses(rawText(st))].filter((c) => kitClasses().has(c));
+    if (reused.length) warnings.push(`${where(st)}: your <style> reuses kit class name${reused.length > 1 ? "s" : ""} ${reused.map((c) => "." + c).join(", ")}; kit rules mix into them. Prefix your own classes (.my-${reused[0]}), or change kit parts only through their variables`);
+  }
   for (const t of charts) t.html = t.name === "ve-flow" ? expandFlow(t, { errors, warnings, where, ref, page: true }) : t.name === CANVAS ? expandCanvas(t, { errors, where, base }) : TAGS[t.name](t, { errors, warnings, where });
   // Mermaid becomes plain SVG here, so the page draws offline, follows the theme through CSS, and is checked like any drawing.
   // A phone gets its own layout when Pele can make one narrower. Neither layout shrinks below its natural width (the frame

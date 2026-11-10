@@ -34,6 +34,9 @@ html[data-image] .stat .n { white-space: nowrap; font-size: 1.6rem; line-height:
 html[data-image] .stat .n small { font-size: .5em; font-weight: 500; color: var(--text-dim); margin-left: .1em; }
 html[data-image] .stat .d { font-size: max(18px, .8rem); color: var(--text-dim); }
 
+/* kit 이 <small> 로 그리는 부가 글(행렬의 note)은 브라우저 기본 크기(0.83배)라 dense 에서 15px 대로 떨어진다. 쓰는 쪽이 못 고치니 여기서 막는다 */
+html[data-image] .ve-matrix tbody th small { font-size: var(--t-label); }
+
 /* 각주와 출처. 그림 맨 아래에 두고, 작아도 18px 아래로 내려가지 않는다 */
 html[data-image] .foot { font-size: var(--t-small); color: var(--text-dim); border-top: 1px solid var(--border); padding-top: .4rem; }
 html[data-image] .foot p + p { margin-top: .2rem; }
