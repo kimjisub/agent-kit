@@ -1,0 +1,12 @@
+{
+  "description": "show 페이지에 늦게 온 답을, 그 페이지를 올린 저장소의 세션이 다음 발화에서 받는다",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/skills/show/scripts/show.mjs\" inbox --hook", "timeout": 5 }
+        ]
+      }
+    ]
+  }
+}
