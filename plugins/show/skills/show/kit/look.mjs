@@ -74,8 +74,23 @@ function measure(minLabel) {
   }
   let prose = 0;
   for (const p of document.querySelectorAll("p, li")) if (!p.closest("figure") && !p.parentElement.closest("p, li")) prose += p.textContent.trim().split(/\s+/).filter(Boolean).length;
+  // what makes the page scroll sideways: the outermost elements that cross the right edge while their parent stays inside.
+  // A box that scrolls or clips on its own (.tw, pre) holds what is wider than it, so its children are not counted
+  const overflow = document.documentElement.scrollWidth > window.innerWidth, wide = [];
+  if (overflow) {
+    const vw = document.documentElement.clientWidth;
+    const held = (el) => { for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) if (getComputedStyle(p).overflowX !== "visible") return true; return false; };
+    for (const el of document.querySelectorAll("body *")) {
+      const r = el.getBoundingClientRect(), pr = el.parentElement.getBoundingClientRect();
+      if (r.right <= vw + 1 || pr.right > vw + 1 || getComputedStyle(el).position === "fixed" || held(el)) continue;
+      const cls = typeof el.className === "string" && el.className.trim() ? `.${el.className.trim().split(/\s+/)[0]}` : "";
+      wide.push(`<${el.tagName.toLowerCase()}${cls}> "${el.textContent.trim().replace(/\s+/g, " ").slice(0, 24)}" ${Math.round(r.width)}px`);
+      if (wide.length === 3) break;
+    }
+  }
   return {
-    overflow: document.documentElement.scrollWidth > window.innerWidth,
+    overflow,
+    wide,
     smallest,
     small: smallest !== null && smallest.px < minLabel,
     figures: document.querySelectorAll("figure").length,
@@ -418,7 +433,7 @@ export async function lookAt(file, { sheet = true, widths = WIDTHS, minLabel = M
   const shapes = [...geometry].map(([key, steps]) => (steps.length ? `${key} (step${steps.length > 1 ? "s" : ""} ${steps.join(", ")})` : key));
   result.problems = [
     ...result.errors,
-    ...widths.filter((w) => at[w].overflow).map((w) => `the page scrolls sideways at ${w}px`),
+    ...widths.filter((w) => at[w].overflow).map((w) => `the page scrolls sideways at ${w}px${at[w].wide?.length ? `: ${at[w].wide.join(", ")}` : ""}; wrap a table in .tw, drop a fixed width, or let the line break`),
     ...widths.filter((w) => at[w].small).map((w) => `a diagram label renders at ${at[w].smallest.px}px at ${w}px ("${at[w].smallest.text}"); keep labels at ${minLabel}px or more`),
     ...widths.flatMap((w) => (at[w].squashed || []).map((n) => `an image is stretched at ${w}px: ${n}; size images with --img-max, not width or height alone`)),
     ...(at[wide].unmatched || []).map((n) => `a before/after pair shows different ranges: ${n}; shoot both at the same viewport and scroll, or crop both to the same box`),

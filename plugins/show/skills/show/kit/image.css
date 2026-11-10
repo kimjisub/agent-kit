@@ -10,6 +10,8 @@ html[data-image] {
   --t-h1: 1.6rem; --t-h2: 1.15rem;
 }
 html[data-image] body { line-height: 1.55; word-break: keep-all; overflow-wrap: break-word; }
+/* 출처 줄(show.css 의 .8125rem)이 dense 에서 png 검사의 18px 바닥 아래로 내려가지 않게 작은 글자 단계를 따른다 */
+html[data-image] .meta { font-size: var(--t-small); }
 /* 그림 한 장이 곧 문서다. 한 단을 폭 끝까지 쓰고 글줄 폭 제한을 푼다 */
 html[data-image] main { max-width: none; padding: 1.4rem 1.6rem 1.6rem; gap: 1rem; }
 html[data-image] :is(main, section, header) > :is(p, ul, ol, h1, h2), html[data-image] .sec-head > h2,
@@ -27,10 +29,10 @@ html[data-image] .stats:has(> :nth-child(2):last-child) { --cols: 2; }
 html[data-image] .stats:has(> :nth-child(3):last-child) { --cols: 3; }
 html[data-image] .stats:has(> :nth-child(5):last-child), html[data-image] .stats:has(> :nth-child(6):last-child) { --cols: 3; }
 html[data-image] .stat { padding: .5rem .6rem; display: grid; gap: .15rem; align-content: start; }
-html[data-image] .stat .l { white-space: nowrap; font-size: .8rem; }
+html[data-image] .stat .l { white-space: nowrap; font-size: max(18px, .8rem); }
 html[data-image] .stat .n { white-space: nowrap; font-size: 1.6rem; line-height: 1.15; }
 html[data-image] .stat .n small { font-size: .5em; font-weight: 500; color: var(--text-dim); margin-left: .1em; }
-html[data-image] .stat .d { font-size: .8rem; color: var(--text-dim); }
+html[data-image] .stat .d { font-size: max(18px, .8rem); color: var(--text-dim); }
 
 /* 각주와 출처. 그림 맨 아래에 두고, 작아도 18px 아래로 내려가지 않는다 */
 html[data-image] .foot { font-size: var(--t-small); color: var(--text-dim); border-top: 1px solid var(--border); padding-top: .4rem; }

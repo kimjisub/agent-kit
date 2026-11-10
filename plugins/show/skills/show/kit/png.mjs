@@ -53,7 +53,18 @@ function measure(minText) {
       if (el.scrollWidth > el.clientWidth + 1 || r.right > box.right + 1) wide.push(`"${short(el.textContent)}"`);
     }
   }
-  return { height: Math.ceil(document.documentElement.scrollHeight), width: document.documentElement.scrollWidth, small, wide, image: document.documentElement.hasAttribute("data-image") };
+  // what makes the page wider than the shot: the outermost elements past the right edge whose parent stays inside (same rule as look.mjs)
+  const past = [], vw = document.documentElement.clientWidth;
+  if (document.documentElement.scrollWidth > vw + 1) {
+    const held = (el) => { for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) if (getComputedStyle(p).overflowX !== "visible") return true; return false; };
+    for (const el of document.querySelectorAll("body *")) {
+      const r = el.getBoundingClientRect(), pr = el.parentElement.getBoundingClientRect();
+      if (r.right <= vw + 1 || pr.right > vw + 1 || held(el)) continue;
+      past.push(`<${el.tagName.toLowerCase()}> "${short(el.textContent).slice(0, 24)}" ${Math.round(r.width)}px`);
+      if (past.length === 3) break;
+    }
+  }
+  return { height: Math.ceil(document.documentElement.scrollHeight), width: document.documentElement.scrollWidth, small, wide, past, image: document.documentElement.hasAttribute("data-image") };
 }
 
 // Every element with its own text, and the fonts the browser drew that text with. A font that is not a web font is the device's.
@@ -113,7 +124,7 @@ export async function toPng(file, { out, width = PNG_WIDTH, scale = PNG_SCALE } 
     writeFileSync(out, png);
     const size = pngSize(png);
     if (size.h !== m.height * scale || size.w !== width * scale) problems.push(`the image is ${size.w}x${size.h} but the page is ${width * scale}x${m.height * scale} at scale ${scale}; the bottom may be cut`);
-    if (m.width > width + 1) problems.push(`the page is ${m.width}px wide at ${width}px; something does not wrap`);
+    if (m.width > width + 1) problems.push(`the page is ${m.width}px wide at ${width}px; ${m.past.length ? m.past.join(", ") : "something"} does not wrap`);
     for (const f of fonts) problems.push(`font: ${f.glyphs} glyph(s) drawn with the device font "${f.family}" (${f.where.map((w) => `"${w}"`).join(", ")}); on a machine without it they show as boxes. Change those characters or draw them in SVG`);
     if (m.image) {
       if (m.small.length) problems.push(`text under ${IMAGE_MIN_TEXT}px in an image: ${m.small.slice(0, 4).join(", ")}${m.small.length > 4 ? ` and ${m.small.length - 4} more` : ""}`);

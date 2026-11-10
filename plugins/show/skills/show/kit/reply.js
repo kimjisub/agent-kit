@@ -260,6 +260,7 @@ dialog.ve-respond::backdrop { background: rgb(0 0 0 / .32); }
       if (ranges.length) CSS.highlights.set("ve-note", new Highlight(...ranges)); else CSS.highlights.delete("ve-note");
     }
     let watching = { on: false, until: null };
+    let sending = false;
     const waitText = () => (watching.on ? `작업 세션이 답을 기다리는 중${watching.until ? ` (${new Date(watching.until).toTimeString().slice(0, 5)} 까지)` : ""}` : "기다리는 작업 세션 없음");
     const waitTitle = () => (watching.on ? "보내면 작업 세션이 바로 받습니다" : "보낸 답은 저장되고, 작업 세션이 다음에 확인할 때 가져갑니다");
     refresh = changed;
@@ -281,11 +282,16 @@ dialog.ve-respond::backdrop { background: rgb(0 0 0 / .32); }
       const notesSec = notes.length ? h("section", { class: "r-sec" }, h("p", { class: "ve-label" }, `남긴 것 ${notes.length}개`), rows) : null;
       const foot = id ? h("span", { class: "wait", title: waitTitle() }, h("span", { class: `ve-watch-dot${watching.on ? " on" : ""}` }), waitText()) : null;
       sheet({ title: "보낼 의견과 질문", copy: "복사하기", body: [notesSec, ...parts.map((p) => p.rows())], md: h("pre", { class: "r-md" }, markdown()), foot, send: async () => {
-        for (const [n, ta] of editing) { const t = ta.value.trim(); if (t) n.text = t; }
-        if (editing.size) changed();
-        if (await deliver({ kind: "page", markdown: markdown(), notes: notes.map(({ kind, where, part, quote, text }) => ({ kind, where, part, quote, text })), asks: parts.flatMap((p) => (p.json ? p.json() : [])) }) === "failed") return;
-        notes = []; for (const p of parts) p.clear();
-        changed(); close();
+        // 보내는 동안 다시 눌린 것은 버린다. 두 번 눌러 같은 답이 두 건 쌓였다
+        if (sending) return;
+        sending = true;
+        try {
+          for (const [n, ta] of editing) { const t = ta.value.trim(); if (t) n.text = t; }
+          if (editing.size) changed();
+          if (await deliver({ kind: "page", markdown: markdown(), notes: notes.map(({ kind, where, part, quote, text }) => ({ kind, where, part, quote, text })), asks: parts.flatMap((p) => (p.json ? p.json() : [])) }) === "failed") return;
+          notes = []; for (const p of parts) p.clear();
+          changed(); close();
+        } finally { sending = false; }
       } });
     }
 
