@@ -74,7 +74,7 @@ kit 과 그림 원칙, 스타일 가이드, 페이지 레시피는 visual-explai
 | 메신저 그림 | 받는 사람이 메신저나 Orca 채팅 보기에서 읽고, 페이지에서 고를 것이 없다 | 0 의 1~3 -> 3(이미지 골격) -> 4 -> 5 의 4 |
 | 보고와 결정 | 링크로 남기거나, 페이지에서 결정과 의견을 받거나, 남이 나중에 다시 연다 | 0 -> 5 전부 |
 
-**메신저 그림은 셀 수 있는 조건으로 들어간다.** 글로 쓰려는 답에 단위 붙은 숫자 셋, 비교 항목 넷, 이어지는 단계 넷 가운데 하나가 있거나 답이 15줄을 넘으면 그림 한 장과 글 1~3줄로 건넨다. 판단으로 미루면 늘 글이 이긴다. 글은 도구 호출이 없고 그림은 너덧 번이다. 이 갈래는 [build §이미지로 건넬 페이지](steps/40-build.md#이미지로-건넬-페이지) 와 [output §이미지로 건네기](steps/60-output.md#이미지로-건네기) 두 절만 열면 된다. 누르거나 복사해 쓸 것(이모지 투표, 붙여 쓸 목록, 주소)은 글로 둔다. 메신저로 답을 받을 결정은 번호와 추천으로 짓는다.
+**메신저 그림은 셀 수 있는 조건으로 들어간다.** 글로 쓰려는 답에 단위 붙은 숫자 셋, 비교 항목 넷, 이어지는 단계 넷 가운데 하나가 있거나 답이 15줄을 넘으면 그림 한 장과 글 1~3줄로 건넨다. 판단으로 미루면 늘 글이 이긴다. 글은 도구 호출이 없고 그림은 너덧 번이다. 그래서 이 조건을 답이 끝나는 자리에서 세어 한 번 돌려보내는 Stop 훅을 둘 수 있다(`show.mjs nudge install`, 고른 기기만). 채팅 보기면 숫자, 단계, 길이까지 세고 글자 화면이면 아스키 그림과 넓은 표만 센다. 이 갈래는 [build §이미지로 건넬 페이지](steps/40-build.md#이미지로-건넬-페이지) 와 [output §이미지로 건네기](steps/60-output.md#이미지로-건네기) 두 절만 열면 된다. 누르거나 복사해 쓸 것(이모지 투표, 붙여 쓸 목록, 주소)은 글로 둔다. 메신저로 답을 받을 결정은 번호와 추천으로 짓는다.
 
 ```
 0. 병목과 무게   READ <- catalogs/figures §병목 표 - 병목마다 맞는 그림. 고르지 않고 시작하면 늘 쓰던 모양이 된다
@@ -228,7 +228,7 @@ node <스킬 폴더>/kit/render.mjs report.src.html --pdf  # report.html 에 PDF
 | `scripts/check_print.sh` | 브라우저 인쇄와 같은 경로로 확인용 A4 PDF 를 임시 폴더에 뽑는다. 건네는 PDF 는 `--pdf` 다 | PDF 경로, 쪽수, 쪽마다 PNG |
 | `kit/canvas-embed.mjs` | 원본의 `<ve-canvas src label height>` 를 iframe 과 여는 링크로 펼친다. `src` 는 페이지 옆 폴더만 받고 `index.html` 이 있는지 본다. publish 가 펼친 결과의 `data-ve-canvas-src` 를 보고 그 폴더를 함께 올린다 | 프레임 HTML |
 | `scripts/canvas/canvas.mjs`, `scripts/canvas/lib/` | 화면 캔버스. `snap` 이 화면마다 그려진 HTML 과 자산, 다음으로 보내는 버튼 자리를 뜨고, `build` 가 깊이별 열로 놓은 React Flow 캔버스(`index.html`, `screens/`)를 만든다. 설정은 작업 폴더의 `canvas.config.mjs` | 캔버스 폴더, 못 찾은 문 목록 |
-| `scripts/show.mjs` | 공용 공간과 서버 하나. `publish` 로 올리고(폴더를 주면 그 아래 파일까지, `--replaces` 로 옛 판을 잇는다), `wait`/`watch` 로 답을 기다리고(페이지에 「기다리는 중」 표시), `take`/`done` 으로 처리 상태를 남긴다. `list`, `inbox`(`--hook` 이면 훅용), `archive`, 서버를 상주시키는 `service`, 세션이 어떤 화면으로 보이는지 내는 `surface`, 환경이 내보낸 바깥 주소를 기억하는 `config public` | 주소, 받은 답(Markdown 과 파일 경로), 상태, `SURFACE` 줄 |
+| `scripts/show.mjs` | 공용 공간과 서버 하나. `publish` 로 올리고(폴더를 주면 그 아래 파일까지, `--replaces` 로 옛 판을 잇는다), `wait`/`watch` 로 답을 기다리고(페이지에 「기다리는 중」 표시), `take`/`done` 으로 처리 상태를 남긴다. `list`, `inbox`(`--hook` 이면 훅용), `archive`, 서버를 상주시키는 `service`, 세션이 어떤 화면으로 보이는지 내는 `surface`, 답을 끝내기 전에 그림으로 돌려보내는 Stop 훅을 켜고 끄는 `nudge`(`check` 는 판정만), 환경이 내보낸 바깥 주소를 기억하는 `config public` | 주소, 받은 답(Markdown 과 파일 경로), 상태, `SURFACE` 줄 |
 | `../../hooks/hooks.json` | 플러그인으로 설치하면 `UserPromptSubmit` 에 `show.mjs inbox --hook` 을 건다. 스킬 폴더로 설치했으면 settings 에 같은 명령을 직접 건다 | 기한 뒤에 온 답과, Orca 채팅 보기로 들어가고 나온 사실이 다음 발화의 맥락으로 |
 
 쓰는 법과 주의는 각 파일의 헤더 주석에 있다. kit 의 CSS, JS, `.mjs` 원본은 페이지를 쓰려고 읽지 않는다. [kit](catalogs/kit.md) 과 렌더 오류가 필요한 것을 말한다.

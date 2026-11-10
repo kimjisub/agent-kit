@@ -19,6 +19,12 @@
 //                                              올린 페이지의 새 답과, 가져가고 10분 넘게 닫지 않은 답을 additionalContext 로 낸다. 세션마다 한 번씩만.
 //                                              세션이 Orca 채팅 보기로 들어가거나 나오면 그 사실과 그림 건네는 법을 한 줄 함께 싣는다(surface).
 //                                              서버 없이 파일을 읽고, 무엇이 실패해도 exit 0 으로 조용히 끝난다(발화를 막지 않는다)
+//   node show.mjs nudge install|uninstall|status [--settings <파일>]...
+//                                              답을 끝내기 전에 그림이 받을 답인지 세어 한 번 돌려보내는 Stop 훅을 그 settings 에 켜고 끈다(기본은
+//                                              $CLAUDE_CONFIG_DIR 또는 ~/.claude 의 settings.json). 고른 기기만 켠다. 원본은 .bak-show-nudge-<시각> 로 남긴다
+//   node show.mjs nudge --hook                 Stop 훅 본체. 채팅 보기면 숫자, 단계, 길이, 아스키 그림을 세고, 글자 화면이면 아스키 그림과 넓은 표만 센다.
+//                                              그림이나 show 링크가 이미 있으면, stop_hook_active 면, SHOW_NUDGE=off 면 그냥 끝낸다
+//   node show.mjs nudge check [파일]           글 하나(없으면 stdin)를 이 세션의 화면 기준으로 세어 판정만 낸다
 //   node show.mjs surface                      이 세션이 어떤 화면으로 보이는지 낸다. SURFACE orca-chat(Orca 채팅 보기, PNG 를 마크다운 이미지로),
 //                                              orca-native-chat(Orca 채팅 세션, ::orca-visual), orca-cli, terminal(글자 화면, 링크)
 //   node show.mjs service install|uninstall|status [--print]
@@ -398,6 +404,9 @@ async function main() {
   if (cmd === 'inbox') { const { replies: rs } = await api('/api/inbox'); console.log(rs.length ? rs.map(fmtReply).join('\n\n') : '새 답 없음'); return; }
   if (cmd === 'service') return service(argv[0], argv.includes('--print'));
   if (cmd === 'surface') { const s = await surface(); console.log(`SURFACE ${s.kind}\n${s.why}${s.scratch ? `\nSCRATCH ${s.scratch}` : ''}`); return; }
+  if (cmd === 'nudge' && argv.includes('--hook')) return hookNudge();
+  if (cmd === 'nudge' && argv[0] === 'check') { const t = fs.readFileSync(argv[1] || 0, 'utf8'); const s = await surface(); console.log(JSON.stringify({ surface: s.kind, ...nudgeVerdict(t, s.kind) }, null, 2)); return; }
+  if (cmd === 'nudge') return nudgeInstall(argv[0], argv);
   if (cmd === 'archive') { const id = argv[0]; console.log((await api(`/api/pages/${id}/archive`, { method: 'POST' })).archived); return; }
   if (cmd === 'config') {
     const [key, value] = argv;
@@ -460,6 +469,104 @@ const SURFACE_NOTE = {
   'orca-native-chat': 'show: 이 세션은 Orca 가 직접 돌리는 채팅입니다. 그림은 Orca 의 orca-chat-visuals 스킬대로 ORCA_CHAT_SCRATCH_DIR 에 HTML 을 두고 ::orca-visual 줄로 답 안에 띄웁니다. 그 그림은 네트워크를 못 쓰므로 결정과 의견을 받을 보고는 show 링크로 건넵니다.',
   'orca-cli': 'show: 이 세션은 이제 Orca 의 터미널 보기입니다. 답 안의 마크다운 이미지가 그림으로 뜨지 않으니 그림은 링크로 건넵니다.',
 };
+
+/* ---------- 답을 끝내기 전에 그림으로 돌려보내기 (Stop 훅, 고른 기기만) ---------- */
+
+// SKILL 의 「셀 수 있는 조건」을 답이 끝나는 자리에서 센다. 판단으로 미루면 글이 이긴다(글은 도구 호출이 없고 그림은 너덧 번이다).
+// 기준은 화면마다 다르다. 채팅 보기는 그림이 답 안에 뜨므로 숫자, 단계, 길이까지 보고, 글자 화면은 링크를 여는 값이 크므로
+// 아스키 그림과 넓은 표(대화 문체에서 이미 금지한 것)만 본다. 한 번 돌려보내면 Claude Code 가 stop_hook_active 를 붙여 다시 부르고, 그때는 그냥 끝낸다
+const NUDGE_UNIT = "%|퍼센트|ms|초|분|시간|일|주|개월|달|년|건|개|명|원|만원|억|배|x|MB|GB|KB|kB|TB|줄|번|회|점|px|자|장|쪽|곳|대|종|단계|칸|열|행";
+const NUDGE_NUM = new RegExp(`(?<![\\w.:/#-])[-+]?\\d[\\d,]*(?:\\.\\d+)?\\s?(?:${NUDGE_UNIT})(?![A-Za-z])`, 'g');
+
+function nudgeVerdict(text, kind) {
+  const why = [];
+  // 이미 그림이나 링크를 건넸으면 세지 않는다
+  if (/!\[[^\]]*\]\([^)]+\.(?:png|jpe?g|webp|gif|svg)\)|::orca-visual\{|\/p\/[a-z0-9-]+\//i.test(text)) return { nudge: false, why: ['그림이나 show 링크가 이미 있다'] };
+  const lines = text.split('\n');
+  let inCode = false; const prose = [], code = [];
+  for (const l of lines) { if (/^\s*(```|~~~)/.test(l)) { inCode = !inCode; continue; } (inCode ? code : prose).push(l); }
+  const box = lines.filter((l) => /[─-╿]{2,}|[│┃├└┌┐┘]/.test(l)).length;
+  const arrowRows = lines.filter((l) => (l.match(/->|=>|→/g) ?? []).length >= 2).length;
+  const wide = prose.filter((l) => /^\s*\|.*\|\s*$/.test(l) && l.split('|').length - 2 > 4).length;
+  if (box >= 3) why.push(`상자 문자로 그린 줄 ${box}개`);
+  if (arrowRows >= 3) why.push(`화살표가 둘 넘게 이어지는 줄 ${arrowRows}개`);
+  if (wide >= 2) why.push('열이 넷 넘는 표');
+  if (kind === 'orca-chat' || kind === 'orca-native-chat') {
+    const body = prose.filter((l) => l.trim() && !/^\s*\|/.test(l));
+    const nums = (body.join('\n').match(NUDGE_NUM) ?? []).length;
+    const steps = body.filter((l) => /^\s*\d+[.)]\s/.test(l)).length;
+    if (body.length > 15) why.push(`글 ${body.length}줄`);
+    if (nums >= 3 && body.length >= 6) why.push(`단위 붙은 숫자 ${nums}개`);
+    if (steps >= 4) why.push(`번호 단계 ${steps}개`);
+  }
+  return { nudge: why.length > 0, why };
+}
+
+// 마지막 답의 글. 끝에서부터 assistant 의 text 를 모으다 사용자 발화나 도구 결과를 만나면 멈춘다(그 앞은 작업 중 중계다)
+function lastReply(transcript) {
+  const rows = fs.readFileSync(transcript, 'utf8').trimEnd().split('\n');
+  const parts = [];
+  for (let i = rows.length - 1; i >= 0 && i > rows.length - 400; i--) {
+    let d; try { d = JSON.parse(rows[i]); } catch { continue; }
+    const m = d.message;
+    if (d.type === 'user' && m) break;
+    if (d.type !== 'assistant' || !Array.isArray(m?.content)) continue;
+    if (m.content.some((c) => c.type === 'tool_use')) break;
+    for (const c of [...m.content].reverse()) if (c.type === 'text') parts.unshift(c.text);
+  }
+  return parts.join('\n');
+}
+
+async function hookNudge() {
+  try {
+    if (process.env.SHOW_NUDGE === 'off') return;
+    let input = {};
+    try { input = JSON.parse(fs.readFileSync(0, 'utf8') || '{}'); } catch { return; }
+    if (input.stop_hook_active) return; // 한 번만 돌려보낸다
+    const text = typeof input.last_assistant_message === 'string' && input.last_assistant_message ? input.last_assistant_message : input.transcript_path ? lastReply(input.transcript_path) : '';
+    if (text.split('\n').filter((l) => l.trim()).length < 4) return;
+    const s = await surface(), v = nudgeVerdict(text, s.kind);
+    if (!v.nudge) return;
+    const how = s.kind === 'orca-chat'
+      ? '이 세션은 Orca 채팅 보기라 그림이 답 안에 뜹니다. show 의 이미지 출구로 PNG 를 찍어 직접 열어 본 뒤 `![제목](<PNG 절대 경로>)` 로 붙이고, 글은 결론과 할 일 1~3줄로 줄여 답을 다시 내세요.'
+      : s.kind === 'orca-native-chat'
+        ? '이 세션은 Orca 채팅입니다. Orca 의 orca-chat-visuals 스킬대로 HTML 그림을 답 안에 띄우고 글을 줄여 답을 다시 내세요.'
+        : 'show 로 페이지를 만들어 공용 공간에 올리고 주소를 한 줄로 건네는 답으로 다시 내세요.';
+    const reason = `show 넛지: 방금 답에 그림이 받을 정보가 있습니다(${v.why.join(', ')}). ${how} 그림이 오히려 방해되는 답(받는 사람이 복사해 쓸 목록, 명령, 짧은 확인)이면 그 판단을 한 줄 적고 그대로 끝내도 됩니다.`;
+    process.stdout.write(JSON.stringify({ decision: 'block', reason }));
+  } catch { /* 훅은 답을 막아서 깨지면 안 된다 */ }
+}
+
+// 고른 기기만 켠다. 플러그인의 hooks.json 에 넣으면 설치한 모든 곳에서 켜지므로 settings 에 직접 쓴다
+function nudgeInstall(action, argv) {
+  const files = [];
+  for (let i = 0; i < argv.length; i++) if (argv[i] === '--settings' && argv[i + 1]) files.push(argv[++i]);
+  if (!files.length) files.push(path.join(process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude'), 'settings.json'));
+  // 스킬 폴더 링크로 불렀으면 그 경로(갱신해도 그대로다)를 쓰고, 홈 아래면 $HOME 으로 적어 여러 프로필이 같은 줄을 쓴다
+  const self = path.resolve(process.argv[1]), home = os.homedir();
+  const shown = self.startsWith(home + path.sep) ? `$HOME${self.slice(home.length)}` : self;
+  const command = `node "${shown}" nudge --hook`;
+  const isMine = (h) => typeof h?.command === 'string' && /show\.mjs"? nudge --hook/.test(h.command);
+  for (const given of files) {
+    let f = given; try { f = fs.realpathSync(given); } catch { /* 없으면 아래에서 「없음」 */ } // 링크면 링크를 살린 채 원본에 쓴다
+    const cfg = readJson(f, null);
+    if (!cfg) { console.log(`없음 ${f}`); continue; }
+    const stop = cfg.hooks?.Stop ?? [];
+    const has = stop.some((g) => (g.hooks ?? []).some(isMine));
+    if (action === 'status' || !action) { console.log(`${has ? '켜짐' : '꺼짐'} ${f}`); continue; }
+    if (action === 'install' && has) { console.log(`이미 켜짐 ${f}`); continue; }
+    if (action === 'uninstall' && !has) { console.log(`이미 꺼짐 ${f}`); continue; }
+    fs.copyFileSync(f, `${f}.bak-show-nudge-${Date.now()}`);
+    cfg.hooks ??= {};
+    if (action === 'install') cfg.hooks.Stop = [...stop, { hooks: [{ type: 'command', command, timeout: 10 }] }];
+    else if (action === 'uninstall') {
+      cfg.hooks.Stop = stop.map((g) => ({ ...g, hooks: (g.hooks ?? []).filter((h) => !isMine(h)) })).filter((g) => g.hooks.length);
+      if (!cfg.hooks.Stop.length) delete cfg.hooks.Stop;
+    } else { console.error('nudge install | uninstall | status [--settings <파일>]...'); process.exit(2); }
+    writeJson(f, cfg);
+    console.log(`${action === 'install' ? '켬' : '끔'} ${f}`);
+  }
+}
 
 /* ---------- 늦게 온 답을 다음 발화에 싣기 (UserPromptSubmit 훅) ---------- */
 
