@@ -13,7 +13,7 @@
       "name": "show",
       "source": "./plugins/show",
       "description": "When an agent's result or intent is hard to follow as text, find where the reader gets stuck and build one HTML page that unblocks it: drawn diagrams, step playback, live what-if figures, real screenshots, diffs, and a canvas of live screens joined at the buttons that lead on. Reports get verdicts, collected decisions, mobile and A4 print. Docs are in Korean.",
-      "version": "3.13.0",
+      "version": "3.14.0",
       "category": "productivity"
     },
     {
