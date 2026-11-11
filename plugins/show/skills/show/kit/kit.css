@@ -123,6 +123,9 @@ code { font: .875em var(--font-mono); font-variant-ligatures: none; }
 .frame { background: var(--stage), var(--bg); border: 1px solid var(--border); border-radius: var(--r-2); padding: var(--s-5); overflow-x: auto; }
 figcaption { font-size: var(--t-body); color: var(--text-dim); margin-top: var(--s-3); max-width: 65ch; }
 .fig-n { font: 600 var(--t-label) var(--font-mono); color: var(--text); margin-right: var(--s-2); }
+/* a photo opened at its own size (kit.js); it scrolls both ways when it is wider or taller than the window */
+.ve-zoom { position: fixed; inset: 0; z-index: 100; overflow: auto; background: color-mix(in srgb, var(--bg) 92%, transparent); cursor: zoom-out; display: grid; padding: var(--s-5); }
+.ve-zoom img { margin: auto; max-width: none; height: auto; box-shadow: 0 8px 32px var(--lift); }
 
 /* diagram kit (references/diagrams.md) */
 /* min-width keeps 14-unit labels >= 12px as rendered; narrow screens scroll the frame instead. kit/render.mjs sets --ve-min for a viewBox wider than 816. */

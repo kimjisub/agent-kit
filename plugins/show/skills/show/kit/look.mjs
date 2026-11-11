@@ -62,6 +62,15 @@ function measure(minLabel) {
     const drift = Math.abs(box.width / box.height / (img.naturalWidth / img.naturalHeight) - 1);
     if (drift > 0.02) squashed.push(`${(img.getAttribute("alt") || img.currentSrc.slice(0, 40)).slice(0, 40)} (${Math.round(drift * 100)}%)`);
   }
+  // photos drawn under half their own size: a full-screen capture in half a column reads at a fifth of its type size.
+  // A 2x capture (data-scale="2", or 2200px and wider) counts at half its pixels
+  const shrunk = [];
+  for (const img of document.querySelectorAll("main figure img")) {
+    if (!img.naturalWidth || !img.checkVisibility() || img.closest("a, .cmp-stage")) continue;
+    const own = img.naturalWidth / (+img.dataset.scale || (img.naturalWidth >= 2200 ? 2 : 1));
+    const k = img.getBoundingClientRect().width / own;
+    if (k < 0.5) shrunk.push(`${(img.getAttribute("alt") || img.currentSrc.slice(0, 40)).slice(0, 40)} (${Math.floor(k * 100)}% of ${Math.round(own)}px)`);
+  }
   // before/after pairs whose two pictures cover different ranges: one was shot taller or wider, so what the
   // other shows below its edge reads as removed (2026-10-21: a 5000px "before" next to a 900px "after" looked like lost features)
   const unmatched = [];
@@ -96,6 +105,7 @@ function measure(minLabel) {
     figures: document.querySelectorAll("figure").length,
     prose,
     squashed,
+    shrunk,
     unmatched,
     kit: document.documentElement.dataset.veKit === "ready",
   };
@@ -436,6 +446,7 @@ export async function lookAt(file, { sheet = true, widths = WIDTHS, minLabel = M
     ...widths.filter((w) => at[w].overflow).map((w) => `the page scrolls sideways at ${w}px${at[w].wide?.length ? `: ${at[w].wide.join(", ")}` : ""}; wrap a table in .tw, drop a fixed width, or let the line break`),
     ...widths.filter((w) => at[w].small).map((w) => `a diagram label renders at ${at[w].smallest.px}px at ${w}px ("${at[w].smallest.text}"); keep labels at ${minLabel}px or more`),
     ...widths.flatMap((w) => (at[w].squashed || []).map((n) => `an image is stretched at ${w}px: ${n}; size images with --img-max, not width or height alone`)),
+    ...(at[wide].shrunk || []).map((n) => `a capture is drawn at under half its size at ${wide}px: ${n}; crop it to the part that matters, or give it a row of its own (a figure outside .pair)`),
     ...(at[wide].unmatched || []).map((n) => `a before/after pair shows different ranges: ${n}; shoot both at the same viewport and scroll, or crop both to the same box`),
     ...(at[wide].kit ? [] : ["the kit's script did not run to its end"]),
     ...result.problems,

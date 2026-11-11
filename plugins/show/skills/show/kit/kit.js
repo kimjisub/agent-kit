@@ -99,6 +99,48 @@ if (!still) {
   for (const el of document.querySelectorAll('main > *')) io.observe(el);
 }
 
+// A capture's own width in CSS px: data-scale="2" marks a 2x capture, and 2200px or wider counts as one.
+const own = (img) => img.naturalWidth / (+img.dataset.scale || (img.naturalWidth >= 2200 ? 2 : 1));
+
+// A pair whose captures would draw under half their own width side by side (two full screens) stacks, one to a row,
+// so each gets the whole column; cropped captures stay side by side. Rechecked as images load and the width changes.
+const pairs = [...document.querySelectorAll('.pair')];
+const stack = () => {
+  for (const pair of pairs) {
+    const imgs = [...pair.querySelectorAll(':scope > figure img')].filter((i) => i.naturalWidth);
+    const col = (pair.clientWidth - parseFloat(getComputedStyle(pair).columnGap || 0)) / 2;
+    pair.classList.toggle('stack', imgs.some((i) => col < own(i) * 0.5));
+  }
+};
+if (pairs.length) {
+  stack();
+  for (const img of document.querySelectorAll('.pair img')) if (!img.complete) img.addEventListener('load', stack, { once: true });
+  new ResizeObserver(stack).observe(document.querySelector('main') || document.body);
+}
+
+// A photo still drawn well under its own size (a phone, a side panel) opens at that size on click, so its text can be
+// read; Esc or a click closes it.
+const zoomable = (t) => t instanceof HTMLImageElement && t.naturalWidth && t.closest('main figure') && !t.closest('a, .cmp-stage') && t.clientWidth < own(t) * 0.8;
+document.addEventListener('pointerover', (e) => { if (e.target instanceof HTMLImageElement) e.target.style.cursor = zoomable(e.target) ? 'zoom-in' : ''; });
+document.addEventListener('click', (e) => {
+  const img = e.target;
+  if (!zoomable(img)) return;
+  const box = document.createElement('div');
+  box.className = 've-zoom';
+  box.setAttribute('role', 'dialog');
+  box.setAttribute('aria-label', img.alt || 'image');
+  const big = new Image();
+  big.src = img.currentSrc;
+  big.alt = img.alt;
+  big.style.width = `${own(img)}px`;
+  box.append(big);
+  const close = () => { box.remove(); removeEventListener('keydown', esc); };
+  const esc = (k) => { if (k.key === 'Escape') close(); };
+  box.addEventListener('click', close);
+  addEventListener('keydown', esc);
+  document.body.append(box);
+});
+
 // reader replies (kit/reply.js, inlined before this); a page opened raw has none
 window.veReply?.page();
 

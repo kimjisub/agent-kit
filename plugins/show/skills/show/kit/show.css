@@ -151,15 +151,23 @@ h3 .n { color: var(--text-dim); margin-right: var(--s-2); font-variant-numeric: 
 .finding figure, .pair figure { margin: 0; background: var(--surface); border-top: 1px solid var(--border); position: relative; }
 /* 사진은 비율을 지킨다. 세로로 긴 캡처(휴대폰 화면)는 --img-max 높이에서 멈추고 폭이 함께 줄어 가운데 선다.
    width 나 height 하나만 덮어쓰면 비율이 깨지므로 크기는 --img-max 로만 바꾼다 */
-.finding figure img, .pair figure img, figure.shot img { display: block; width: auto; max-width: 100%; height: auto;
+main figure > img, .finding figure img, .pair figure img, figure.shot img { display: block; width: auto; max-width: 100%; height: auto;
   max-height: var(--img-max, 760px); margin-inline: auto; object-fit: contain; }
 .finding figure figcaption, .pair figure figcaption { background: var(--surface); margin: 0; max-width: none; font-size: var(--t-small); padding: var(--s-2) var(--s-5); border-bottom: 1px solid var(--border); }
+.pair figure figcaption { border-bottom: 0; border-top: 1px solid var(--border); }
 figure.shot img { border: 1px solid var(--border); border-radius: var(--r-2); }
 figure .lab { font-size: var(--t-label); font-weight: 700; padding: 5px var(--s-5); }
 figure .lab.b { background: color-mix(in srgb, var(--text) 5%, var(--surface)); color: var(--text); }
 figure .lab.a { background: color-mix(in srgb, var(--accent) 9%, var(--surface)); color: var(--accent); }
-.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); align-items: start; }
-.pair figure { border-top: 0; height: 100%; display: flex; flex-direction: column; }
+/* 짝. 그림마다 테두리 카드라 캡션이 어느 그림의 것인지 갈린다. 화면 폭이 아니라 짝이 놓인 칸의 폭으로 가른다 -
+   칸이 그림 둘을 28rem 씩 못 주면(옆 패널, 휴대폰) 한 줄에 하나씩 쌓는다. 나란히 두면 캡처가 절반 아래로 주는 짝은
+   kit.js 가 .stack 을 달아 쌓는다 */
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr)); gap: var(--s-4); align-items: start; }
+.pair figure { border: 1px solid var(--border); border-radius: var(--r-2); overflow: hidden; height: 100%; display: flex; flex-direction: column; }
+.pair.stack { grid-template-columns: minmax(0, 1fr); }
+.finding .pair { padding: var(--s-4) var(--s-5); border-top: 1px solid var(--border); }
+/* 짝과 짝, 짝과 그림이 이어지면 띄운다. 붙여 두면 윗 그림의 캡션이 아랫 그림의 제목처럼 읽힌다 */
+:not(.pair) > :is(.pair, figure) + :is(.pair, figure) { margin-top: var(--s-6); }
 .pair figure img { flex: none; }
 .pair figcaption { flex: 1; }
 .tall { max-height: 720px; overflow: auto; }
@@ -203,7 +211,6 @@ figure .lab.a { background: color-mix(in srgb, var(--accent) 9%, var(--surface))
   .finding .body { padding: var(--s-3) var(--s-3) var(--s-4); }
   .finding fieldset.ask { margin: 0 var(--s-3) var(--s-4); }
   figure .lab, .finding figure figcaption, .pair figure figcaption { padding-left: var(--s-3); padding-right: var(--s-3); }
-  .pair { grid-template-columns: 1fr; }
   .tall { max-height: 70vh; }
   .finding dl { grid-template-columns: 1fr; gap: 2px; }
   .finding dt { padding-top: var(--s-2); }
