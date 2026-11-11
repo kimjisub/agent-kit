@@ -3,7 +3,8 @@
 
 쓰는 법
   council.py members [--chair claude] [--model cursor=composer-2.5 ...] [--only codex,grok]
-  council.py stage1 <run 디렉터리> [--members codex,grok,...] [--chair claude] [--refresh] [--timeout 초] [--cwd 경로]
+  council.py lenses <run 디렉터리> [--members ...] [--chair claude] [--refresh] [--timeout 초] [--cwd 경로]
+  council.py stage1 <run 디렉터리> [--members codex,grok,...] [--chair claude] [--refresh] [--split-lenses] [--timeout 초] [--cwd 경로]
   council.py stage2 <run 디렉터리> [--members ...] [--timeout 초] [--cwd 경로]
 
 계약
@@ -11,13 +12,17 @@
            missing_cli, timeout, error, empty)와 쓸 모델을 잰다. 결과를 ~/.council/members.json 에 남기고,
            의장과 같은 모델 계열이거나 앞 위원과 계열이 겹치는 위원은 쓰지 않는다고 표시한다.
            로그인 여부는 각 CLI 의 상태 명령이 아니라 실제 호출로 판정한다(상태 명령은 만료된 토큰도 로그인됐다고 한다).
-  stage1   입력 <run>/question.md. --members 가 없으면 members 캐시에서 쓸 수 있는 위원만 고르고,
-           캐시가 없거나 오래됐거나(6시간) --refresh 면 members 를 먼저 돈다.
+  lenses   입력 <run>/question.md. 위원에게 답 대신 이 질문을 따져 볼 관점과 관점별 질문을 내게 한다.
+           위원마다 <run>/lenses/<위원>.md 를 쓴다. 이것을 합쳐 <run>/lenses.md 로 정리하는 것은 의장이 한다.
+  stage1   입력 <run>/question.md 와, 있으면 <run>/lenses.md. --members 가 없으면 members 캐시에서 쓸 수 있는
+           위원만 고르고, 캐시가 없거나 오래됐거나(6시간) --refresh 면 members 를 먼저 돈다.
+           lenses.md 가 있으면 관점 전부를 한 프롬프트에 붙여 위원마다 한 번 부른다. --split-lenses 면
+           관점마다 따로 불러 <run>/stage1/<위원>.lens<N>.md 에 쓰고 <run>/stage1/<위원>.md 로 이어 붙인다.
            위원마다 <run>/stage1/<위원>.md 를 쓰고 결과를 <run>/stage1/status.json 에 남긴다.
-           <run>/stage1/claude.md 는 세션이 미리 써 둔다. 이 스크립트는 의장 모델을 부르지 않는다.
+           <run>/stage1/chair.md 는 세션이 미리 써 둔다. 이 스크립트는 의장 모델을 부르지 않는다.
   stage2   입력 <run>/stage1/*.md 중 비지 않은 것. 답변 순서를 섞어 "Response A.." 로 가리고,
            stage1 에서 답한 외부 위원에게 평가를 맡긴다. <run>/labels.json, <run>/stage2/<위원>.md,
-           <run>/stage2/status.json, <run>/ranking.json 을 쓴다.
+           <run>/stage2/status.json, <run>/ranking.json 을 쓴다. 평균 순위는 평가자가 자기 답에 준 표를 뺀다.
   stdout   마지막 줄은 요약 JSON 한 줄이다. 위원 하나가 실패해도 나머지는 계속 돈다.
            stage 에서 성공한 위원이 하나도 없거나 members 에서 쓸 수 있는 위원이 없으면 exit 1.
 
@@ -45,6 +50,8 @@ CACHE_TTL = 6 * 3600
 DEFAULT_TIMEOUT = 900
 PROBE_TIMEOUT = 120
 PROBE_PROMPT = "Reply with the single word OK and nothing else. Do not use any tools."
+# codex 는 사용자 설정의 추론 강도를 따르는데, 평소 작업용으로 낮춰 둔 경우가 많다. 위원 답은 이 값으로 올린다.
+CODEX_EFFORT = os.environ.get("COUNCIL_CODEX_EFFORT", "high")
 
 # 순서가 우선순위다. 모델 계열이 겹치면 앞의 위원이 남는다. 모델사가 직접 낸 CLI 를 앞에 두고,
 # 여러 회사 모델을 고를 수 있는 cursor 를 뒤에 둔다. Gemini 자리는 agy 가 맡는다. Gemini CLI 는
@@ -144,12 +151,13 @@ def passes_model_flag(member):
     return member in ("antigravity", "cursor")
 
 
-def build_command(member, prompt, out_file, model=None):
+def build_command(member, prompt, out_file, model=None, probe=False):
     """(argv, stdin 으로 보낼 문자열 또는 None, 답이 담길 곳 'stdout'|'file')."""
     flag = model if model and passes_model_flag(member) else None
     if member == "codex":
-        return (["codex", "exec", "-s", "read-only", "--skip-git-repo-check", "--ephemeral",
-                 "-o", str(out_file), "-"], prompt, "file")
+        effort = [] if probe or not CODEX_EFFORT else ["-c", f"model_reasoning_effort={CODEX_EFFORT}"]
+        return (["codex", "exec", "-s", "read-only", "--skip-git-repo-check", "--ephemeral"] + effort
+                + ["-o", str(out_file), "-"], prompt, "file")
     if member == "antigravity":
         return (["agy", "--mode", "plan", "--sandbox"] + (["--model", flag] if flag else []) + ["-p", prompt],
                 None, "stdout")
@@ -169,8 +177,8 @@ def classify_failure(text, fallback):
     return fallback
 
 
-def call_member_once(member, prompt, out_file, timeout, cwd, model):
-    argv, stdin_text, sink = build_command(member, prompt, out_file, model)
+def call_member_once(member, prompt, out_file, timeout, cwd, model, probe=False):
+    argv, stdin_text, sink = build_command(member, prompt, out_file, model, probe)
     started = time.time()
     try:
         proc = subprocess.Popen(argv, cwd=cwd,
@@ -241,11 +249,11 @@ def call_member_once(member, prompt, out_file, timeout, cwd, model):
     return {"member": member, "status": "ok", "seconds": seconds, "chars": len(answer)}
 
 
-def call_member(member, prompt, out_file, timeout, cwd, model=None):
-    result = call_member_once(member, prompt, out_file, timeout, cwd, model)
+def call_member(member, prompt, out_file, timeout, cwd, model=None, probe=False):
+    result = call_member_once(member, prompt, out_file, timeout, cwd, model, probe)
     # agy 의 plan 모드는 모델이 도구를 쓰려다 거부되면 빈 답을 낸다. 같은 질문을 다시 하면 대개 답한다.
     if result["status"] == "empty":
-        result = call_member_once(member, prompt, out_file, timeout, cwd, model)
+        result = call_member_once(member, prompt, out_file, timeout, cwd, model, probe)
         result["retried"] = True
     if model and passes_model_flag(member):
         result["model"] = model
@@ -264,7 +272,7 @@ def probe(member, model):
         return {"member": member, "status": "missing_cli", "seconds": 0}
     workdir = Path(tempfile.mkdtemp(prefix="council-probe-"))
     try:
-        r = call_member(member, PROBE_PROMPT, workdir / "answer.md", PROBE_TIMEOUT, str(workdir), model)
+        r = call_member(member, PROBE_PROMPT, workdir / "answer.md", PROBE_TIMEOUT, str(workdir), model, probe=True)
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
     r["version"] = cli_version(member)
@@ -381,11 +389,67 @@ def cached_models(cache):
     return {m: e.get("model") for m, e in (cache or {}).get("members", {}).items() if e.get("model")}
 
 
-def stage1(run, members, timeout, cwd, models):
+def prompt_file(name):
+    return (SKILL_DIR / "prompts" / name).read_text()
+
+
+def read_lenses(run):
+    """<run>/lenses.md 를 '## ' 제목 단위로 나눈다. 파일이 없으면 빈 목록."""
+    path = run / "lenses.md"
+    if not path.exists():
+        return "", []
+    text = path.read_text().strip()
+    blocks = re.split(r"(?m)^(?=## )", text)
+    return text, [b.strip() for b in blocks if b.startswith("## ")]
+
+
+def lenses(run, members, timeout, cwd, models):
     question = (run / "question.md").read_text().strip()
-    template = (SKILL_DIR / "prompts" / "member.md").read_text()
-    prompt = template.replace("{question}", question)
-    return fan_out(members, {m: prompt for m in members}, run / "stage1", timeout, cwd, models)
+    prompt = prompt_file("lens.md").replace("{question}", question)
+    return fan_out(members, {m: prompt for m in members}, run / "lenses", timeout, cwd, models)
+
+
+def stage1(run, members, timeout, cwd, models, split=False):
+    question = (run / "question.md").read_text().strip()
+    lens_text, lens_blocks = read_lenses(run)
+    base = prompt_file("member.md").replace("{question}", question)
+    out_dir = run / "stage1"
+    if not lens_blocks:
+        if split:
+            sys.exit("--split-lenses 에는 <run>/lenses.md 가 필요하다")
+        return fan_out(members, {m: base for m in members}, out_dir, timeout, cwd, models)
+    if not split:
+        prompt = base + "\n\n" + prompt_file("member-lenses.md").replace("{lenses}", lens_text)
+        return fan_out(members, {m: prompt for m in members}, out_dir, timeout, cwd, models)
+
+    # 관점마다 따로 부른다. 비용이 관점 수만큼 늘어나므로 깊게 따질 질문에만 쓴다.
+    one = prompt_file("member-one-lens.md")
+    jobs = [(m, i, base + "\n\n" + one.replace("{lens}", block)) for m in members for i, block in enumerate(lens_blocks, 1)]
+    out_dir.mkdir(parents=True, exist_ok=True)
+    with ThreadPoolExecutor(max_workers=max(1, len(jobs))) as pool:
+        futures = [pool.submit(call_member, m, p, out_dir / f"{m}.lens{i}.md", timeout, cwd, models.get(m))
+                   for m, i, p in jobs]
+        parts = [(m, i, f.result()) for (m, i, _), f in zip(jobs, futures)]
+    results = []
+    for m in members:
+        mine = [(i, r) for mm, i, r in parts if mm == m]
+        ok = [(i, r) for i, r in mine if r["status"] == "ok"]
+        if ok:
+            body = "\n\n".join((out_dir / f"{m}.lens{i}.md").read_text().strip() for i, _ in ok)
+            (out_dir / f"{m}.md").write_text(body + "\n")
+            first_fail = next((r for _, r in mine if r["status"] != "ok"), None)
+            r = {"member": m, "status": "ok", "seconds": max(r["seconds"] for _, r in mine),
+                 "lenses_ok": len(ok), "lenses_total": len(mine)}
+            if first_fail:
+                r["detail"] = f"lens 실패: {first_fail['status']} {first_fail.get('detail', '')}"[-600:]
+        else:
+            r = dict(mine[0][1])
+        if mine[0][1].get("model"):
+            r["model"] = mine[0][1]["model"]
+        results.append(r)
+    (out_dir / "status.json").write_text(json.dumps(results, ensure_ascii=False, indent=2) + "\n")
+    record_failures([r for _, _, r in parts])
+    return results
 
 
 def parse_ranking(text):
@@ -402,7 +466,8 @@ def parse_ranking(text):
 
 
 def stage2(run, members, timeout, cwd, models):
-    answers = {p.stem: p.read_text().strip() for p in sorted((run / "stage1").glob("*.md")) if p.read_text().strip()}
+    answers = {p.stem: p.read_text().strip() for p in sorted((run / "stage1").glob("*.md"))
+               if ".lens" not in p.stem and p.read_text().strip()}
     if len(answers) < 2:
         sys.exit("stage2 에는 답변이 둘 이상 필요하다")
     authors = list(answers)
@@ -412,8 +477,10 @@ def stage2(run, members, timeout, cwd, models):
 
     responses = "\n\n".join(f"{label}:\n{answers[m]}" for label, m in label_to_member.items())
     question = (run / "question.md").read_text().strip()
-    template = (SKILL_DIR / "prompts" / "reviewer.md").read_text()
-    prompt = template.replace("{question}", question).replace("{responses}", responses)
+    lens_text, _ = read_lenses(run)
+    lens_note = prompt_file("reviewer-lenses.md").replace("{lenses}", lens_text) if lens_text else ""
+    prompt = (prompt_file("reviewer.md").replace("{question}", question)
+              .replace("{responses}", responses).replace("{lens_note}", lens_note))
 
     stage1_results = json.loads((run / "stage1" / "status.json").read_text())
     stage1_ok = [r["member"] for r in stage1_results if r["status"] == "ok"]
@@ -421,19 +488,34 @@ def stage2(run, members, timeout, cwd, models):
     models = {**models, **{r["member"]: r["model"] for r in stage1_results if r.get("model")}}
     results = fan_out(reviewers, {m: prompt for m in reviewers}, run / "stage2", timeout, cwd, models)
 
+    # 평가자는 출처를 가려도 자기 답을 알아보고 1위로 올리는 경향이 있다. 평균에서는 자기 답에 준 표를 빼고,
+    # 비교용으로 넣은 평균과 자기 답에 준 순위를 함께 남긴다.
     positions = {m: [] for m in authors}
+    with_self = {m: [] for m in authors}
+    self_rank = {}
     per_reviewer = {}
     for r in results:
         if r["status"] != "ok":
             continue
-        order = [l for l in parse_ranking((run / "stage2" / f"{r['member']}.md").read_text()) if l in label_to_member]
-        per_reviewer[r["member"]] = [label_to_member[l] for l in order]
+        reviewer = r["member"]
+        order = [l for l in parse_ranking((run / "stage2" / f"{reviewer}.md").read_text()) if l in label_to_member]
+        per_reviewer[reviewer] = [label_to_member[l] for l in order]
+        others = [l for l in order if label_to_member[l] != reviewer]
         for pos, label in enumerate(order, start=1):
+            with_self[label_to_member[label]].append(pos)
+            if label_to_member[label] == reviewer:
+                self_rank[reviewer] = pos
+        for pos, label in enumerate(others, start=1):
             positions[label_to_member[label]].append(pos)
+
+    def avg(xs):
+        return round(sum(xs) / len(xs), 2) if xs else None
+
     aggregate = sorted(
-        ({"member": m, "average_rank": round(sum(p) / len(p), 2), "votes": len(p)} for m, p in positions.items() if p),
+        ({"member": m, "average_rank": avg(p), "votes": len(p), "average_rank_with_self": avg(with_self[m])}
+         for m, p in positions.items() if p),
         key=lambda x: x["average_rank"])
-    ranking = {"aggregate": aggregate, "per_reviewer": per_reviewer}
+    ranking = {"aggregate": aggregate, "per_reviewer": per_reviewer, "self_rank": self_rank}
     (run / "ranking.json").write_text(json.dumps(ranking, ensure_ascii=False, indent=2) + "\n")
     return results, ranking
 
@@ -458,13 +540,14 @@ def parse_overrides(pairs):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["members", "stage1", "stage2"])
+    ap.add_argument("stage", choices=["members", "lenses", "stage1", "stage2"])
     ap.add_argument("run", nargs="?")
     ap.add_argument("--members", help="쉼표로 구분. 주면 members 캐시를 거치지 않고 그대로 부른다")
     ap.add_argument("--only", help="members 에서 이 위원만 다시 잰다")
     ap.add_argument("--chair", default="claude", help="의장(세션 모델)의 계열. 같은 계열 위원은 뺀다")
     ap.add_argument("--model", action="append", help="위원=모델. members 에서 고른 모델 대신 쓴다")
-    ap.add_argument("--refresh", action="store_true", help="stage1 전에 members 를 다시 잰다")
+    ap.add_argument("--refresh", action="store_true", help="lenses, stage1 전에 members 를 다시 잰다")
+    ap.add_argument("--split-lenses", action="store_true", help="stage1 에서 관점마다 따로 부른다(비용이 관점 수만큼)")
     ap.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT)
     ap.add_argument("--cwd", default=".")
     args = ap.parse_args()
@@ -481,7 +564,7 @@ def main():
     run = Path(args.run).expanduser().resolve()
     members = parse_list(args.members)
 
-    if args.stage == "stage1":
+    if args.stage in ("lenses", "stage1"):
         cache = load_cache()
         if not members:
             if args.refresh or overrides or not cache_fresh(cache):
@@ -490,8 +573,12 @@ def main():
             if not members:
                 sys.exit("쓸 수 있는 외부 위원이 없다. 위 fix 를 보고 로그인하거나 CLI 를 올린다")
         models = {**cached_models(cache), **overrides}
-        results = stage1(run, members, args.timeout, args.cwd, models)
-        summary = {"stage": 1, "results": results}
+        if args.stage == "lenses":
+            results = lenses(run, members, args.timeout, args.cwd, models)
+            summary = {"stage": "lenses", "results": results}
+        else:
+            results = stage1(run, members, args.timeout, args.cwd, models, args.split_lenses)
+            summary = {"stage": 1, "results": results}
     else:
         models = {**cached_models(load_cache()), **overrides}
         results, ranking = stage2(run, members, args.timeout, args.cwd, models)

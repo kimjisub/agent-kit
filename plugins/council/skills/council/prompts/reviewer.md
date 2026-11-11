@@ -6,7 +6,7 @@ Answers:
 
 {responses}
 
-Review them in two parts.
+{lens_note}Review them in two parts.
 
 Part 1. Go through the answers one by one. For each, say what it gets right and what it gets wrong or leaves out. Check facts you can check, including files in the working directory the question points to. Judge correctness and usefulness for the person who asked, not length or tone.
 
