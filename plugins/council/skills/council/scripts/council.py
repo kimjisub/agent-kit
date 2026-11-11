@@ -47,7 +47,8 @@ PROBE_TIMEOUT = 120
 PROBE_PROMPT = "Reply with the single word OK and nothing else. Do not use any tools."
 
 # 순서가 우선순위다. 모델 계열이 겹치면 앞의 위원이 남는다. 모델사가 직접 낸 CLI 를 앞에 두고,
-# 여러 회사 모델을 고를 수 있는 cursor 와 개인 계정이 막힌 gemini 를 뒤에 둔다.
+# 여러 회사 모델을 고를 수 있는 cursor 를 뒤에 둔다. Gemini 자리는 agy 가 맡는다. Gemini CLI 는
+# 2026-06-18 부터 개인 등급 계정 요청을 받지 않아 위원에서 뺐다.
 MEMBERS = {
     "codex": {
         "cli": "codex", "family": "gpt",
@@ -69,11 +70,6 @@ MEMBERS = {
         "login": "cursor-agent login (화면 없는 기기: NO_OPEN_BROWSER=1 cursor-agent login)",
         "update": "curl -fsS https://cursor.com/install | bash  (옛 버전의 cursor-agent update 는 메시지 없이 실패한다)",
     },
-    "gemini": {
-        "cli": "gemini", "family": "gemini",
-        "login": "gemini 를 대화형으로 실행해 로그인한다. 개인 Google 계정은 2026-06-18 부터 막혔으니 agy 를 쓴다",
-        "update": "npm i -g @google/gemini-cli",
-    },
 }
 ALL_MEMBERS = list(MEMBERS)
 
@@ -87,6 +83,7 @@ AUTH_PATTERNS = re.compile(
 )
 # 끝난 뒤 실패한 호출을 가르는 문구. 정상 답이 이 말을 담을 수 있으므로 실패한 호출에만 적용한다.
 FAILURE_PATTERNS = [
+    ("auth_required", re.compile(r"Authentication required", re.I)),
     ("auth_expired", re.compile(r"\b401\b|unauthorized|invalid_grant|token (has )?expired|re-?authenticate", re.I)),
     ("outdated", re.compile(r"Upgrade Required|\b426\b|is outdated|please update to version", re.I)),
     ("plan_limited", re.compile(r"Model unavailable on|not available on (your|the) .*plan|upgrade your plan", re.I)),
@@ -143,7 +140,7 @@ def default_model(member):
 
 
 def passes_model_flag(member):
-    # grok 은 기본 모델을 확인용으로만 읽고 넘기지 않는다. codex 와 gemini 는 CLI 설정을 따른다.
+    # grok 은 기본 모델을 확인용으로만 읽고 넘기지 않는다. codex 는 CLI 설정을 따른다.
     return member in ("antigravity", "cursor")
 
 
@@ -156,8 +153,6 @@ def build_command(member, prompt, out_file, model=None):
     if member == "antigravity":
         return (["agy", "--mode", "plan", "--sandbox"] + (["--model", flag] if flag else []) + ["-p", prompt],
                 None, "stdout")
-    if member == "gemini":
-        return (["gemini", "--approval-mode", "plan", "-o", "text", "-p", prompt], None, "stdout")
     if member == "grok":
         return (["grok", "--permission-mode", "plan", "-p", prompt], None, "stdout")
     if member == "cursor":

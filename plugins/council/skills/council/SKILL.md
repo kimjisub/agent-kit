@@ -1,6 +1,6 @@
 ---
 name: council
-description: 같은 질문을 이 기기에서 로그인돼 쓸 수 있는 모델 CLI(Codex, Antigravity, Grok, Cursor, Gemini)와 세션 모델에게 각자 답하게 하고, 출처를 가린 답변들을 외부 모델끼리 순위 매기게 한 뒤 세션 모델이 의장으로 하나의 답으로 종합한다(karpathy/llm-council 의 3단계를 로컬 CLI 구독으로 옮긴 것). 위원은 실제 호출로 로그인, 버전, 플랜을 재서 쓸 수 있고 모델 계열이 겹치지 않는 것만 고른다. "council 돌려줘", "위원회에 물어봐", "여러 모델한테 물어봐", "모델들 의견 모아줘", "다른 모델들은 뭐래", "llm council", "교차 검증해줘", "모델끼리 평가시켜", "council 위원 상태", "어느 모델 CLI 가 로그인돼 있어" 류 요청에 발동합니다. (역할을 나눠 모델마다 다른 질문을 맡기는 오케스트레이션이나 페르소나별 리뷰와는 다르다. 여기서는 모두에게 같은 질문을 준다.)
+description: 같은 질문을 이 기기에서 로그인돼 쓸 수 있는 모델 CLI(Codex, Antigravity, Grok, Cursor)와 세션 모델에게 각자 답하게 하고, 출처를 가린 답변들을 외부 모델끼리 순위 매기게 한 뒤 세션 모델이 의장으로 하나의 답으로 종합한다(karpathy/llm-council 의 3단계를 로컬 CLI 구독으로 옮긴 것). 위원은 실제 호출로 로그인, 버전, 플랜을 재서 쓸 수 있고 모델 계열이 겹치지 않는 것만 고른다. "council 돌려줘", "위원회에 물어봐", "여러 모델한테 물어봐", "모델들 의견 모아줘", "다른 모델들은 뭐래", "llm council", "교차 검증해줘", "모델끼리 평가시켜", "council 위원 상태", "어느 모델 CLI 가 로그인돼 있어" 류 요청에 발동합니다. (역할을 나눠 모델마다 다른 질문을 맡기는 오케스트레이션이나 페르소나별 리뷰와는 다르다. 여기서는 모두에게 같은 질문을 준다.)
 ---
 
 # council - 여러 모델의 독립 답변, 익명 상호 평가, 의장 종합
@@ -57,7 +57,7 @@ timeout 400 python3 <이 스킬>/scripts/council.py members [--chair claude]
 
 1. 위원마다 한 단어 질문을 읽기 전용으로 실제로 던진다. CLI 의 로그인 상태 명령은 토큰이 만료돼도 로그인됐다고 답하므로 믿지 않는다. 병렬이라 20초 안팎이다.
 2. 위원별로 쓸 모델을 고른다. agy 는 Gemini 계열, cursor 는 Composer 를 고른다. 각 CLI 의 기본값이 다른 회사 모델로 갈 수 있어서다. `--model cursor=<id>` 로 바꿀 수 있다.
-3. `--chair` 에 의장 계열(`claude`, `gpt`, `gemini`, `grok`)을 준다. 기본은 `claude` 다. 의장과 같은 계열 위원, 그리고 우선순위(codex, antigravity, grok, cursor, gemini)에서 앞 위원과 계열이 겹치는 위원은 `skip` 이 된다.
+3. `--chair` 에 의장 계열(`claude`, `gpt`, `gemini`, `grok`)을 준다. 기본은 `claude` 다. 의장과 같은 계열 위원, 그리고 우선순위(codex, antigravity, grok, cursor)에서 앞 위원과 계열이 겹치는 위원은 `skip` 이 된다.
 4. 결과는 `use`/`skip` 줄과 `fix:` 줄로 나온다. `fix` 는 사용자가 할 일이다.
 
 | status | 뜻 | fix |
@@ -104,7 +104,7 @@ timeout 1900 python3 <이 스킬>/scripts/council.py stage1 "$RUN" --cwd <질문
 2. `--members` 를 안 주면 Step 0 캐시에서 `use` 인 위원만 부른다. `--members codex,grok` 처럼 주면 캐시를 거치지 않고 그 위원을 부른다. 한 위원만 다시 돌릴 때 쓴다.
 3. stderr 의 위원별 한 줄과 마지막 요약 JSON 을 본다. `ok` 가 아닌 위원은 `status.json` 의 `detail` 로 이유를 확인한다. 로그인, 버전, 플랜 문제로 실패한 위원은 캐시에도 반영돼 다음 실행에서 빠진다.
 
-위원은 모두 읽기 전용 모드로 불린다(codex `-s read-only`, agy `--mode plan --sandbox`, gemini `--approval-mode plan`, grok `--permission-mode plan`, cursor `--mode ask`). cursor 의 `--trust` 는 작업 폴더를 신뢰한다는 확인을 건너뛸 뿐 쓰기 권한을 주지 않는다. 쓰기와 명령 실행은 `--force` 가 있어야 하고 쓰지 않는다. status 의 뜻은 Step 0 표와 같다.
+위원은 모두 읽기 전용 모드로 불린다(codex `-s read-only`, agy `--mode plan --sandbox`, grok `--permission-mode plan`, cursor `--mode ask`). cursor 의 `--trust` 는 작업 폴더를 신뢰한다는 확인을 건너뛸 뿐 쓰기 권한을 주지 않는다. 쓰기와 명령 실행은 `--force` 가 있어야 하고 쓰지 않는다. status 의 뜻은 Step 0 표와 같다.
 
 끝나면 `stage1/` 에 의장을 포함해 답이 둘 이상 있다. 외부 `ok` 가 0 이면 멈춘다.
 
