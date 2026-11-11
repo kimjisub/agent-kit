@@ -24,6 +24,7 @@ curl -fsS https://cursor.com/install | bash                   # cursor-agent
 
 - 로그인 확인은 상태 명령(`codex login status` 등)이 아니라 `council.py members` 로 한다. 토큰이 만료돼도 상태 명령은 로그인됐다고 답한다.
 - 화면 없는 기기에서 agy 의 URL 은 터미널 폭에서 줄이 꺾여 나온다. 줄바꿈과 앞 공백을 지워 한 줄로 이은 뒤 건넨다.
+- agy 의 계정을 바꾸려면 대화형 화면에서 `/logout` 을 친다. 로그아웃 명령은 화면 안에만 있다. 다시 띄우면 첫 화면 머리에 계정과 등급(`Antigravity Starter Quota` 는 무료, `Google AI Pro` 등)이 나온다. 위원의 등급은 여기서 확인한다.
 - 여러 기기가 같은 구독을 쓰면 기기마다 따로 로그인한다. 인증 파일(`auth.json` 등)을 복사하면 세션이 엉켜 한쪽이 로그아웃된다.
 
 ### agy 첫 실행 온보딩
@@ -35,6 +36,7 @@ curl -fsS https://cursor.com/install | bash                   # cursor-agent
 | 위원 | 증상 | 원인과 처리 |
 |---|---|---|
 | agy | `empty`, 또는 `"command" permission` 이 담긴 빈 답 | plan 모드에서 모델이 명령 실행 도구를 쓰려다 거부되면 답 없이 끝난다. 스크립트가 한 번 다시 묻는다. 반복되면 agy 설정의 `permissions.allow` 에 읽기 전용 명령만 넣는다. 권한 생략 플래그는 읽기 전용 원칙을 깨므로 쓰지 않는다 |
+| agy | 로그인 직후 `Eligibility check failed: Your current account is not eligible for Antigravity` | 그 Google 계정이 본인 확인을 아직 안 거쳤다. 화면에 나온 `accounts.google.com/v3/signin/continue` 링크를 그 계정으로 열어 확인을 마치고 agy 를 다시 띄운다. 다시 로그인할 필요는 없다 |
 | agy | 답이 Claude 처럼 읽힌다 | agy 는 Claude 모델도 고를 수 있다. 스크립트가 `agy models` 에서 Gemini 계열을 골라 `--model` 로 넘긴다 |
 | grok | `outdated`, 메시지에 426 Upgrade Required | 서버가 옛 CLI 를 거부한다. `grok update` |
 | cursor | `plan_limited`, `Model unavailable on Free` | 무료 플랜은 모델 지정이 막혀 `auto` 만 되고, `auto` 는 다른 회사 모델(Grok 등)로 돌아 다른 위원과 겹친다. Composer 는 가장 싼 유료 플랜부터 들어 있다. 유료가 아니면 cursor 는 빠지는 것이 맞다 |
