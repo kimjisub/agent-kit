@@ -474,8 +474,9 @@ const SURFACE_NOTE = {
 
 // SKILL 의 「셀 수 있는 조건」을 답이 끝나는 자리에서 센다. 판단으로 미루면 글이 이긴다(글은 도구 호출이 없고 그림은 너덧 번이다).
 // 기준은 화면마다 다르다. 채팅 보기는 그림이 답 안에 뜨므로 숫자, 단계, 길이까지 보고, 글자 화면은 링크를 여는 값이 크므로
-// 아스키 그림과 넓은 표(대화 문체에서 이미 금지한 것)만 본다. 한 번 돌려보내면 Claude Code 가 stop_hook_active 를 붙여 다시 부르고, 그때는 그냥 끝낸다
+// 아스키 그림과 넓은 표(대화 문체에서 이미 금지한 것), 그리고 그림 없는 긴 완료 보고(브랜치, 커밋, CI 표지 둘 이상에 글 20줄 초과)만 본다. 한 번 돌려보내면 Claude Code 가 stop_hook_active 를 붙여 다시 부르고, 그때는 그냥 끝낸다
 const NUDGE_UNIT = "%|퍼센트|ms|초|분|시간|일|주|개월|달|년|건|개|명|원|만원|억|배|x|MB|GB|KB|kB|TB|줄|번|회|점|px|자|장|쪽|곳|대|종|단계|칸|열|행";
+const NUDGE_REPORT = [/actions\/runs\/\d+|\/pull\/\d+/, /브랜치|branch/i, /커밋|commit/i, /\bCI\b/, /main\s?에|머지|merge/i, /(?<![\w/])[0-9a-f]{7,12}(?![\w/])/];
 const NUDGE_NUM = new RegExp(`(?<![\\w.:/#-])[-+]?\\d[\\d,]*(?:\\.\\d+)?\\s?(?:${NUDGE_UNIT})(?![A-Za-z])`, 'g');
 
 function nudgeVerdict(text, kind) {
@@ -491,8 +492,11 @@ function nudgeVerdict(text, kind) {
   if (box >= 3) why.push(`상자 문자로 그린 줄 ${box}개`);
   if (arrowRows >= 3) why.push(`화살표가 둘 넘게 이어지는 줄 ${arrowRows}개`);
   if (wide >= 2) why.push('열이 넷 넘는 표');
+  const body = prose.filter((l) => l.trim() && !/^\s*\|/.test(l));
+  // 완료 보고는 화면과 상관없이 센다. 화면이 안 바뀐 작업을 글로만 보고하는 것이 가장 흔한 놓침이다
+  const marks = NUDGE_REPORT.filter((re) => re.test(text)).length;
+  if (body.length > 20 && marks >= 2) why.push(`그림 없는 완료 보고 ${body.length}줄`);
   if (kind === 'orca-chat' || kind === 'orca-native-chat') {
-    const body = prose.filter((l) => l.trim() && !/^\s*\|/.test(l));
     const nums = (body.join('\n').match(NUDGE_NUM) ?? []).length;
     const steps = body.filter((l) => /^\s*\d+[.)]\s/.test(l)).length;
     if (body.length > 15) why.push(`글 ${body.length}줄`);
@@ -532,7 +536,8 @@ async function hookNudge() {
       : s.kind === 'orca-native-chat'
         ? '이 세션은 Orca 채팅입니다. Orca 의 orca-chat-visuals 스킬대로 HTML 그림을 답 안에 띄우고 글을 줄여 답을 다시 내세요.'
         : 'show 로 페이지를 만들어 공용 공간에 올리고 주소를 한 줄로 건네는 답으로 다시 내세요.';
-    const reason = `show 넛지: 방금 답에 그림이 받을 정보가 있습니다(${v.why.join(', ')}). ${how} 그림이 오히려 방해되는 답(받는 사람이 복사해 쓸 목록, 명령, 짧은 확인)이면 그 판단을 한 줄 적고 그대로 끝내도 됩니다.`;
+    const report = v.why.some((w) => w.startsWith('그림 없는 완료 보고')) ? ' 화면이 그대로인 작업이어도 바뀐 동작(호출 순서, 잠금, 재시도, 데이터 흐름)은 같은 상황의 전후 순서도나 구조도로 그립니다(show SKILL Step 0 의 5번).' : '';
+    const reason = `show 넛지: 방금 답에 그림이 받을 정보가 있습니다(${v.why.join(', ')}). ${how}${report} 그림이 오히려 방해되는 답(받는 사람이 복사해 쓸 목록, 명령, 짧은 확인)이면 그 판단을 한 줄 적고 그대로 끝내도 됩니다.`;
     process.stdout.write(JSON.stringify({ decision: 'block', reason }));
   } catch { /* 훅은 답을 막아서 깨지면 안 된다 */ }
 }
