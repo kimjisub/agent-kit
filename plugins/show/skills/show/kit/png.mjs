@@ -49,7 +49,9 @@ function measure(minText) {
     const cs = getComputedStyle(el);
     if (own && parseFloat(cs.fontSize) < minText - 0.01) small.push(`"${short(own)}" is ${Math.round(parseFloat(cs.fontSize) * 10) / 10}px`);
     if (cs.whiteSpace.startsWith("nowrap") || cs.textWrapMode === "nowrap") {
-      const box = el.parentElement.getBoundingClientRect(), r = el.getBoundingClientRect();
+      let up = el.parentElement; // display: contents 인 부모는 상자가 없어 폭이 0 으로 잰다. 상자가 있는 조상과 견준다
+      while (up && up !== document.body && getComputedStyle(up).display === "contents") up = up.parentElement;
+      const box = up.getBoundingClientRect(), r = el.getBoundingClientRect();
       if (el.scrollWidth > el.clientWidth + 1 || r.right > box.right + 1) wide.push(`"${short(el.textContent)}"`);
     }
   }

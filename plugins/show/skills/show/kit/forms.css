@@ -16,21 +16,24 @@
 .ve-mark path { stroke: var(--text-dim); stroke-width: 1; stroke-dasharray: 3 4; }
 .ve-mark text { text-anchor: middle; font-size: 14px; fill: var(--text); }
 
-/* 값마다 전에서 후로: 이름, 0 부터의 눈금 위 두 점, 값. 좁은 화면에서는 값이 아래 줄로 */
+/* 값마다 전에서 후로: 이름, 0 부터의 눈금 위 전 값에서 후 값으로 가는 화살표, 값. 좁은 화면에서는 값이 아래 줄로 */
 .ve-shift { display: grid; grid-template-columns: max-content minmax(8rem, 1fr) max-content; column-gap: var(--s-4); row-gap: var(--s-2); align-items: center; font-size: var(--t-small); }
 .ve-shift .row { display: contents; }
 .ve-shift .nm { color: var(--text-dim); }
-.ve-shift .tr { position: relative; height: 16px; border-top: 1px solid var(--border); top: 8px; margin: 0 7px; }
-.ve-shift .tr i { position: absolute; top: -1px; }
-.ve-shift .tr .ln { height: 0; border-top: 2px solid var(--text-dim); top: -2px; }
-.ve-shift .tr .from, .ve-shift .tr .to { width: 12px; height: 12px; margin: -7px 0 0 -6px; border-radius: 50%; box-sizing: border-box; }
-.ve-shift .tr .from { background: var(--surface); border: 1.5px solid var(--text-dim); }
-.ve-shift .tr .to { background: var(--text-dim); width: 13px; height: 13px; margin: -7.5px 0 0 -6.5px; }
+.ve-shift .tr { position: relative; height: 1em; border-top: 1px solid var(--border); top: .5em; margin: 0 .5em; color: var(--text-dim); }
+.ve-shift .ok .tr { color: var(--ok); } .ve-shift .risk .tr { color: var(--risk); }
+.ve-shift .tr i { position: absolute; top: -.5px; }
+.ve-shift .tr .ln { height: 0; border-top: max(2px, .13em) solid currentColor; transform: translateY(-50%); }
+.ve-shift .tr .from { width: max(3px, .18em); height: .9em; transform: translate(-50%, -50%); border-radius: 1px; background: currentColor; }
+.ve-shift .same .tr .from { width: .65em; height: .65em; border-radius: 50%; box-sizing: border-box; background: var(--surface); border: max(2px, .13em) solid currentColor; }
+.ve-shift .tr .hd { width: .75em; height: .9em; transform: translate(-100%, -50%); background: currentColor; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+.ve-shift .down .tr .hd { transform: translate(0, -50%); clip-path: polygon(100% 0, 0 50%, 100% 100%); }
 .ve-shift .v { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ve-shift .v .was { color: var(--text-dim); } .ve-shift .v .now { font-weight: 600; }
 .ve-shift .ch { font-weight: 600; margin-left: var(--s-1); } .ve-shift .ch.ok { color: var(--ok); } .ve-shift .ch.risk { color: var(--risk); }
-.ve-shift .hot .nm, .ve-shift .hot .v { color: var(--text); font-weight: 600; }
-.ve-shift .hot .tr .ln { border-top-color: var(--accent); }
-.ve-shift .hot .tr .to { background: var(--accent); }
+.ve-shift .hot .nm { color: var(--text); font-weight: 600; }
+.ve-shift .hot .tr .ln { border-top-width: max(3px, .2em); }
+.ve-shift .hot:not(.ok):not(.risk) .tr { color: var(--accent); }
 .ve-shift .scale { grid-column: 2; margin: 0; font-size: var(--t-label); color: var(--text-dim); }
 @media (max-width: 720px) {
   .ve-shift { grid-template-columns: max-content minmax(6rem, 1fr); }

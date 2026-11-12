@@ -110,7 +110,7 @@ function line(n, ctx) {
   return frame(`${svgOpen("ve-line", W, H, n.attrs.label)}${out.join("")}</svg>`);
 }
 
-/* ── <ve-shift> 값마다 전에서 후로. 화면 폭을 따라 줄이 바뀌도록 HTML 로 그린다 ── */
+/* ── <ve-shift> 값마다 전에서 후로 가는 화살표. 점 둘은 어느 쪽이 전인지 범례를 봐야 읽혀서 화살촉이 방향을 말하게 한다. 화면 폭을 따라 줄이 바뀌도록 HTML 로 그린다 ── */
 function shift(n, ctx) {
   needLabel(n, ctx);
   const { errors, where } = ctx, unit = n.attrs.unit || "", better = n.attrs.better;
@@ -129,11 +129,15 @@ function shift(n, ctx) {
   const out = rows.map((r) => {
     const good = better ? (better === "lower" ? r.to < r.from : r.to > r.from) : null;
     const tone = good === null || r.to === r.from ? "" : good ? " ok" : " risk";
-    const ch = r.from ? `${r.to >= r.from ? "+" : ""}${Math.round(((r.to - r.from) / r.from) * 100)}%` : "";
+    const ch = r.from ? `${r.to > r.from ? "+" : ""}${Math.round(((r.to - r.from) / r.from) * 100)}%` : "";
     const [a, b] = [pct(r.from), pct(r.to)];
-    return `<div class="row${r.hot ? " hot" : ""}${r.to < r.from ? " down" : ""}"${pass(r.k)}><span class="nm">${esc(r.name)}</span><span class="tr" aria-hidden="true"><i class="ln" style="left:${Math.min(a, b)}%;width:${r2(Math.abs(b - a))}%"></i><i class="from" style="left:${a}%"></i><i class="to" style="left:${b}%"></i></span><span class="v">${esc(lab(r.from))} -> ${esc(lab(r.to))}${ch ? ` <b class="ch${tone}">${ch}</b>` : ""}</span></div>`;
+    const dir = r.to < r.from ? " down" : r.to > r.from ? " up" : " same";
+    const track = r.to === r.from
+      ? `<i class="from" style="left:${a}%"></i>`
+      : `<i class="ln" style="left:${Math.min(a, b)}%;width:${r2(Math.abs(b - a))}%"></i><i class="from" style="left:${a}%"></i><i class="hd" style="left:${b}%"></i>`;
+    return `<div class="row${r.hot ? " hot" : ""}${dir}${tone}"${pass(r.k)}><span class="nm">${esc(r.name)}</span><span class="tr" aria-hidden="true">${track}</span><span class="v"><span class="was">${esc(lab(r.from))}</span> -> <b class="now">${esc(lab(r.to))}</b>${ch ? ` <b class="ch${tone}">${ch}</b>` : ""}</span></div>`;
   });
-  return `<div class="ve-shift" role="img" aria-label="${esc(n.attrs.label || "")}">${out.join("")}<p class="scale">빈 점이 전, 찬 점이 후. 0 에서 ${esc(lab(max))} 까지</p></div>`;
+  return `<div class="ve-shift" role="img" aria-label="${esc(n.attrs.label || "")}">${out.join("")}<p class="scale">화살표는 전 값에서 후 값으로 간다. 0 에서 ${esc(lab(max))} 까지</p></div>`;
 }
 
 /* ── <ve-timeline> 시간 순 사건 ── */
