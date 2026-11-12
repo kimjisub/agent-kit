@@ -50,10 +50,6 @@ export const register: Register = on => {
     return {}
   })
 
-  // The footer's mode labels say Quiet is on, beside the engine's own (`focus`, ...).
-  on('ui.render', { component: 'SessionMode' }, async ($, e, next) =>
-    (await isQuiet($)) ? next({ ...e, props: { ...e.props, modes: [...e.props.modes, COMMAND] } }) : next(e),
-  )
   on('ui.render', { component: 'ToolUse' }, async ($, e, next) =>
     (await isQuiet($)) ? hiddenRow($, e) : next(e),
   )

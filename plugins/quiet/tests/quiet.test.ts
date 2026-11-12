@@ -99,7 +99,7 @@ describe('quiet', () => {
     expect(text(await $.ui.render(sessionMode()))).not.toContain('quiet')
   })
 
-  test('hides every tool row, keeps messages and adds the quiet mode label once on', async ($, on) => {
+  test('hides every tool row and keeps messages and the footer as they were once on', async ($, on) => {
     const journal = world(on)
     await $.session.start(sessionStart)
     await $.command.run(quietCommand)
@@ -108,7 +108,8 @@ describe('quiet', () => {
       expect(isHidden(await $.ui.render(input))).toBe(true)
     }
     expect(isStock(await $.ui.render(assistantMessage()))).toBe(true)
-    expect(text(await $.ui.render(sessionMode()))).toContain('[\\"focus\\",\\"quiet\\"]')
+    expect(isStock(await $.ui.render(sessionMode()))).toBe(true)
+    expect(text(await $.ui.render(sessionMode()))).not.toContain('quiet')
     expect(journal.toasts).toHaveLength(1)
   })
 

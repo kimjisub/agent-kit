@@ -1,6 +1,6 @@
 {
   "name": "quiet",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Hide tool call rows so the transcript shows only the conversation. Toggle with /quiet.",
   "author": { "name": "Jisub Kim", "url": "https://github.com/kimjisub" },
   "homepage": "https://github.com/kimjisub/agent-kit/tree/main/plugins/quiet",
