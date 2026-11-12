@@ -15,7 +15,7 @@ const skipped = (n) => "data-prose" in n.attrs || hasClass(n, "sources") || n.at
 
 // 코드, 경로, 시각 안의 숫자는 그림의 재료가 아니다
 const plain = (n) => (n.text !== undefined ? (n.comment ? "" : decode(n.text)) : ["code", "kbd", "time", "samp", "script", "style"].includes(n.name) ? " " : n.children.map(plain).join(""));
-const UNIT = "%|퍼센트|ms|초|분|시간|일|주|개월|달|년|건|개|명|원|만원|억|배|x|MB|GB|KB|kB|TB|k|K|M|줄|번|회|점|px|자|어절|장|쪽|곳|개사|대|종|단계|칸|열|행";
+const UNIT = "%|퍼센트|ms|초|분|시간|일|주|개월|달|년|건|개|명|원|만원|억|배|x|MB|GB|KB|kB|TB|k|K|M|줄|번|회|점|px|자|어절|장|쪽|곳|개사|대|종|단계|칸|열|행|min|s|m|h";
 const NUM = new RegExp(`(?<![\\w.:/#-])[-+]?\\d[\\d,]*(?:\\.\\d+)?\\s?(?:${UNIT})(?![A-Za-z])`, "g");
 const ARROW = /->|=>|→|⇒|⟶/g;
 const VERSION = /(?<![\w.])(?:v\d+(?:\.\d+)*|\d+\.\d+\.\d+)(?![\w.])/g;

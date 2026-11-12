@@ -17,16 +17,16 @@
 //   node show.mjs list | inbox                 페이지 목록 | 아직 안 가져간 답
 //   node show.mjs inbox --hook                 Claude Code 의 UserPromptSubmit 훅용. stdin 의 session_id, cwd 를 읽어, 이 기기에서 그 저장소(또는 그 폴더)가
 //                                              올린 페이지의 새 답과, 가져가고 10분 넘게 닫지 않은 답을 additionalContext 로 낸다. 세션마다 한 번씩만.
-//                                              세션이 Orca 채팅 보기로 들어가거나 나오면 그 사실과 그림 건네는 법을 한 줄 함께 싣는다(surface).
+//                                              세션 첫 발화에는 그림 건네는 법을 한 줄 함께 싣는다(Orca 직접 채팅이면 ::orca-visual, 아니면 PNG 마크다운 이미지).
 //                                              서버 없이 파일을 읽고, 무엇이 실패해도 exit 0 으로 조용히 끝난다(발화를 막지 않는다)
 //   node show.mjs nudge install|uninstall|status [--settings <파일>]...
 //                                              답을 끝내기 전에 그림이 받을 답인지 세어 한 번 돌려보내는 Stop 훅을 그 settings 에 켜고 끈다(기본은
 //                                              $CLAUDE_CONFIG_DIR 또는 ~/.claude 의 settings.json). 고른 기기만 켠다. 원본은 .bak-show-nudge-<시각> 로 남긴다
-//   node show.mjs nudge --hook                 Stop 훅 본체. 채팅 보기면 숫자, 단계, 길이, 아스키 그림을 세고, 글자 화면이면 아스키 그림과 넓은 표만 센다.
+//   node show.mjs nudge --hook                 Stop 훅 본체. 보기와 상관없이 숫자, 단계, 길이, 아스키 그림, 넓은 표, 그림 없는 긴 완료 보고를 센다.
 //                                              그림이나 show 링크가 이미 있으면, stop_hook_active 면, SHOW_NUDGE=off 면 그냥 끝낸다
 //   node show.mjs nudge check [파일]           글 하나(없으면 stdin)를 이 세션의 화면 기준으로 세어 판정만 낸다
-//   node show.mjs surface                      이 세션이 어떤 화면으로 보이는지 낸다. SURFACE orca-chat(Orca 채팅 보기, PNG 를 마크다운 이미지로),
-//                                              orca-native-chat(Orca 채팅 세션, ::orca-visual), orca-cli, terminal(글자 화면, 링크)
+//   node show.mjs surface                      이 세션이 어떤 화면으로 보이는지 낸다. SURFACE orca-chat(Orca 채팅 보기), orca-cli(Orca 터미널 보기),
+//                                              terminal(Orca 밖). 셋 다 그림은 PNG 를 마크다운 이미지로 붙인다. orca-native-chat(Orca 채팅 세션)만 ::orca-visual
 //   node show.mjs service install|uninstall|status [--print]
 //                                              서버를 기기 서비스로 상주시킨다(macOS launchd, 리눅스 systemd --user). 재부팅 뒤에도 링크가 열린다.
 //                                              install 은 떼어 띄운 서버가 포트를 잡고 있으면 그 PID 를 끄고 서비스로 넘긴다. --print 는 쓸 파일만 보인다.
@@ -424,9 +424,9 @@ async function main() {
 /* ---------- 세션이 어떤 화면으로 보이는가 ---------- */
 
 // 같은 claude 세션이라도 Orca 의 채팅 보기면 답 안의 마크다운 이미지가 그림으로 뜨고, 터미널이면 경로 글자로 남는다.
+// 사용자는 그림이 필요하면 채팅 보기로 바꿔 보므로, 출구는 보기로 가르지 않는다. 가르는 것은 Orca 가 직접 돌리는 채팅 하나다.
 // orca-native-chat  Orca 가 직접 돌리는 채팅 세션. ORCA_CHAT_SCRATCH_DIR 에 HTML 을 두고 ::orca-visual 줄로 답 안에 띄운다(Orca 의 orca-chat-visuals 스킬)
-// orca-chat         터미널 세션을 Orca 의 채팅 보기로 보고 있다. 그림은 PNG 를 ![제목](절대 경로) 로 답에 붙인다
-// orca-cli, terminal  글자 화면. 그림은 링크로 건넨다
+// orca-chat, orca-cli, terminal  그림은 PNG 를 ![제목](절대 경로) 로 답에 붙인다(채팅 보기면 바로, 터미널 보기면 채팅 보기로 바꿀 때 뜬다)
 // Orca 는 보기 방식을 claude 에 넘기지 않는다. 그 기기의 Orca 상태 DB(profile-state.db)에서 이 탭의 viewMode 와 판 배치의 chatLeafId 를 읽는다.
 // Orca 내부 형식이라 버전이 바뀌면 못 읽을 수 있고, 그때는 orca-cli 로 떨어진다(링크는 어디서나 열린다)
 async function surface(env = process.env) {
@@ -465,17 +465,17 @@ async function surface(env = process.env) {
 }
 
 const SURFACE_NOTE = {
-  'orca-chat': 'show: 이 세션은 Orca 채팅 보기로 보이고 있습니다. 답 안의 마크다운 이미지가 그림으로 뜹니다. 그림이 받을 답(숫자 셋 이상, 단계 넷 이상, 구조, 전후)은 show 의 이미지 페이지를 PNG 로 찍어 `![제목](<PNG 절대 경로>)` 한 줄로 답에 붙이고, 글은 결론과 할 일 1~3줄로 둡니다. 결정과 의견을 페이지로 받을 보고만 링크를 함께 건넵니다.',
+  image: 'show: 그림이 받을 답(숫자 셋 이상, 단계 넷 이상, 구조, 전후, 큰 작업의 완료 보고)은 show 의 이미지 페이지를 PNG 로 찍어 `![제목](<PNG 절대 경로>)` 한 줄로 답에 붙이고, 글은 결론과 할 일 1~3줄로 둡니다. Orca 의 터미널 보기여도 같습니다. 사용자가 채팅 보기로 바꿔 봅니다. 결정과 의견을 페이지로 받을 보고만 링크를 함께 건넵니다.',
   'orca-native-chat': 'show: 이 세션은 Orca 가 직접 돌리는 채팅입니다. 그림은 Orca 의 orca-chat-visuals 스킬대로 ORCA_CHAT_SCRATCH_DIR 에 HTML 을 두고 ::orca-visual 줄로 답 안에 띄웁니다. 그 그림은 네트워크를 못 쓰므로 결정과 의견을 받을 보고는 show 링크로 건넵니다.',
-  'orca-cli': 'show: 이 세션은 이제 Orca 의 터미널 보기입니다. 답 안의 마크다운 이미지가 그림으로 뜨지 않으니 그림은 링크로 건넵니다.',
 };
+const noteKey = (kind) => (kind === 'orca-native-chat' ? kind : 'image');
 
 /* ---------- 답을 끝내기 전에 그림으로 돌려보내기 (Stop 훅, 고른 기기만) ---------- */
 
 // SKILL 의 「셀 수 있는 조건」을 답이 끝나는 자리에서 센다. 판단으로 미루면 글이 이긴다(글은 도구 호출이 없고 그림은 너덧 번이다).
 // 기준은 화면마다 다르다. 채팅 보기는 그림이 답 안에 뜨므로 숫자, 단계, 길이까지 보고, 글자 화면은 링크를 여는 값이 크므로
 // 아스키 그림과 넓은 표(대화 문체에서 이미 금지한 것), 그리고 그림 없는 긴 완료 보고(브랜치, 커밋, CI 표지 둘 이상에 글 20줄 초과)만 본다. 한 번 돌려보내면 Claude Code 가 stop_hook_active 를 붙여 다시 부르고, 그때는 그냥 끝낸다
-const NUDGE_UNIT = "%|퍼센트|ms|초|분|시간|일|주|개월|달|년|건|개|명|원|만원|억|배|x|MB|GB|KB|kB|TB|줄|번|회|점|px|자|장|쪽|곳|대|종|단계|칸|열|행";
+const NUDGE_UNIT = "%|퍼센트|ms|초|분|시간|일|주|개월|달|년|건|개|명|원|만원|억|배|x|MB|GB|KB|kB|TB|줄|번|회|점|px|자|장|쪽|곳|대|종|단계|칸|열|행|min|s|m|h";
 const NUDGE_REPORT = [/actions\/runs\/\d+|\/pull\/\d+/, /브랜치|branch/i, /커밋|commit/i, /\bCI\b/, /main\s?에|머지|merge/i, /(?<![\w/])[0-9a-f]{7,12}(?![\w/])/];
 const NUDGE_NUM = new RegExp(`(?<![\\w.:/#-])[-+]?\\d[\\d,]*(?:\\.\\d+)?\\s?(?:${NUDGE_UNIT})(?![A-Za-z])`, 'g');
 
@@ -496,7 +496,7 @@ function nudgeVerdict(text, kind) {
   // 완료 보고는 화면과 상관없이 센다. 화면이 안 바뀐 작업을 글로만 보고하는 것이 가장 흔한 놓침이다
   const marks = NUDGE_REPORT.filter((re) => re.test(text)).length;
   if (body.length > 20 && marks >= 2) why.push(`그림 없는 완료 보고 ${body.length}줄`);
-  if (kind === 'orca-chat' || kind === 'orca-native-chat') {
+  {
     const nums = (body.join('\n').match(NUDGE_NUM) ?? []).length;
     const steps = body.filter((l) => /^\s*\d+[.)]\s/.test(l)).length;
     if (body.length > 15) why.push(`글 ${body.length}줄`);
@@ -531,11 +531,9 @@ async function hookNudge() {
     if (text.split('\n').filter((l) => l.trim()).length < 4) return;
     const s = await surface(), v = nudgeVerdict(text, s.kind);
     if (!v.nudge) return;
-    const how = s.kind === 'orca-chat'
-      ? '이 세션은 Orca 채팅 보기라 그림이 답 안에 뜹니다. show 의 이미지 출구로 PNG 를 찍어 직접 열어 본 뒤 `![제목](<PNG 절대 경로>)` 로 붙이고, 글은 결론과 할 일 1~3줄로 줄여 답을 다시 내세요.'
-      : s.kind === 'orca-native-chat'
-        ? '이 세션은 Orca 채팅입니다. Orca 의 orca-chat-visuals 스킬대로 HTML 그림을 답 안에 띄우고 글을 줄여 답을 다시 내세요.'
-        : 'show 로 페이지를 만들어 공용 공간에 올리고 주소를 한 줄로 건네는 답으로 다시 내세요.';
+    const how = s.kind === 'orca-native-chat'
+      ? '이 세션은 Orca 채팅입니다. Orca 의 orca-chat-visuals 스킬대로 HTML 그림을 답 안에 띄우고 글을 줄여 답을 다시 내세요.'
+      : 'show 의 이미지 출구로 PNG 를 찍어 직접 열어 본 뒤 `![제목](<PNG 절대 경로>)` 로 붙이고, 글은 결론과 할 일 1~3줄로 줄여 답을 다시 내세요. Orca 의 터미널 보기여도 같습니다. 사용자가 채팅 보기로 바꿔 봅니다.';
     const report = v.why.some((w) => w.startsWith('그림 없는 완료 보고')) ? ' 화면이 그대로인 작업이어도 바뀐 동작(호출 순서, 잠금, 재시도, 데이터 흐름)은 같은 상황의 전후 순서도나 구조도로 그립니다(show SKILL Step 0 의 5번).' : '';
     const reason = `show 넛지: 방금 답에 그림이 받을 정보가 있습니다(${v.why.join(', ')}). ${how}${report} 그림이 오히려 방해되는 답(받는 사람이 복사해 쓸 목록, 명령, 짧은 확인)이면 그 판단을 한 줄 적고 그대로 끝내도 됩니다.`;
     process.stdout.write(JSON.stringify({ decision: 'block', reason }));
@@ -601,11 +599,10 @@ async function hookInbox() {
           : `- 「${p.title || p.id}」(${p.id}) 답 #${r.seq} 을 가져갔는데 아직 닫지 않았습니다. 반영했으면: node ${fileURLToPath(import.meta.url)} done ${p.id} ${r.seq} --note "<한 줄>"`);
       }
     }
-    // 보기가 바뀌었을 때만 한 줄 싣는다. 처음 본 세션이 글자 화면이면 아무것도 싣지 않는다
-    const prev = seen[sid]?.surface ?? null, s = await surface();
-    const chatish = (k) => k === 'orca-chat' || k === 'orca-native-chat';
-    const note = s.kind !== prev && (chatish(s.kind) || chatish(prev)) ? SURFACE_NOTE[s.kind] : null;
-    if (!out.length && !note && s.kind === prev) return;
+    // 그림 건네는 법은 세션 첫 발화에 한 번, Orca 직접 채팅으로 들고 날 때 한 번 싣는다. 보기(채팅, 터미널)가 바뀌는 것으로는 싣지 않는다
+    const prevKey = seen[sid]?.surface ? noteKey(seen[sid].surface) : null, s = await surface(), key = noteKey(s.kind);
+    const note = key !== prevKey ? SURFACE_NOTE[key] : null;
+    if (!out.length && !note && seen[sid]?.surface === s.kind) return;
     // 답은 세션마다 한 번씩만 싣는다. 7일 넘은 세션 기록은 지운다
     for (const k of Object.keys(seen)) if (now - (seen[k].at || 0) > 7 * 864e5) delete seen[k];
     seen[sid] = { at: now, keys: [...had, ...keys], surface: s.kind };
