@@ -104,6 +104,13 @@ h3 .n { color: var(--text-dim); margin-right: var(--s-2); font-variant-numeric: 
 .rc { font-weight: 700; color: var(--accent); white-space: nowrap; font-size: var(--t-small); }
 .tag { font-size: var(--t-label); font-weight: 700; color: var(--surface); background: var(--text-dim); padding: 2px 8px; border-radius: var(--r-1); margin-left: var(--s-2); vertical-align: 3px; }
 
+/* 직접 확인해 주실 곳. 받는 사람이 손으로 볼 자리 셋까지, 틀리면 크게 깨지는 순서 */
+.verify { border: 1px solid var(--border-bright); border-radius: var(--r-2); padding: var(--s-3) var(--s-5); margin-top: var(--s-4); }
+.verify .ve-label { margin: 0 0 var(--s-1); color: var(--text-dim); font-weight: 600; }
+.verify ol { margin: 0; padding-left: 1.25em; }
+.verify li + li { margin-top: var(--s-1); }
+.verify li b { margin-right: var(--s-2); }
+
 /* 센 수. kit 의 .kpis 를 써도 되고, 보고에서는 이 작은 카드가 맞는다 */
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--s-3); }
 .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-2); padding: var(--s-3) var(--s-4); }

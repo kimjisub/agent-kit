@@ -2,6 +2,7 @@
 //   문장 하나에 단위가 붙은 숫자가 셋 이상, 화살표가 둘 이상, 버전이 셋 이상이면 그 정보는 그림의 몫이다
 //   문단이 길거나, 절에 그림이 하나도 없거나, 페이지 전체에 그림 하나당 글이 많으면 글이 그림을 대신하고 있다
 //   첫 화면(<main> 의 <header>)에 코드 식별자(<code>)나 커밋 해시가 있으면 처음 보는 사람이 결론을 못 읽는다
+//   첫 화면이 만든 양(커밋, 파일, 줄, PR, 토큰, 에이전트, 통과한 테스트 수)을 세면 무엇이 달라졌는지가 빠진다
 // 접힌 원자료(<details>), 근거 절(.sources), 작업자용 절(#internal), 결정 블록, 그리고 data-prose 를 단 곳은 세지 않는다.
 // 글이 주인공인 페이지(에세이, 대필 초안)는 그 절이나 <main> 에 data-prose 를 단다.
 import { decode, find, hasClass, kids, parseHtml } from "./html.mjs";
@@ -20,6 +21,17 @@ const NUM = new RegExp(`(?<![\\w.:/#-])[-+]?\\d[\\d,]*(?:\\.\\d+)?\\s?(?:${UNIT}
 const ARROW = /->|=>|→|⇒|⟶/g;
 const VERSION = /(?<![\w.])(?:v\d+(?:\.\d+)*|\d+\.\d+\.\d+)(?![\w.])/g;
 const HASH = /(?<![\w./-])(?=[0-9a-f]*\d)(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}(?![\w.-])/g;
+// 만든 양(커밋, 파일, 줄, PR, 토큰, 에이전트, 통과한 테스트 수)은 받는 사람에게 무엇이 달라졌는지 말하지 않는다
+const Q = String.raw`\d[\d,.]*\s?(?:만|천|k|K|M)?`, DID = "바꿨|바꾼|고쳤|고친|추가|삭제|지웠|썼|작성|변경|수정";
+const OUTPUT = new RegExp([
+  String.raw`(?:커밋|commits?)\s?${Q}\s?(?:개|건)`, String.raw`${Q}\s?(?:개|건)?의?\s?(?:커밋|commits?)`,
+  String.raw`파일\s?${Q}\s?개`, String.raw`${Q}\s?개?의?\s?(?:바뀐|바꾼|변경된|수정한|고친)?\s?(?:파일|files?)`,
+  String.raw`코드\s?${Q}\s?줄`, String.raw`${Q}\s?줄(?=(?:을|의|짜리)?\s?(?:코드|${DID}))`, String.raw`${Q}\s?lines?`,
+  String.raw`(?:PR|풀 ?리퀘스트)\s?${Q}\s?(?:개|건)`, String.raw`${Q}\s?(?:개|건)?의?\s?(?:PR|pull requests?)`,
+  String.raw`${Q}\s?(?:토큰|tokens?)`, String.raw`토큰\s?${Q}`,
+  String.raw`(?:서브)?(?:에이전트|agents?)\s?${Q}\s?(?:개|명)(?=(?:를|을|로|가|이)?\s?(?:병렬|돌려|투입|동원|써))`, String.raw`${Q}\s?(?:개|명)의?\s?(?:서브)?(?:에이전트|agents?)(?=(?:를|로|가)?\s?(?:병렬|돌려|투입|동원|써))`,
+  String.raw`(?:테스트|tests?)\s?${Q}\s?개?(?=(?:가|를|이)?\s?(?:모두\s?)?(?:통과|pass))`, String.raw`${Q}\s?개?의?\s?(?:테스트|tests?)(?=(?:가|를|이)?\s?(?:모두\s?)?(?:통과|pass))`,
+].map((s) => String.raw`(?<![\w.])(?:${s})`).join("|"), "gi");
 const wordsOf = (s) => s.trim().split(/\s+/).filter(Boolean).length;
 const clip = (s) => { const t = s.replace(/\s+/g, " ").trim(); return t.length > 36 ? `${t.slice(0, 36)}...` : t; };
 
@@ -67,6 +79,8 @@ export function lookAtProse(html) {
     const hashes = raw(header).match(HASH) ?? [];
     const ids = [...new Set([...codes, ...hashes])];
     if (ids.length) found.push(`the first screen carries code identifiers (${ids.slice(0, 4).join(", ")}): a reader who was not in the work cannot read them. Say what each one is in the reader's words, and move the identifiers to the sources or a <details>`);
+    const counts = [...new Set((raw(header).replace(/\s+/g, " ").match(OUTPUT) ?? []).map((s) => s.trim()))];
+    if (counts.length) found.push(`the first screen counts output (${counts.slice(0, 5).join(", ")}${counts.length > 5 ? ` and ${counts.length - 5} more` : ""}): how much was made says nothing about what changed. Say what changed for whom, and move the counts to the sources or a <details>`);
   }
   for (const s of sections.values()) if (!s.visuals && s.words > LIMITS.section) found.push(`the section "${clip(s.title)}" has ${s.words} words and no figure`);
   if (!visuals && words > LIMITS.section) found.push(`the page has ${words} words and no figure`);

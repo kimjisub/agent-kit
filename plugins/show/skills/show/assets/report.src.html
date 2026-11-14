@@ -9,10 +9,17 @@
 <body><main>
   <header>
     <h1>{{이 문서가 답하는 질문}}</h1>
-    <p class="meta">{{날짜}} - {{범위}} - {{기준}}</p>
+    <p class="meta">{{날짜}} - {{범위}} - {{기준}} - 에이전트가 작성, 사람이 확인한 것: {{확인한 범위, 없으면 「사람 확인 전」}}</p>
     <p class="lead">{{결론 두세 문장. 가장 무거운 사례를 <b>강조</b>}}</p>
     <div class="stats">
       <div class="stat"><div class="n">{{수}}</div><div class="l">{{무엇을 센 수}}</div></div>
+    </div>
+    <!-- 직접 볼 곳. 틀리면 가장 크게 깨지는 것부터 셋까지, 저마다 근거 자리로 건다. 없으면 지운다 -->
+    <div class="verify">
+      <p class="ve-label">직접 확인해 주실 곳</p>
+      <ol>
+        <li><b>{{틀리면 무엇이 깨지나}}</b> {{무엇을 보면 되나}} <a href="#f2-1">{{근거 자리 2-1}}</a></li>
+      </ol>
     </div>
     <p class="note">{{어디서 어떻게 찍었나: 환경, 데이터, 계정, 폭. 찍으면서 바꾼 것. 화면으로 못 보인 항목은 어디에 모았나}}</p>
   </header>
@@ -35,7 +42,7 @@
     <h2><span class="n">2.</span>{{묶음 이름 - 결론을 말하는 문장}}</h2>
     <p class="sub">{{이 묶음이 왜 한 묶음인가 한 줄}}</p>
 
-    <article class="finding">
+    <article class="finding" id="f2-1">
       <header><span class="sev s1">심각</span><h3><span class="n">2-1</span>{{항목 제목 - 사실을 말하는 문장}} <span class="rc">R-1</span></h3></header>
       <!-- 두 그림이 같은 범위, 같은 크기로 찍혔으면 data-compare 를 단다. 나란히, 슬라이더, 차이 막대가 생긴다 -->
       <div class="pair" data-compare>

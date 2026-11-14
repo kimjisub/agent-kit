@@ -14,7 +14,8 @@
 //   - 검사: 글자마다 실제로 그린 글꼴을 브라우저에 물어(CDP CSS.getPlatformFontsForNode) 기기 글꼴로 그린 글자를 ✗ 로 낸다.
 //     한글 글꼴이 없는 서버에서는 그 글자가 □ 가 된다. 이미지 페이지면 18px 보다 작은 글과, 줄을 안 바꾸는 라벨이 제 칸을 넘는 것도 낸다
 //   - 이미지 페이지가 페이지로 가야 할 크기면 ✗ image 를 낸다. 높이가 폭의 1.36배(1400 폭에서 1,900px) 초과, 폭 400px 넘는 캡처 넷 이상,
-//     data-decide 를 단 결정 넷 이상. 그때는 링크 페이지로 올리고 그 첫 화면을 찍은 그림과 주소를 함께 건넨다
+//     data-decide 를 단 결정 넷 이상. 그때는 링크 페이지로 올리고 그 첫 화면을 찍은 그림과 주소를 함께 건넨다.
+//     받는 사람이 링크를 못 여는 메신저면 주장 하나씩 이미지 둘로 나눈다
 //
 // 주의
 //   - 2350자 밖의 한글(똠, 햏 같은 드문 음절)과 그림 문자, ▲ ★ 같은 기호는 기기 글꼴로 간다. 검사가 짚으면 글자를 바꾸거나 SVG 로 그린다
@@ -26,7 +27,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 export const FONT_FAMILY = "ShowKo";
 export const PNG_WIDTH = 1400, PNG_SCALE = 2, IMAGE_MIN_TEXT = 18;
-// an image page taller than this x its width needs scrolling in a chat column (1,900px at 1400)
+// 이미지 한 장의 높이 상한(폭의 배수). 채팅 칸과 휴대폰에서 한 번에 읽히는 높이다(1400 폭에서 1,900px). 2026-11 에 agent 맥의
+// 이미지 19장은 768~1602px 가 열일곱, 2481px(전후 사진 세 쌍) 하나, 3589px(카드 26장) 하나였고 뒤의 둘만 넘는다
 export const IMAGE_MAX_RATIO = 1.36;
 
 /** @font-face for the bundled ShowKo weights as data URIs, and the kit's font tokens pointed at it first. */
@@ -143,7 +145,7 @@ export async function toPng(file, { out, width = PNG_WIDTH, scale = PNG_SCALE } 
       if (m.height > width * IMAGE_MAX_RATIO) over.push(`${m.height}px tall at ${width}px (over ${Math.round(width * IMAGE_MAX_RATIO)})`);
       if (m.captures >= 4) over.push(`${m.captures} captures`);
       if (m.decisions >= 4) over.push(`${m.decisions} decisions`);
-      if (over.length) problems.push(`image: ${over.join(", ")}; this belongs on a page. Publish the link page and hand over a picture of its first screen with the address (show SKILL, the exit table)`);
+      if (over.length) problems.push(`image: ${over.join(", ")}; this belongs on a page. Publish the link page and hand over a picture of its first screen with the address (show SKILL, the exit table). If the reader cannot open links, split it into two images with one claim each`);
     }
     return { out, w: size.w, h: size.h, css: { width, height: m.height }, scale, image: m.image, problems };
   } catch (e) {

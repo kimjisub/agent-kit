@@ -62,6 +62,7 @@
 | 부품 | 마크업 | 쓰는 곳 |
 |---|---|---|
 | 센 수 | `.stats` 안 `.stat` 에 `.n`(수)과 `.l`(무엇을 센 수) | 보고 첫 장의 센 판정 |
+| 직접 볼 곳 | `<div class="verify">` 안 `<p class="ve-label">직접 확인해 주실 곳</p>` 과 `<ol>`, 항목마다 `<b>`(틀리면 깨지는 것)와 근거 자리 링크 | 보고 첫 장, 셋까지([document §1층 요약](../steps/20-document.md#1층-요약을-쓰는-법)) |
 | 항목 목록 | `.items` 안 `.item`: `.key`(`.code`, `.name`)와 `.val`(사실, `.act` 에 조치나 판정). 묶음은 `.grp` 에 `.gh`(그룹 이름)와 `.glist` 의 `.row` | 개선 보고와 명세 대조의 목록([document §표를 쓸 자리](../steps/20-document.md#표를-쓸-자리와-쓰지-말-자리)) |
 | 발견 카드 | `<article class="finding">`: `<header>` 에 `.sev`(`s1` 심각, `s2` 중요, `ok` 기준)와 `<h3>`, 사진, `.body` 의 `<dl>`(무엇이, 근거, 겪는 장면, 처방), 끝에 `<ve-ask>` | 발견 하나가 카드 하나 |
 | 전후 짝 | `<div class="pair" [data-compare]>` 안 `<figure>` 둘: `.lab.b`(전), `.lab.a`(후), `<img>`, `<figcaption>` | 같은 범위로 찍은 두 장. `data-compare` 는 같은 화면을 옛 버전과 새 버전으로 찍은 짝에만 단다(조작 전후 짝에는 달지 않는다). 달면 나란히, 슬라이더, 차이 막대가 생긴다([output §겹쳐 보기](../steps/60-output.md#겹쳐-보기---나란히-슬라이더-차이)) |
