@@ -68,7 +68,7 @@ function measure(minLabel) {
   // A 2x capture (data-scale="2", or 2200px and wider) counts at half its pixels
   const shrunk = [];
   for (const img of document.querySelectorAll("main figure img")) {
-    if (!img.naturalWidth || !img.checkVisibility() || img.closest("a, .cmp-stage")) continue;
+    if (!img.naturalWidth || !img.checkVisibility() || img.closest("a, .cmp-stage, [data-photo]")) continue;
     const own = img.naturalWidth / (+img.dataset.scale || (img.naturalWidth >= 2200 ? 2 : 1));
     const k = img.getBoundingClientRect().width / own;
     if (k < 0.5) shrunk.push(`${(img.getAttribute("alt") || img.currentSrc.slice(0, 40)).slice(0, 40)} (${Math.floor(k * 100)}% of ${Math.round(own)}px)`);

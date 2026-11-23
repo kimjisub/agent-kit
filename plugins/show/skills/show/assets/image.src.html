@@ -1,7 +1,10 @@
 <!doctype html>
 <!-- 이미지 골격. 메신저나 채팅에 PNG 로 붙일 한 장이다(steps/40-build.md §이미지로 건넬 페이지).
      글자 크기: data-image(항목 3~6개) / data-image="mid"(7~12개) / data-image="dense"(13개 이상).
-     렌더: node <스킬 폴더>/kit/render.mjs image.src.html --png   -> image.html, image.png -->
+     렌더: node <스킬 폴더>/kit/render.mjs image.src.html --png   -> image.html, image.png
+     대상이 눈에 보이는 것(물건, 장소, 음식, 시안, 화면)이면 실제 사진이 먼저다. 칸마다 사진 한 장, 그것만의 차이 두세 줄, 판정 한 줄.
+     스펙 표를 그대로 찍지 않는다. 대상의 사진은 data-photo 를 단다(캡처 수에 안 센다).
+     건네는 법(아래 글 1~3줄, 첨부 줄)은 steps/60-output.md §이미지로 건네기 -->
 <html lang="ko" data-image>
 <head>
 <title>{{결론을 말하는 제목}}</title>

@@ -72,10 +72,13 @@ function measure(minText) {
       if (past.length === 3) break;
     }
   }
-  // what decides between an image and a page: captures big enough to need reading, and decisions marked data-decide
-  const captures = [...document.querySelectorAll("main img")].filter((i) => i.checkVisibility() && i.naturalWidth >= 400).length;
+  // what decides between an image and a page: captures big enough to need reading, and decisions marked data-decide.
+  // Photos of the subject itself (data-photo on the img or a parent: products, places, food, drafts) carry no text to read, so they do not count
+  const shown = [...document.querySelectorAll("main img")].filter((i) => i.checkVisibility());
+  const captures = shown.filter((i) => i.naturalWidth >= 400 && !i.closest("[data-photo]")).length;
+  const photos = shown.length;
   const decisions = document.querySelectorAll("main [data-decide]").length;
-  return { height: Math.ceil(document.documentElement.scrollHeight), width: document.documentElement.scrollWidth, small, wide, past, captures, decisions, image: document.documentElement.hasAttribute("data-image") };
+  return { height: Math.ceil(document.documentElement.scrollHeight), width: document.documentElement.scrollWidth, small, wide, past, captures, photos, decisions, image: document.documentElement.hasAttribute("data-image") };
 }
 
 // Every element with its own text, and the fonts the browser drew that text with. A font that is not a web font is the device's.
@@ -147,7 +150,7 @@ export async function toPng(file, { out, width = PNG_WIDTH, scale = PNG_SCALE } 
       if (m.decisions >= 4) over.push(`${m.decisions} decisions`);
       if (over.length) problems.push(`image: ${over.join(", ")}; this belongs on a page. Publish the link page and hand over a picture of its first screen with the address (show SKILL, the exit table). If the reader cannot open links, split it into two images with one claim each`);
     }
-    return { out, w: size.w, h: size.h, css: { width, height: m.height }, scale, image: m.image, problems };
+    return { out, w: size.w, h: size.h, css: { width, height: m.height }, scale, image: m.image, photos: m.photos, problems };
   } catch (e) {
     return { skipped: `the image could not be taken: ${String(e.message).split("\n")[0]}`, problems: [] };
   } finally {
@@ -161,6 +164,8 @@ export function pngLines(r) {
   return [
     ...r.problems.map((p) => `✗ ${p}`),
     ...(r.image ? [] : ["⚠ the page has no data-image, so its text is sized for a link page and reads small in a picture"]),
+    // the subject decides the picture: a comparison of things drawn as a spec table reads as text in a frame
+    ...(r.image && !r.photos ? ["⚠ no photo in this image. If the subject can be seen (product, place, food, draft, screen), put its real photo in (build §이미지로 건넬 페이지, 「대상이 보이는 것이면 사진이 먼저다」)"] : []),
     `PNG: ${r.out}  ${r.w}x${r.h} (${r.css.width}x${r.css.height} at scale ${r.scale})`,
     `Look at: ${r.out}`,
   ];
