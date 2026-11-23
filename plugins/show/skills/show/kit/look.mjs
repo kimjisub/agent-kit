@@ -2,6 +2,7 @@
 // script errors, sideways scrolling, labels under 12 px, text that overlaps or runs out of its drawing, headings that sit on what
 // follows, every stepper step, and a contact sheet of the first screen, the figures, and the steps. playwright-core is an optional peer.
 import { createRequire } from "node:module";
+import { homedir } from "node:os";
 import { readdirSync, rmSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -20,11 +21,12 @@ export async function launch() {
     ({ chromium } = await import("playwright-core"));
   } catch (e) {
     if (e.code !== "ERR_MODULE_NOT_FOUND") throw e;
-    // show: the work folder's playwright (npm i -D playwright) is enough; import() never looks there, so require from it
-    for (const from of [join(process.cwd(), "x.js"), fileURLToPath(import.meta.url)]) {
+    // show: the work folder's playwright, or the one show.mjs setup put in the shared space (~/.show); import() never looks there, so require from it
+    const shared = join(process.env.SHOW_HOME || join(homedir(), ".show"), "x.js");
+    for (const from of [join(process.cwd(), "x.js"), shared, fileURLToPath(import.meta.url)]) {
       try { ({ chromium } = createRequire(from)("playwright")); break; } catch { /* next */ }
     }
-    if (!chromium) return { skipped: "playwright is not installed. In the work folder run: npm i -D playwright" };
+    if (!chromium) return { skipped: "playwright is not installed. Run once: node <skill>/scripts/show.mjs setup (or npm i -D playwright in the work folder)" };
   }
   try {
     return { browser: await chromium.launch() };

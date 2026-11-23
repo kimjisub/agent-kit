@@ -10,6 +10,7 @@
  */
 import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
+import { homedir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -112,11 +113,11 @@ function agentBrowser() {
 async function playwright() {
   // show 의 다른 스크립트처럼 작업 폴더에 설치된 playwright 를 먼저 쓴다. 브라우저를 받지 않았으면 설치된 Chrome 으로 뜬다
   let mod;
-  try {
-    mod = await import(pathToFileURL(createRequire(join(process.cwd(), "noop.js")).resolve("playwright")).href);
-  } catch {
-    mod = await import("playwright");
+  // 작업 폴더, 그다음 show.mjs setup 이 깔아 둔 공용 공간(~/.show)
+  for (const base of [process.cwd(), process.env.SHOW_HOME || join(homedir(), ".show")]) {
+    try { mod = await import(pathToFileURL(createRequire(join(base, "noop.js")).resolve("playwright")).href); break; } catch { /* next */ }
   }
+  mod ??= await import("playwright");
   const { chromium } = mod.default ?? mod;
   const browser = await chromium.launch().catch(() => chromium.launch({ channel: "chrome" }));
   let context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });

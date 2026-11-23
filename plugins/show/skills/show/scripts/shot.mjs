@@ -31,6 +31,7 @@
 //   없으면 작업 폴더에서 npm i -D playwright && npx playwright install chromium
 
 import { createRequire } from 'node:module';
+import os from 'node:os';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
@@ -42,10 +43,11 @@ if (!listPath || !outDir) {
 }
 
 function loadPlaywright() {
-  for (const base of [path.join(process.cwd(), 'x.js'), fileURLToPath(import.meta.url)]) {
+  const shared = path.join(process.env.SHOW_HOME || path.join(os.homedir(), '.show'), 'x.js');
+  for (const base of [path.join(process.cwd(), 'x.js'), shared, fileURLToPath(import.meta.url)]) {
     try { return createRequire(base)('playwright'); } catch {}
   }
-  console.error('playwright 를 찾지 못했습니다. 작업 폴더에서 npm i -D playwright && npx playwright install chromium');
+  console.error('playwright 를 찾지 못했습니다. 한 번만: node <스킬 폴더>/scripts/show.mjs setup (또는 작업 폴더에서 npm i -D playwright)');
   process.exit(1);
 }
 
