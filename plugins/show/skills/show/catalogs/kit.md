@@ -54,6 +54,7 @@
 | 수치 띠 | `.kpis` 안 `.kpi`: `<span class="ve-label">적중률</span><span class="val"><span data-count="94">94</span><span class="unit">%</span></span>` + 데이터 태그. `data-count` 는 세며 올라간다 |
 | 작은 그림 여럿 | `.cases` 안 `<div class="case" data-st="ok\|warn\|risk">`: 꼬리표, `<h3>`, `<svg class="ve-mini" viewBox="0 0 240 128">`. 바뀐 부분 `.is-st`, 빠진 부분 `.is-off` |
 | 상태 꼬리표 | `<span class="chip ok\|warn\|risk">낱말</span>`. 모양(원, 세모, 네모)과 낱말이 함께 상태를 말한다 |
+| 확인 범위와 변화 꼬리표 | `<span class="chip is-seen\|is-code\|is-guess\|is-mock">실측</span>` 은 얼마나 믿어도 되는지를 테두리(실선, 옅은 실선, 점선, 점점선)로, `is-new\|is-mod\|is-gone` 은 전과 무엇이 다른지를 기호(+ ~ -)로 말한다. 둘 다 색을 쓰지 않아 상태 꼬리표와 한 줄에 놓여도 섞이지 않는다 |
 | 표 | `<div class="ve-table"><table>`. 숫자 칸 `class="num"`, 칸 안 메모는 `<small>`. 보고에서는 `.tw` 도 된다 |
 | 접기 | `<details><summary>...</summary>...</details>`. 원자료와 세부 |
 
@@ -159,6 +160,7 @@
 - **나무 `<ve-tree>`**: `<ve-item>` 을 겹쳐 쓴다. `note` 는 이름 옆 흐린 설명, `new` 와 `gone` 은 꼬리표, `key` 는 강조색. 경로와 파일이면 `mono`
 - **행렬 `<ve-matrix>`**: 칸은 `yes`, `part`, `no`(찬 원, 반 찬 원, 빈 원), `-`(해당 없음), 그 밖의 글이다. 칸에 공백이 들면 `|` 로 가른다. 쓴 기호만 범례에 나오고 낱말은 `yes="지원"` 처럼 바꾼다. `key` 열과 `hot` 행이 강조된다
 - **2x2 `<ve-quad>`**: `at="x y"` 는 0~100. `x`, `y` 는 낮은 쪽과 높은 쪽 이름, `q` 는 왼쪽 위, 오른쪽 위, 왼쪽 아래, 오른쪽 아래 칸 이름. 점 이름은 그 점이 든 칸 안에서 다른 점과 이름을 피해 놓인다
+- **범위 대조 `<ve-scope asked="요청 한 줄">`**: `<ve-area kind="asked|outside|reach" sure="seen|code|guess" note="…">이름</ve-area>`. 세 칸(요청한 것, 요청 밖에서 바뀐 것, 영향이 닿는 곳)이고 요청 밖 칸은 주의 색 테두리다. 칸이 비면 「없음」 이 나온다. 요청 밖과 영향은 `note` 가 있어야 하고, `hot` 은 강조. 초안은 `scripts/scope.mjs`
 - **순서도 `<ve-seq>`**: `<ve-actor>` 가 쓴 순서로 열이 되고 `<ve-msg>` 가 쓴 순서로 아래로 내려간다. 자기에게 보내면 고리, `back` 이나 `async` 는 점선, `hot` 은 강조. 메시지 라벨이 두 열 사이보다 길면 경고가 난다
 
 ## 화면 캔버스 - `<ve-canvas>`
@@ -171,6 +173,30 @@
   <figcaption><span class="fig-n">그림 2</span>...</figcaption>
 </figure>
 ```
+
+## 프로젝트 지도 - `<ve-map>`
+
+공용 공간에 둔 프로젝트 지도를 끼우고 이번에 바뀐 상자만 칠한다. 지도를 만들고 올리는 법은 [pages §프로젝트 지도](pages.md#프로젝트-지도).
+
+```html
+<ve-map project="clozer-crm" mark="cand notify" new="retry">저장과 알림이 바뀌었고, 명단 쓰기는 그대로입니다.</ve-map>
+```
+
+- `mark` 의 상자는 굵은 강조 테두리, `new` 의 상자는 점선이다. 지도에 없는 이름이면 렌더 오류가 지도의 상자 이름을 알려 준다
+- 안에 쓴 글은 지도의 캡션을 바꾼다. 비우면 지도 원본의 캡션이 그대로 나온다
+- 지도 원본의 `<style>` 은 따라오지 않는다. 지도는 kit 부품으로만 그린다
+
+## 이해 확인 - `<ve-check>`
+
+받는 사람이 페이지만 읽고 답할 수 있는 질문을 둔다. 답은 접혀 있고, 받는 사람은 「알겠다 / 모르겠다 / 되묻기」 를 골라 결정과 함께 보낸다.
+
+```html
+<ve-check q="두 검색이 반대 순서로 동시에 돌면 이제 어떻게 되나요?"><p>둘 다 성공합니다. 한 번에 잡는 잠금이 한 사람 몫뿐이고 순서가 늘 같습니다.</p></ve-check>
+```
+
+- `<main>` 안에, 보고 끝 가까이 둘이나 셋. 질문은 이 보고가 바꾼 것의 핵심을 묻고, 답은 페이지 안의 그림에 있어야 한다
+- `id` 를 비우면 `check-1` 처럼 붙는다. 쓸 때도 `check-` 로 시작한다. 결정 수와 목차의 결정 진행에는 세지 않는다
+- 이미지 페이지에는 못 둔다(답을 받을 수 없다). 메신저로 건네는 그림이면 질문을 그림 아래 글로 쓴다
 
 ## 결정 - `<ve-ask>`
 
