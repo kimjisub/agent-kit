@@ -99,7 +99,7 @@ npm i -g agent-browser
 없으면 Playwright로 넘어갑니다.
 
 ```bash
-npm i -D playwright && npx playwright install chromium
+node <스킬 폴더>/scripts/show.mjs setup   # ~/.show 에 playwright 를 한 번. 브라우저가 없으면 npx playwright install chromium
 ```
 
 `--browser playwright`로 못 박을 수 있습니다.

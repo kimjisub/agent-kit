@@ -31,7 +31,7 @@ node <스킬 폴더>/kit/render.mjs image.src.html --png [--width 1400] [--scale
 - `.pair[data-compare]` 가 있으면 `compare.js` 를, `<main>` 의 `h2` 가 둘 이상이면 `report-nav.js` 를 렌더가 넣는다. `<script src>` 로 따로 부르지 않는다
 - 렌더한 페이지를 다시 렌더해도 같다. 고칠 때는 언제나 원본을 고치고 다시 렌더한다
 - kit 은 렌더할 때 페이지 안에 들어간다. 스킬을 갱신해 kit 이 바뀌어도 이미 렌더한 페이지는 옛 kit 그대로다. 새 동작이 필요하면 원본을 다시 렌더해 다시 올린다
-- 화면 검사는 작업 폴더의 playwright 로 돈다(`npm i -D playwright` 한 번). 없으면 건너뛰었다고 말한다
+- 화면 검사는 작업 폴더나 공용 공간(`~/.show`)의 playwright 로 돈다. 기기마다 `show.mjs setup` 을 한 번 돌리면 된다. 없으면 건너뛰었다고 말한다
 
 ## 이미지로 건넬 페이지
 

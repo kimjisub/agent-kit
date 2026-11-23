@@ -195,7 +195,7 @@ export async function openBrowser(prefer) {
         [
           "브라우저를 열지 못했습니다.",
           "  agent-browser: npm i -g agent-browser",
-          "  또는 Playwright: npm i -D playwright && npx playwright install chromium",
+          "  또는 Playwright: node <스킬 폴더>/scripts/show.mjs setup (설치된 Chrome 이 없으면 npx playwright install chromium)",
           `  (마지막 오류: ${error.message})`,
         ].join("\n"),
       );

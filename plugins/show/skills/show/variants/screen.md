@@ -62,11 +62,10 @@ console.log(byMonth);
 ## 브라우저 조작
 
 기본 수단은 `scripts/shot.mjs` 다. 촬영 목록 파일 하나를 받아 Playwright 로 화면을 열고, 표시를 그리고, 찍는다.
-Playwright 는 보고서 작업 폴더에 한 번 넣는다.
+Playwright 는 기기마다 공용 공간에 한 번 넣는다. 어느 작업 폴더에서든 찾는다.
 
 ```bash
-npm i -D playwright
-npx playwright install chromium   # 건너뛰면 설치된 Chrome 으로 띄운다
+node <스킬 폴더>/scripts/show.mjs setup   # ~/.show 에 playwright. 브라우저는 받지 않고 설치된 Chrome 으로 띄운다
 ```
 
 다른 브라우저 도구를 쓰는 환경이면 그 도구로 열고 찍되, 표시는 `scripts/mark.js` 를 페이지에 넣어 그린다.
