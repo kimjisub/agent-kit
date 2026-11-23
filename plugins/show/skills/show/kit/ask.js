@@ -50,7 +50,7 @@ if (asks.length) {
     count: () => asks.filter(answered).length,
     lines: () => asks.map((a) => `- ${a.dataset.ask} (${q(a)}): ${withThen(a)}`),
     json: () => asks.map((a) => ({ id: a.dataset.ask, q: q(a), answered: answered(a), value: read(a), own: ownText(a) || null, label: pick(a), then: then(a) })),
-    rows: () => R.h("section", { class: "r-sec" }, R.h("p", { class: "ve-label caps" }, `결정 ${asks.length}개 중 ${asks.filter(answered).length}개 답함`),
+    rows: () => R.h("section", { class: "r-sec" }, R.h("p", { class: "ve-label caps" }, `답할 것 ${asks.length}개 중 ${asks.filter(answered).length}개 답함`),
       asks.map((a) => R.h("div", { class: "r-row" }, R.h("span", { class: "k" }, answered(a) ? "답함" : "남음"), R.h("span", {}, state(a), R.h("small", {}, q(a))),
         R.h("span", { class: "acts" }, R.h("button", { type: "button", onclick: () => { R.close(); a.scrollIntoView({ block: "center" }); (inputs(a).find((i) => i.checked) || inputs(a)[0]).focus({ preventScroll: true }); } }, answered(a) ? "바꾸기" : "답하기"))))),
     clear: () => { done = {}; save(); for (const a of asks) { write(a, null); if (box(a)) box(a).value = ""; } },

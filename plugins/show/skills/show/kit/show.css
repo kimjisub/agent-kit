@@ -273,3 +273,24 @@ figure .lab.a { background: color-mix(in srgb, var(--accent) 9%, var(--surface))
   ::highlight(ve-note) { background-color: transparent; }
   .ve-player, button, .no-print { display: none !important; }
 }
+
+/* 확인 범위와 변화 꼬리표. 상태(ok warn risk)가 색을 쓰므로 이 둘은 색을 쓰지 않는다. 확인 범위는 테두리 모양, 변화는 기호로 말한다 */
+.chip.is-seen, .chip.is-code, .chip.is-guess, .chip.is-mock { color: var(--text-dim); }
+.chip.is-seen::before, .chip.is-code::before, .chip.is-guess::before, .chip.is-mock::before { display: none; }
+.chip.is-code { border-width: 1px; border-style: solid; border-color: var(--border-bright); }
+.chip.is-guess { border-style: dashed; }
+.chip.is-mock { border-style: dotted; }
+.chip.is-new, .chip.is-mod, .chip.is-gone { color: var(--text); }
+.chip.is-new::before, .chip.is-mod::before, .chip.is-gone::before { width: auto; height: auto; background: none; font-weight: 700; }
+.chip.is-new::before { content: '+'; }
+.chip.is-mod::before { content: '~'; }
+.chip.is-gone::before { content: '-'; }
+.chip.is-gone { text-decoration: line-through; }
+
+/* <ve-map> 이 끼운 프로젝트 지도. 이번에 바뀐 상자(data-mark="hot")만 강조색, 새로 생긴 상자(new)는 점선 */
+[data-mark="hot"] > .sh, rect[data-mark="hot"], path[data-mark="hot"] { stroke: var(--accent); stroke-width: 3; }
+[data-mark="new"] > .sh, rect[data-mark="new"] { stroke: var(--accent); stroke-width: 2; stroke-dasharray: 6 4; }
+:not(svg *)[data-mark="hot"] { outline: 3px solid var(--accent); outline-offset: 2px; }
+:not(svg *)[data-mark="new"] { outline: 2px dashed var(--accent); outline-offset: 2px; }
+[data-mark] > text { font-weight: 700; }
+.ve-map-key { margin: var(--s-2) 0 0; font-size: var(--t-label); color: var(--text-dim); }

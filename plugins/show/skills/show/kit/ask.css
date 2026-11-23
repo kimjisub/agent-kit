@@ -32,3 +32,9 @@
   .ask { break-inside: avoid; }
   .opt-own:not(:has(input:checked)) { display: none; }
 }
+/* show: <ve-check> 이해 확인. 답은 접어 두고, 열어 본 뒤 「알겠다 / 모르겠다」를 고른다 */
+.ask.check { border-style: dashed; }
+.ask.check .check-a { margin: var(--s-2) 0 var(--s-3); }
+.ask.check .check-a summary { cursor: pointer; color: var(--text-dim); }
+.ask.check .check-a[open] summary { margin-bottom: var(--s-2); }
+@media print { .ask.check .check-a { display: block; } .ask.check .check-a summary { display: none; } }

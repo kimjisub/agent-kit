@@ -108,3 +108,17 @@
 .ve-matrix .legend { display: flex; flex-wrap: wrap; gap: var(--s-4); margin-top: var(--s-2); font-size: var(--t-label); color: var(--text-dim); }
 .ve-matrix .legend > span { display: inline-flex; align-items: center; gap: var(--s-1); }
 @media print { .ve-tl .ev, .ve-tree li, .ve-matrix tr { break-inside: avoid; } }
+
+/* <ve-scope> 요청 안, 요청 밖, 영향이 닿는 곳. 요청 밖 칸만 주의 색 테두리라 눈이 거기부터 간다 */
+.ve-scope .sc-ask { margin: 0 0 var(--s-2); color: var(--text-dim); }
+.ve-scope .sc-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: var(--s-3); }
+.ve-scope .sc-col { border: 1px solid var(--border-bright); border-radius: var(--r-2); padding: var(--s-3) var(--s-4); }
+.ve-scope .sc-outside { border: 2px solid var(--warn); }
+.ve-scope .sc-h { margin: 0 0 var(--s-2); font-weight: 700; }
+.ve-scope .sc-n { color: var(--text-dim); font-weight: 600; }
+.ve-scope ul { margin: 0; padding-left: 1.1em; }
+.ve-scope li + li { margin-top: var(--s-2); }
+.ve-scope li small { display: block; color: var(--text-dim); }
+.ve-scope li.hot b { color: var(--accent); }
+.ve-scope .sc-none { margin: 0; color: var(--text-dim); }
+@media print { .ve-scope .sc-col { break-inside: avoid; } }

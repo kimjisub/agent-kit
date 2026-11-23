@@ -6,6 +6,7 @@
 //   <ve-matrix cols="v1, v2" key="v2"><ve-row name="오프라인">no yes</ve-row></ve-matrix>                                                항목 x 기준의 있음, 일부, 없음
 //   <ve-quad x="노력 적음, 노력 많음" y="효과 작음, 효과 큼" q="..."><ve-dot at="20 80" hot>이름</ve-dot></ve-quad>                         두 축 위의 자리
 //   <ve-seq><ve-actor id="u">사용자</ve-actor><ve-msg from="u" to="api">GET</ve-msg></ve-seq>                                           누가 누구에게 어떤 순서로
+//   <ve-scope asked="요청 한 줄"><ve-area kind="asked|outside|reach" sure="seen|code|guess" note="…">이름</ve-area></ve-scope>       요청 안, 요청 밖, 영향이 닿는 곳
 // 모든 태그에 label="..." 이 있어야 한다(화면 낭독기가 그림 대신 읽는다). data-ref, data-s 는 그린 부분에 그대로 옮겨 함께 밝히기와 단계 재생에 낀다.
 import { esc, kids, textOf } from "./html.mjs";
 
@@ -18,7 +19,7 @@ const cells = (s) => ((s ?? "").includes("|") ? s.split("|") : (s ?? "").split(/
 const list = (s) => (s ?? "").includes(",") ? s.split(",").map((x) => x.trim()).filter(Boolean) : (s ?? "").trim().split(/\s+/).filter(Boolean);
 const own = (n) => n.children.filter((c) => c.name !== "small" && c.name !== "ve-item").map(textOf).join("").replace(/\s+/g, " ").trim();
 const small = (n) => kids(n).filter((c) => c.name === "small").map((c) => textOf(c).trim()).join(" ");
-const pass = (k) => ["data-ref", "data-s"].filter((a) => k.attrs[a] !== undefined).map((a) => ` ${a}="${esc(k.attrs[a])}"`).join("");
+const pass = (k) => ["data-ref", "data-s", "data-node", "data-mark"].filter((a) => k.attrs[a] !== undefined).map((a) => ` ${a}="${esc(k.attrs[a])}"`).join("");
 const fmt = (v) => (Math.abs(v) >= 1000 ? v.toLocaleString("en-US") : String(r2(v)));
 const withUnit = (v, unit) => (unit ? `${v}${unit.length > 1 || /[가-힣]/.test(unit) ? " " : ""}${unit}` : v);
 // 14단위 라벨이 휴대폰에서도 12px 아래로 줄지 않게, 그림은 이 폭 아래로 줄지 않고 틀 안에서 가로로 밀린다
@@ -291,4 +292,29 @@ function seq(n, ctx) {
   return frame(`${svgOpen("ve-seq", W, H, n.attrs.label)}${out.join("")}</svg>`);
 }
 
-export const FORMS = { "ve-line": line, "ve-shift": shift, "ve-timeline": timeline, "ve-tree": tree, "ve-matrix": matrix, "ve-quad": quad, "ve-seq": seq };
+/* ── <ve-scope> 요청한 것, 요청 밖에서 바뀐 것, 영향이 닿는 곳 ── */
+// 받는 사람이 가장 먼저 확인하는 것은 「시킨 것만 바뀌었나」와 「어디까지 번졌나」다. 그래서 요청 밖 칸이 비어도 「없음」으로 그려
+// 「안 셌다」와 「셌는데 없다」를 가른다. sure 는 그 칸을 무엇으로 알았나(실측, 코드 근거, 추정)이고 꼬리표로 붙는다
+const SCOPE = { asked: "요청한 것", outside: "요청 밖에서 바뀐 것", reach: "영향이 닿는 곳" };
+export const SURE = { seen: "실측", code: "코드 근거", guess: "추정" };
+function scope(n, ctx) {
+  needLabel(n, ctx);
+  const { errors, where } = ctx;
+  if (!n.attrs.asked) errors.push(`${where(n)}: asked="…" says what was asked, in one line`);
+  const cols = { asked: [], outside: [], reach: [] };
+  for (const k of kids(n)) {
+    if (k.name !== "ve-area") { errors.push(`${where(k)}: only <ve-area kind="asked|outside|reach"> belongs in <ve-scope>`); continue; }
+    const kind = k.attrs.kind;
+    if (!Object.hasOwn(SCOPE, kind)) { errors.push(`${where(k)}: kind="${kind ?? ""}" is not asked, outside or reach`); continue; }
+    if (k.attrs.sure && !Object.hasOwn(SURE, k.attrs.sure)) errors.push(`${where(k)}: sure="${k.attrs.sure}" is not ${Object.keys(SURE).join(", ")}`);
+    if (kind !== "asked" && !k.attrs.note) errors.push(`${where(k)}: note="…" says what changed or why it is reached; the reader checks this one`);
+    cols[kind].push(k);
+  }
+  if (!cols.asked.length) errors.push(`${where(n)}: needs at least one <ve-area kind="asked">`);
+  if (errors.length) return "";
+  const item = (k) => `<li${pass(k)}${"hot" in k.attrs ? ' class="hot"' : ""}><b>${esc(own(k))}</b>${k.attrs.sure ? ` <span class="chip is-${k.attrs.sure}">${SURE[k.attrs.sure]}</span>` : ""}${k.attrs.note ? `<small>${esc(k.attrs.note)}</small>` : ""}</li>`;
+  const col = (kind) => `<div class="sc-col sc-${kind}"><p class="sc-h">${SCOPE[kind]} <span class="sc-n">${cols[kind].length}</span></p>${cols[kind].length ? `<ul>${cols[kind].map(item).join("")}</ul>` : '<p class="sc-none">없음</p>'}</div>`;
+  return `<div class="ve-scope" role="group" aria-label="${esc(n.attrs.label || "")}"><p class="sc-ask">요청: ${esc(n.attrs.asked)}</p><div class="sc-cols">${["asked", "outside", "reach"].map(col).join("")}</div></div>`;
+}
+
+export const FORMS = { "ve-line": line, "ve-shift": shift, "ve-timeline": timeline, "ve-tree": tree, "ve-matrix": matrix, "ve-quad": quad, "ve-seq": seq, "ve-scope": scope };

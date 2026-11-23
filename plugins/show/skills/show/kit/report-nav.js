@@ -86,7 +86,7 @@
     return { h, num, title, imgs: 0, decisions: [], chars: 0, subs: [] };
   });
   main.querySelectorAll('img').forEach((el) => { const k = sectionOf(el); if (k >= 0) secs[k].imgs++; });
-  main.querySelectorAll('fieldset.ask[data-ask]').forEach((el) => { const k = sectionOf(el); if (k >= 0) secs[k].decisions.push(el); });
+  main.querySelectorAll('fieldset.ask[data-ask]:not(.check)').forEach((el) => { const k = sectionOf(el); if (k >= 0) secs[k].decisions.push(el); });
   main.querySelectorAll('.finding h3, section h3').forEach((el, j) => {
     const k = sectionOf(el); if (k < 0) return;
     if (!el.id) el.id = 'item-' + (j + 1);

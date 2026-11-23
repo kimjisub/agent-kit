@@ -19,7 +19,8 @@ import { basename, dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { addClass, decode, esc, find, hasClass, inner, kids, parseHtml, rawText, serialize, textOf, words } from "./html.mjs";
 import { expandFlow } from "./flow.mjs";
-import { expandAsk } from "./ask.mjs";
+import { expandAsk, expandCheck } from "./ask.mjs";
+import { embedMaps } from "./map-embed.mjs";
 import { TAGS as KIT_TAGS } from "./tags.mjs";
 import { FORMS } from "./forms.mjs";
 import { expandCanvas } from "./canvas-embed.mjs";
@@ -85,8 +86,12 @@ export function renderPage(source, { sendBack = false, base = process.cwd() } = 
   const errors = [], warnings = [];
   const doc = parseHtml(source);
   const links = find(doc, (n) => n.name === "link" && "data-ve-kit" in n.attrs);
-  const tags = find(doc, (n) => Object.hasOwn(TAGS, n.name) || n.name === "ve-flow" || n.name === "ve-ask" || n.name === CANVAS);
-  const asks = tags.filter((t) => t.name === "ve-ask"), charts = tags.filter((t) => t.name !== "ve-ask");
+  const lineOf0 = (pos) => source.slice(0, pos).split("\n").length;
+  // a project map is written once in the shared space and pulled in here, so its boxes expand with the page's own tags
+  embedMaps(doc, { errors, where: (n) => `line ${lineOf0(n.pos)} <ve-map>` });
+  const tags = find(doc, (n) => Object.hasOwn(TAGS, n.name) || n.name === "ve-flow" || n.name === "ve-ask" || n.name === "ve-check" || n.name === CANVAS);
+  const isAsk = (t) => t.name === "ve-ask" || t.name === "ve-check";
+  const asks = tags.filter(isAsk), charts = tags.filter((t) => !isAsk(t));
   // Mermaid is drawn on kit pages only; a deck or another page without the kit keeps its <pre> as written
   const mermaids = links.length ? find(doc, (n) => n.name === "pre" && hasClass(n, "mermaid")) : [];
   const vegas = links.length ? find(doc, (n) => n.name === "script" && (n.attrs.type ?? "").trim().toLowerCase() === VEGA_TYPE) : [];
@@ -108,15 +113,15 @@ export function renderPage(source, { sendBack = false, base = process.cwd() } = 
   // a box or arrow keeps the data-ref and data-s it was written with, so it lights with its terms and its steps
   const ref = (k) => {
     if ("claim" in k.attrs) errors.push(`${where(k)}: claim= belongs to plan pages; link a part to its terms with data-ref`);
-    return ["data-ref", "data-s"].filter((a) => k.attrs[a] !== undefined).map((a) => ` ${a}="${esc(k.attrs[a])}"`).join("");
+    return ["data-ref", "data-s", "data-node", "data-mark"].filter((a) => k.attrs[a] !== undefined).map((a) => ` ${a}="${esc(k.attrs[a])}"`).join("");
   };
   for (const n of find(doc, (x) => "data-if" in x.attrs)) errors.push(`${where(n)}: data-if belongs to plan pages`);
   // the reader's reply is collected inside <main>, so an ask anywhere else would be answered and never reach the agent
   if (asks.length) {
     const main = find(doc, (n) => n.name === "main")[0];
-    const inMain = new Set(main ? find(main, (n) => n.name === "ve-ask") : []);
-    for (const a of asks) if (!inMain.has(a)) errors.push(`${where(a)}: <ve-ask> must be inside <main>, where the reader's reply is collected`);
-    if (image) errors.push(`${where(asks[0])}: a picture cannot take a decision back; send this page as a link (drop data-image), or write the decision as a line under the picture`);
+    const inMain = new Set(main ? find(main, isAsk) : []);
+    for (const a of asks) if (!inMain.has(a)) errors.push(`${where(a)}: <${a.name}> must be inside <main>, where the reader's reply is collected`);
+    if (image) errors.push(`${where(asks[0])}: a picture cannot take a reply back; send this page as a link (drop data-image), or write the decision or the question as a line under the picture`);
   }
   const ids = new Map();
   if (image) for (const t of charts.filter((c) => c.name === CANVAS)) errors.push(`${where(t)}: a picture cannot hold a live canvas; send this page as a link, or link the canvas under the picture`);
@@ -202,7 +207,9 @@ export function renderPage(source, { sendBack = false, base = process.cwd() } = 
     inlined++;
   }
   // 결정은 이미지를 넣은 뒤에 펼친다. 선택지와 설명에 든 그림도 파일 안에 들어간다
-  for (const t of asks) t.html = expandAsk(t, { errors, warnings, where, ids, k: asks.indexOf(t) + 1, total: asks.length, page: true });
+  const decides = asks.filter((t) => t.name === "ve-ask"), checks = asks.filter((t) => t.name === "ve-check");
+  for (const t of decides) t.html = expandAsk(t, { errors, warnings, where, ids, k: decides.indexOf(t) + 1, total: decides.length, page: true });
+  for (const t of checks) t.html = expandCheck(t, { errors, warnings, where, ids, k: checks.indexOf(t) + 1, total: checks.length });
   if (errors.length) return { html: source, kit: true, errors, warnings };
 
   // a page with <ve-ask> also gets its styles and its part of the reply; a page with Mermaid gets the diagram colors

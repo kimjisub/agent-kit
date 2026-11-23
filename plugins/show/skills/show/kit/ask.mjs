@@ -60,3 +60,23 @@ export function expandAsk(n, { errors, warnings, where, ids, k, total, claims = 
     + `<textarea class="ask-own" rows="3" aria-label="${esc(q)} - 직접 쓴 답"></textarea>`;
   return `<fieldset class="ask${row ? " row" : ""}${cards ? " cards" : ""}" id="ask-${esc(id)}" data-ask="${esc(id)}"><legend class="ask-n">${legend}</legend><p class="ask-q">${esc(q)}</p>${fig}<div class="ask-opts">${body}</div>${own}</fieldset>`;
 }
+
+// show: <ve-check q="질문">답</ve-check> 은 받는 사람이 이해했는지 묻는 칸이다. 답은 접어 두고 「알겠다 / 모르겠다」를 받는다.
+// 회신은 결정과 같은 길로 가고 id 가 check- 로 시작해, show.mjs inbox --hook 이 「모르겠다」를 페이지가 못 보인 자리로 센다
+export function expandCheck(n, { errors, warnings, where, ids, k, total }) {
+  const at = where(n);
+  const id = n.attrs.id || `check-${k}`;
+  if (!/^check-[\w-]+$/.test(id)) errors.push(`${at}: id="${id}" must start with check- so the reply is counted as an understanding check`);
+  else if (ids.has(id)) errors.push(`${at}: id="${id}" is already used at ${ids.get(id)}`);
+  ids.set(id, at);
+  const q = n.attrs.q || "";
+  if (!q) errors.push(`${at}: needs q="the question", one the reader can answer from this page`);
+  else if (words(q) > 20) warnings.push(`${at}: the question is ${words(q)} words; keep it to about 20`);
+  const answer = inner(n).trim();
+  if (!answer) errors.push(`${at}: write the answer inside <ve-check>; it stays folded until the reader opens it`);
+  const opt = (v, label) => `<label class="opt"><input type="radio" name="${esc(id)}" value="${v}"><span class="opt-body"><span class="opt-label">${label}</span></span></label>`;
+  return `<fieldset class="ask row check" id="ask-${esc(id)}" data-ask="${esc(id)}"><legend class="ask-n">${total > 1 ? `이해 확인 <b>${k}</b> / ${total}` : "이해 확인"}</legend><p class="ask-q">${esc(q)}</p>`
+    + `<details class="check-a"><summary>답 보기</summary>${answer}</details><div class="ask-opts">${opt("got", "알겠다")}${opt("lost", "모르겠다")}</div>`
+    + `<label class="opt opt-own"><input type="radio" name="${esc(id)}" value="__own"><span class="opt-body"><span class="opt-label">되묻기</span></span></label>`
+    + `<textarea class="ask-own" rows="2" aria-label="${esc(q)} - 되묻는 말"></textarea></fieldset>`;
+}
