@@ -27,7 +27,7 @@
       "name": "professionalify",
       "source": "./plugins/professionalify",
       "description": "Measure and raise the professionalism of documents, slides, charts, diagrams and UI copy along 16 axes, and absorb each piece of feedback back into the axis docs. Docs are in Korean.",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "category": "productivity"
     },
     {

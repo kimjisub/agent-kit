@@ -32,6 +32,7 @@ Installed as a plugin it runs as `/professionalify:professionalify`. Copied to `
 |---|---|
 | grep, Python 3 | 신호 세기와 축별 측정 스크립트 |
 | Node.js 와 Playwright | 레이아웃 축의 줄바꿈 검사(`axes/10-layout-typography/scripts/`) |
+| `council` 스킬(이 키트)과 그 위원 CLI 하나 이상(agy, grok, codex, cursor-agent) | 바깥으로 나갈 산출물의 교차 다듬기(`steps/cross-model.md`). 없으면 그 단계를 건너뛰었다고 적는다 |
 | `skill-authoring` 스킬(이 키트) | 스킬 문서를 고친 뒤 링크 검사 |
 | `dataviz` 스킬 | 차트 색 검증(있으면) |
 
